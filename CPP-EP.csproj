@@ -35,8 +35,16 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="ScintillaNET, Version=4.0.4.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>packages\fernandreu.ScintillaNET.4.0.4\lib\net461\ScintillaNET.dll</HintPath>
+    </Reference>
+    <Reference Include="ScintillaNET.WPF, Version=3.0.2.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>packages\fernandreu.ScintillaNET.WPF.3.0.2\lib\net461\ScintillaNET.WPF.dll</HintPath>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Data" />
+    <Reference Include="System.Drawing" />
+    <Reference Include="System.Windows.Forms" />
     <Reference Include="System.Xml" />
     <Reference Include="Microsoft.CSharp" />
     <Reference Include="System.Core" />
@@ -49,12 +57,29 @@
     <Reference Include="WindowsBase" />
     <Reference Include="PresentationCore" />
     <Reference Include="PresentationFramework" />
+    <Reference Include="Xceed.Wpf.AvalonDock, Version=4.0.20417.14530, Culture=neutral, PublicKeyToken=ba83ff368b7563c6, processorArchitecture=MSIL">
+      <HintPath>packages\Xceed.Wpf.AvalonDock.4.0.20417.1453\lib\net40\Xceed.Wpf.AvalonDock.dll</HintPath>
+    </Reference>
+    <Reference Include="Xceed.Wpf.Toolkit, Version=4.0.20417.14530, Culture=neutral, PublicKeyToken=ba83ff368b7563c6, processorArchitecture=MSIL">
+      <HintPath>packages\Xceed.Wpf.Toolkit.4.0.20417.1453\lib\net40\Xceed.Wpf.Toolkit.dll</HintPath>
+    </Reference>
   </ItemGroup>
   <ItemGroup>
     <ApplicationDefinition Include="App.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
+    <Compile Include="View\ParsingTableView.cs" />
+    <Compile Include="View\FollowView.cs" />
+    <Compile Include="View\FirstView.cs" />
+    <Compile Include="View\RuleView.cs" />
+    <Compile Include="View\Util.cs" />
+    <Compile Include="View\View.cs" />
+    <Compile Include="View\VoidTableView.cs" />
+    <Page Include="DocumentForm.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
     <Page Include="MainWindow.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
@@ -63,8 +88,11 @@
       <DependentUpon>App.xaml</DependentUpon>
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="Execute\Execute.cs" />
+    <Compile Include="DocumentForm.xaml.cs">
+      <DependentUpon>DocumentForm.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Execute\GDB.cs" />
+    <Compile Include="Execute\Xmake.cs" />
     <Compile Include="MainWindow.xaml.cs">
       <DependentUpon>MainWindow.xaml</DependentUpon>
       <SubType>Code</SubType>
@@ -88,6 +116,7 @@
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>Resources.Designer.cs</LastGenOutput>
     </EmbeddedResource>
+    <None Include="packages.config" />
     <None Include="Properties\Settings.settings">
       <Generator>SettingsSingleFileGenerator</Generator>
       <LastGenOutput>Settings.Designer.cs</LastGenOutput>
@@ -95,6 +124,28 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Images\ImageEditCopy.png" />
+    <Resource Include="Images\ImageEditCut.png" />
+    <Resource Include="Images\ImageEditPaste.png" />
+    <Resource Include="Images\ImageEditRedo.png" />
+    <Resource Include="Images\ImageEditUndo.png" />
+    <Resource Include="Images\ImageFileNew.png" />
+    <Resource Include="Images\ImageFileOpen.png" />
+    <Resource Include="Images\ImageFilePrint.png" />
+    <Resource Include="Images\ImageFilePrintPreview.png" />
+    <Resource Include="Images\ImageFileSave.png" />
+    <Resource Include="Images\ImageFileSaveAll.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Images\play.png" />
+    <Resource Include="Images\refresh.png" />
+    <Resource Include="Images\restart.png" />
+    <Resource Include="Images\step_into.png" />
+    <Resource Include="Images\step_out.png" />
+    <Resource Include="Images\step_over.png" />
+    <Resource Include="Images\stop.png" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>
