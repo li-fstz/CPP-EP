@@ -5,7 +5,7 @@ using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
-namespace CPP_EP.View {
+namespace CPP_EP {
     public static class Util {
         public class RegexGroupOneException: Exception { };
         public static string RegexGroupOne(Regex r, string str) {

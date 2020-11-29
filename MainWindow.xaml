@@ -95,13 +95,10 @@
                                 <ad:LayoutAnchorablePaneGroup DockHeight="200">
                                     <ad:LayoutAnchorablePane>
                                         <ad:LayoutAnchorable Title="编译" ContentId="t1" CanHide="False">
-                                            <TextBox Name="buildText" TextWrapping="Wrap" AcceptsReturn="True" IsReadOnly="True"></TextBox>
+                                            <TextBox Name="buildText" TextWrapping="Wrap" AcceptsReturn="True" IsReadOnly="True" VerticalScrollBarVisibility="Visible"></TextBox>
                                         </ad:LayoutAnchorable>
                                         <ad:LayoutAnchorable Title="输出" ContentId="t1" CanHide="False">
-                                            <TextBox TextWrapping="Wrap" AcceptsReturn="True" IsReadOnly="True"></TextBox>
-                                        </ad:LayoutAnchorable>
-                                        <ad:LayoutAnchorable Title="GDB" ContentId="t1" CanHide="False">
-                                            <TextBox Name="gdbText" TextWrapping="Wrap" AcceptsReturn="True" IsReadOnly="True"></TextBox>
+                                            <TextBox TextWrapping="Wrap" AcceptsReturn="True" IsReadOnly="True" VerticalScrollBarVisibility="Visible"></TextBox>
                                         </ad:LayoutAnchorable>
                                     </ad:LayoutAnchorablePane>
                                 </ad:LayoutAnchorablePaneGroup>

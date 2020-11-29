@@ -8,15 +8,15 @@ using Xceed.Wpf.AvalonDock.Layout;
 using System.Text.RegularExpressions;
 
 namespace CPP_EP.View {
-    class ParsingTableView: RuleView {
+    class Lab4: Lab3 {
 
-        public ParsingTableView (GDB gdb) : base (gdb) { }
+        public Lab4 (GDB gdb) : base (gdb) { }
 
         public override void Draw (LayoutAnchorable layout) {
             throw new NotImplementedException ();
         }
 
-        public class Set {
+        public class SelectSet {
             public Rule Rule;
             public Select Select;
             public List<string> Terminal;
@@ -67,8 +67,8 @@ namespace CPP_EP.View {
             }
             return tableHead;
         }
-        public List<Set> GetSetList(string address) {
-            List<Set> setList = new List<Set>();
+        public List<SelectSet> GetSelectSetList(string address) {
+            List<SelectSet> setList = new List<SelectSet>();
             try {
                 int setCount = GetInt("(" + address + ")->nSetCount");
                 for (int i = 0; i < setCount; i++) {
@@ -77,7 +77,7 @@ namespace CPP_EP.View {
                     for (int j = 0; j < terminalCount; j++) {
                         terminals.Add (GetText ("(" + address + ")->Sets[" + i + "].Terminal[" + j + "]"));
                     }
-                    setList.Add (new Set () {
+                    setList.Add (new SelectSet () {
                         Rule = GetRule ("(" + address + ")->Sets[" + i + "].pRule"),
                         Select = GetSelect ("(" + address + ")->Sets[" + i + "].pSelect"),
                         Terminal = terminals

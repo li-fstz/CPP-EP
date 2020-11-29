@@ -1,20 +1,41 @@
-﻿using System;
+﻿using CPP_EP.Execute;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
 using System.Text.RegularExpressions;
-using CPP_EP.Execute;
+using System.Threading.Tasks;
 using Xceed.Wpf.AvalonDock.Layout;
+
 namespace CPP_EP.View {
-    class RuleView: View {
+    abstract class Lab {
+        protected readonly GDB gdb;
+        private static readonly Regex Int = new Regex(@"value=""(-?\d+)""");
+        private static readonly Regex Address = new Regex(@"value=""(0x[0-9a-f]+)""");
+        private static readonly Regex Text = new Regex(@"\\""(.+?)\\""");
+        public Lab(GDB gdb) {
+            this.gdb = gdb;
+        }
+        public abstract void Draw (LayoutAnchorable layout);
+
+        public int GetInt(string value) {
+            return int.Parse(Util.RegexGroupOne (Int, gdb.Print (value)));
+        }
+
+        public string GetAddress(string value) {
+            if (value.IndexOf("0x") == 0) {
+                return value;
+            } else {
+                return Util.RegexGroupOne (Address, gdb.Print (value));
+            }
+        }
+
+        public string GetText(string address) {
+            return Util.RegexGroupOne (Text, gdb.Print (address));
+        }
         protected Dictionary<string, Rule> RuleHash = new Dictionary<string, Rule>();
         protected Dictionary<string, Select> SelectHash = new Dictionary<string, Select>();
         protected Dictionary<string, Symbol> SymbolHash = new Dictionary<string, Symbol>();
-        public RuleView (GDB gdb) : base (gdb) { }
-        public override void Draw (LayoutAnchorable layout) {
-            var rules = GetRule("pHead");
-        }
         public StructRuleSymbol GetStructRuleSymbol (string address) {
             if (address == "0x0") {
                 return null;
@@ -37,8 +58,8 @@ namespace CPP_EP.View {
             StructRule rule = null;
             try {
                 rule = new StructRule () {
-                    Address = address.IndexOf("0x") == 0? address: GetAddress ("&*(Rule *)" + address),
-                    RuleName = GetText("((Rule*)" + address + ")->RuleName"),
+                    Address = address.IndexOf ("0x") == 0 ? address : GetAddress ("&*(Rule *)" + address),
+                    RuleName = GetText ("((Rule*)" + address + ")->RuleName"),
                     pFirstSymbol = GetAddress ("((Rule *)" + address + ")->pFirstSymbol"),
                     pNextRule = GetAddress ("((Rule *)" + address + ")->pNextRule"),
                 };
@@ -50,7 +71,7 @@ namespace CPP_EP.View {
                 return null;
             }
             bool zx = address.IndexOf("0x") == 0;
-            if (zx && SymbolHash.ContainsKey(address)) {
+            if (zx && SymbolHash.ContainsKey (address)) {
                 return SymbolHash[address];
             }
             StructRuleSymbol pSymbol = GetStructRuleSymbol (address);
@@ -81,7 +102,7 @@ namespace CPP_EP.View {
             }
             return select;
         }
-        public Rule GetRule(string address) {
+        public Rule GetRule (string address) {
             if (address == "0x0") {
                 return null;
             }

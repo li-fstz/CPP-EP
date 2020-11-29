@@ -7,10 +7,12 @@ using System.Collections.Generic;
 using System.Drawing;
 using System.IO;
 using System.Linq;
+using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 
 namespace CPP_EP {
+    using RunResult = ValueTuple<string, string>;
     /// <summary>
     /// MainWindow.xaml 的交互逻辑
     /// </summary>
@@ -193,20 +195,24 @@ namespace CPP_EP {
             ScintillaWPF TextArea = ActiveDocument.Scintilla;
             if (e.Margin == BOOKMARK_MARGIN) {
                 const uint mask = (1 << BOOKMARK_MARKER);
-                Line line;
+                Line line = null;
                 if (gdb != null) {
                     var b = gdb.SetBreakpoint (ActiveDocument.Title + ":" + (TextArea.LineFromPosition(e.Position) + 1));
-                    line = TextArea.Lines[b.Line - 1];
+                    if (b.HasValue) {
+                        line = TextArea.Lines[b.Value.Line - 1];
+                    }
                 } else {
                     line = TextArea.Lines[TextArea.LineFromPosition (e.Position)];
                 }
                 // Do we have a marker for this line?
-                if ((line.MarkerGet () & mask) > 0) {
-                    // Remove existing bookmark
-                    line.MarkerDelete (BOOKMARK_MARKER);
-                } else {
-                    // Add bookmark
-                    line.MarkerAdd (BOOKMARK_MARKER);
+                if (line != null) {
+                    if ((line.MarkerGet () & mask) > 0) {
+                        // Remove existing bookmark
+                        line.MarkerDelete (BOOKMARK_MARKER);
+                    } else {
+                        // Add bookmark
+                        line.MarkerAdd (BOOKMARK_MARKER);
+                    }
                 }
             }
         }
@@ -223,7 +229,7 @@ namespace CPP_EP {
                 for (int i = 0; i < itemLabs.Count (); i++) {
                     if (itemLabs[i].IsChecked) {
                         new Xmake ("C:\\Users\\li-fs\\Documents\\labs", "D:\\xmake\\xmake.exe", i + 1).Build (buildText);
-                        gdb = new GDB ("D:\\MinGW\\bin\\gdb.exe", "C:\\Users\\li-fs\\Documents\\labs\\build\\lab" + (i + 1) + ".exe", gdbText);
+                        gdb = new GDB ("D:\\MinGW\\bin\\gdb.exe", "C:\\Users\\li-fs\\Documents\\labs\\build\\lab" + (i + 1) + ".exe");
                         run = true;
                         SetBreakpoint ();
                         AfterRun (gdb.Run ());
@@ -243,10 +249,12 @@ namespace CPP_EP {
                         break;
                     } else {
                         var r = gdb.SetBreakpoint (doc.Title, line + 1);
-                        if (r.Line != line + 1) {
-                            Console.WriteLine (line);
-                            doc.Scintilla.Lines[line].MarkerDelete (BOOKMARK_MARKER);
-                            doc.Scintilla.Lines[r.Line - 1].MarkerAdd (BOOKMARK_MARKER);
+                        if (r.HasValue) {
+                            if (r.Value.Line != line + 1) {
+                                Console.WriteLine (line);
+                                doc.Scintilla.Lines[line].MarkerDelete (BOOKMARK_MARKER);
+                                doc.Scintilla.Lines[r.Value.Line - 1].MarkerAdd (BOOKMARK_MARKER);
+                            }
                         }
                     }
                 }
@@ -257,36 +265,37 @@ namespace CPP_EP {
             nextButton.IsEnabled = false;
             finishButton.IsEnabled = false;
             stopButton.IsEnabled = true;
-            if (r.Running) {
+            if (r.Item2 == null) {
 
             } else {
-                if (r.Reason == "breakpoint-hit" || r.Reason == "end-stepping-range" || r.Reason == "function-finished") {
-                    var rv = new RuleView(gdb);
-                    var vv = new VoidTableView(gdb);
-                    var fsv = new FirstView(gdb);
-                    var flv = new FollowView(gdb);
-                    var ptv = new ParsingTableView(gdb);
-                    List<RuleView.Rule> rules = rv.GetRules("pHead");
-                    VoidTableView.VoidTable voidTable = vv.GetVoidTable("&VoidTable");
-                    List<FirstView.Set> firstSet = fsv.GetSetList ("&FirstSetList");
-                    List<FirstView.Set> followSet = flv.GetSetList ("&FollowSetList");
-                    List<ParsingTableView.Set> selectSet = ptv.GetSetList ("&SelectSetList");
-                    ParsingTableView.ParsingTable parsingTable = ptv.GetParsingTable ("&ParsingTable");
+                if (r.Item2.IndexOf ("breakpoint-hit") != -1
+                    || r.Item2.IndexOf ("end-stepping-range") != -1
+                    || r.Item2.IndexOf ("function-finished") != -1) {
+                    var lab4 = new Lab4(gdb);
+                    List<Lab.Rule> rules = lab4.GetRules("pHead");
+                    Lab1.VoidTable voidTable = lab4.GetVoidTable("&VoidTable");
+                    List<Lab2.Set> firstSet = lab4.GetSetList ("&FirstSetList");
+                    List<Lab2.Set> followSet = lab4.GetSetList ("&FollowSetList");
+                    List<Lab4.SelectSet> selectSet = lab4.GetSelectSetList ("&SelectSetList");
+                    Lab4.ParsingTable parsingTable = lab4.GetParsingTable ("&ParsingTable");
                     foreach (DocumentForm doc in documentsRoot.Children) {
-                        if (doc.Title == Path.GetFileName (r.Breakpoint.Filename)) {
-                            doc.IsActive = true;
-                            doc.Scintilla.Lines[r.Breakpoint.Line - 1].Goto ();
-                            doc.Scintilla.Scintilla.Focus ();
+                        var b = BreakPoint.Parse(r.Item2);
+                        if (b.HasValue) {
+                            if (doc.Title == Path.GetFileName (b.Value.Filename)) {
+                                doc.IsActive = true;
+                                doc.Scintilla.Lines[b.Value.Line - 1].Goto ();
+                                doc.Scintilla.Scintilla.Focus ();
 
-                            stepButton.IsEnabled = true;
-                            nextButton.IsEnabled = true;
-                            finishButton.IsEnabled = true;
-                            break;
+                                stepButton.IsEnabled = true;
+                                nextButton.IsEnabled = true;
+                                finishButton.IsEnabled = true;
+                                break;
+                            }
                         }
                     }
                 } else {
                     run = false;
-                    Console.WriteLine (r.Reason);
+                    Console.WriteLine (r.Item2);
                 }
             }
         }

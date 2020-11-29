@@ -69,13 +69,16 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
-    <Compile Include="View\ParsingTableView.cs" />
-    <Compile Include="View\FollowView.cs" />
-    <Compile Include="View\FirstView.cs" />
-    <Compile Include="View\RuleView.cs" />
-    <Compile Include="View\Util.cs" />
-    <Compile Include="View\View.cs" />
-    <Compile Include="View\VoidTableView.cs" />
+    <Compile Include="View\Lab4.cs" />
+    <Compile Include="View\Lab3.cs" />
+    <Compile Include="View\Lab2.cs" />
+    <Compile Include="Util.cs" />
+    <Compile Include="View\Lab.cs" />
+    <Compile Include="View\Lab1.cs" />
+    <Compile Include="View\Lab8.cs" />
+    <Compile Include="View\Lab7.cs" />
+    <Compile Include="View\Lab6.cs" />
+    <Compile Include="View\Lab5.cs" />
     <Page Include="DocumentForm.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>

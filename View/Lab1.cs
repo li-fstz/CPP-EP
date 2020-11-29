@@ -9,8 +9,8 @@ using Xceed.Wpf.AvalonDock.Layout;
 
 
 namespace CPP_EP.View {
-    class VoidTableView: View {
-        public VoidTableView (GDB gdb) : base (gdb) { }
+    class Lab1: Lab {
+        public Lab1 (GDB gdb) : base (gdb) { }
 
         public override void Draw (LayoutAnchorable layout) {
             throw new NotImplementedException ();
@@ -29,7 +29,7 @@ namespace CPP_EP.View {
         }
         public class VoidTable {
             public List<string> TableHead;
-            public List<bool> HasVoid;
+            public List<bool?> HasVoid;
         }
         private List<string> GetTableHead(string address, int n) {
             List<string> tableHead = new List<string>();
@@ -38,11 +38,14 @@ namespace CPP_EP.View {
             }
             return tableHead;
         }
-        private List<bool> GetHasVoid(string address, int n) {
-            List<bool> hasVoid = new List<bool>();
+        private List<bool?> GetHasVoid(string address, int n) {
+            List<bool?> hasVoid = new List<bool?>();
             for (int i = 0; i < n; i ++) {
-                if (GetInt(address + "[" + i + "]") == 0) {
+                int has = GetInt(address + "[" + i + "]");
+                if (has == 0) {
                     hasVoid.Add (false);
+                } else if (has == -1) {
+                    hasVoid.Add (null);
                 } else {
                     hasVoid.Add (true);
                 }

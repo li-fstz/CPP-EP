@@ -26,6 +26,7 @@ namespace CPP_EP.Execute {
             string s;
             while ((s = ExecuteProcess.StandardOutput.ReadLine ()) != null) {
                 t.AppendText (s + "\n");
+                t.ScrollToEnd ();
             }
         }
     }

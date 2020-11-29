@@ -8,9 +8,9 @@ using Xceed.Wpf.AvalonDock.Layout;
 using System.Text.RegularExpressions;
 
 namespace CPP_EP.View {
-    class FirstView: View {
+    class Lab2: Lab1 {
 
-        public FirstView (GDB gdb) : base (gdb) { }
+        public Lab2 (GDB gdb) : base (gdb) { }
 
         public override void Draw (LayoutAnchorable layout) {
             throw new NotImplementedException ();
