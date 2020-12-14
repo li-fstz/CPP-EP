@@ -69,16 +69,23 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
-    <Compile Include="View\Lab4.cs" />
-    <Compile Include="View\Lab3.cs" />
-    <Compile Include="View\Lab2.cs" />
+    <Compile Include="RuleLayout.xaml.cs">
+      <DependentUpon>RuleLayout.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Lab\Lab4.cs" />
+    <Compile Include="Lab\Lab3.cs" />
+    <Compile Include="Lab\Lab2.cs" />
     <Compile Include="Util.cs" />
-    <Compile Include="View\Lab.cs" />
-    <Compile Include="View\Lab1.cs" />
-    <Compile Include="View\Lab8.cs" />
-    <Compile Include="View\Lab7.cs" />
-    <Compile Include="View\Lab6.cs" />
-    <Compile Include="View\Lab5.cs" />
+    <Compile Include="Lab\Lab.cs" />
+    <Compile Include="Lab\Lab1.cs" />
+    <Compile Include="Lab\Lab8.cs" />
+    <Compile Include="Lab\Lab7.cs" />
+    <Compile Include="Lab\Lab6.cs" />
+    <Compile Include="Lab\Lab5.cs" />
+    <Page Include="RuleLayout.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
     <Page Include="DocumentForm.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
@@ -124,6 +131,7 @@
       <Generator>SettingsSingleFileGenerator</Generator>
       <LastGenOutput>Settings.Designer.cs</LastGenOutput>
     </None>
+    <None Include="script\struct.gdb" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />

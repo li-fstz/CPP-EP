@@ -5,12 +5,14 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Xceed.Wpf.AvalonDock.Layout;
+using System.Text.RegularExpressions;
 
-namespace CPP_EP.View {
-    class Lab5: Lab {
-        public Lab5 (GDB gdb) : base (gdb) { }
+namespace CPP_EP.Lab {
+    class Lab3: Lab2 {
 
-        public override void Draw (LayoutAnchorable layout) {
+        public Lab3 (GDB gdb) : base (gdb) { }
+
+        public override void Draw (LayoutAnchorablePane layoutAnchorablePane) {
             throw new NotImplementedException ();
         }
     }

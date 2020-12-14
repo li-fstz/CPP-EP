@@ -104,25 +104,19 @@
                                 </ad:LayoutAnchorablePaneGroup>
                             </ad:LayoutPanel>
                             <ad:LayoutAnchorablePaneGroup DockWidth="640">
-                                <ad:LayoutAnchorablePane>
-                                    <ad:LayoutAnchorable Title="文法" ContentId="t1" CanHide="False">
-                                        <TextBox TextWrapping="Wrap" AcceptsReturn="True"></TextBox>
+                                <ad:LayoutAnchorablePane x:Name="layoutAnchorablePane">
+                                    <!--<ad:LayoutAnchorable x:Name="ruleLayout" Title="文法" ContentId="t1" CanHide="False">
                                     </ad:LayoutAnchorable>
-                                    <ad:LayoutAnchorable Title="空表" ContentId="t2" CanHide="False">
-                                        <TextBox TextWrapping="Wrap" AcceptsReturn="True"></TextBox>
+                                    <ad:LayoutAnchorable x:Name="voldTableLayout" Title="空表" ContentId="t2" CanHide="False">
                                     </ad:LayoutAnchorable>
-                                    <ad:LayoutAnchorable Title="FIRST 集" ContentId="t2" CanHide="False">
-                                        <TextBox TextWrapping="Wrap" AcceptsReturn="True"></TextBox>
+                                    <ad:LayoutAnchorable x:Name="firstSetLayout" Title="FIRST 集" ContentId="t2" CanHide="False">
                                     </ad:LayoutAnchorable>
-                                    <ad:LayoutAnchorable Title="FOLLOW 集" ContentId="t2" CanHide="False">
-                                        <TextBox TextWrapping="Wrap" AcceptsReturn="True"></TextBox>
+                                    <ad:LayoutAnchorable x:Name="followSetLayout" Title="FOLLOW 集" ContentId="t2" CanHide="False">
                                     </ad:LayoutAnchorable>
-                                    <ad:LayoutAnchorable Title="预测分析表" ContentId="t2" CanHide="False">
-                                        <TextBox TextWrapping="Wrap" AcceptsReturn="True"></TextBox>
+                                    <ad:LayoutAnchorable x:Name="parsingTableLayout" Title="预测分析表" ContentId="t2" CanHide="False">
                                     </ad:LayoutAnchorable>
-                                    <ad:LayoutAnchorable Title="预测分析方法" ContentId="t2" CanHide="False">
-                                        <TextBox TextWrapping="Wrap" AcceptsReturn="True"></TextBox>
-                                    </ad:LayoutAnchorable>
+                                    <ad:LayoutAnchorable x:Name="parsingLayout" Title="预测分析方法" ContentId="t2" CanHide="False">
+                                    </ad:LayoutAnchorable>-->
                                 </ad:LayoutAnchorablePane>
                             </ad:LayoutAnchorablePaneGroup>
                         </ad:LayoutPanel>

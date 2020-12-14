@@ -1,5 +1,5 @@
 ﻿using CPP_EP.Execute;
-using CPP_EP.View;
+using CPP_EP.Lab;
 using ScintillaNET;
 using ScintillaNET.WPF;
 using System;
@@ -7,7 +7,6 @@ using System.Collections.Generic;
 using System.Drawing;
 using System.IO;
 using System.Linq;
-using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 
@@ -18,7 +17,7 @@ namespace CPP_EP {
     /// </summary>
     public partial class MainWindow: Window {
         private readonly MenuItem[] itemLabs;
-
+        private readonly Dictionary<MenuItem, List<string>> filesMap;
         private const int NUMBER_MARGIN = 2;
 
         private const int BOOKMARK_MARGIN = 1;
@@ -30,9 +29,62 @@ namespace CPP_EP {
         private bool run = false;
 
         private GDB gdb = null;
+        private Lab.Lab lab = null;
         public MainWindow () {
             InitializeComponent ();
             itemLabs = new MenuItem[] { itemLab1, itemLab2, itemLab3, itemLab4, itemLab5, itemLab6, itemLab7, itemLab8 };
+            filesMap = new Dictionary<MenuItem, List<string>> {
+                [itemLab1] = new List<string> () {
+                    "C:\\Users\\li-fs\\Documents\\labs\\src\\lab1.c",
+                    "C:\\Users\\li-fs\\Documents\\labs\\src\\inc\\rule.c",
+                    "C:\\Users\\li-fs\\Documents\\labs\\src\\inc\\voidtable.c"
+                },
+                [itemLab2] = new List<string> () {
+                    "C:\\Users\\li-fs\\Documents\\labs\\src\\lab2.c",
+                    "C:\\Users\\li-fs\\Documents\\labs\\src\\inc\\rule.c",
+                    "C:\\Users\\li-fs\\Documents\\labs\\src\\inc\\voidtable.c",
+                    "C:\\Users\\li-fs\\Documents\\labs\\src\\inc\\first.c"
+                },
+                [itemLab3] = new List<string> () {
+                    "C:\\Users\\li-fs\\Documents\\labs\\src\\lab3.c",
+                    "C:\\Users\\li-fs\\Documents\\labs\\src\\inc\\rule.c",
+                    "C:\\Users\\li-fs\\Documents\\labs\\src\\inc\\voidtable.c",
+                    "C:\\Users\\li-fs\\Documents\\labs\\src\\inc\\first.c",
+                    "C:\\Users\\li-fs\\Documents\\labs\\src\\inc\\follow.c"
+                },
+                [itemLab4] = new List<string> () {
+                    "C:\\Users\\li-fs\\Documents\\labs\\src\\lab4.c",
+                    "C:\\Users\\li-fs\\Documents\\labs\\src\\inc\\rule.c",
+                    "C:\\Users\\li-fs\\Documents\\labs\\src\\inc\\voidtable.c",
+                    "C:\\Users\\li-fs\\Documents\\labs\\src\\inc\\first.c",
+                    "C:\\Users\\li-fs\\Documents\\labs\\src\\inc\\follow.c",
+                    "C:\\Users\\li-fs\\Documents\\labs\\src\\inc\\parsingtable.c"
+                },
+                [itemLab5] = new List<string> () {
+                    "C:\\Users\\li-fs\\Documents\\labs\\src\\lab5.c",
+                    "C:\\Users\\li-fs\\Documents\\labs\\src\\inc\\rule.c",
+                    "C:\\Users\\li-fs\\Documents\\labs\\src\\inc\\pickupleftfactor.c"
+                },
+                [itemLab6] = new List<string> () {
+                    "C:\\Users\\li-fs\\Documents\\labs\\src\\lab6.c",
+                    "C:\\Users\\li-fs\\Documents\\labs\\src\\inc\\rule.c",
+                    "C:\\Users\\li-fs\\Documents\\labs\\src\\inc\\removeleftrecursion1.c"
+                },
+                [itemLab7] = new List<string> () {
+                    "C:\\Users\\li-fs\\Documents\\labs\\src\\lab7.c",
+                    "C:\\Users\\li-fs\\Documents\\labs\\src\\inc\\rule.c",
+                    "C:\\Users\\li-fs\\Documents\\labs\\src\\inc\\removeleftrecursion2.c"
+                },
+                [itemLab8] = new List<string> () {
+                    "C:\\Users\\li-fs\\Documents\\labs\\src\\lab8.c",
+                    "C:\\Users\\li-fs\\Documents\\labs\\src\\inc\\rule.c",
+                    "C:\\Users\\li-fs\\Documents\\labs\\src\\inc\\voidtable.c",
+                    "C:\\Users\\li-fs\\Documents\\labs\\src\\inc\\first.c",
+                    "C:\\Users\\li-fs\\Documents\\labs\\src\\inc\\follow.c",
+                    "C:\\Users\\li-fs\\Documents\\labs\\src\\inc\\parsingtable.c",
+                    "C:\\Users\\li-fs\\Documents\\labs\\src\\inc\\parser.c"
+                }
+            };
         }
         public DocumentForm ActiveDocument {
             get { return documentsRoot.Children.FirstOrDefault (c => c.Content == dockPanel.ActiveContent) as DocumentForm; }
@@ -64,55 +116,11 @@ namespace CPP_EP {
                 } else {
                     itemLab.IsChecked = true;
                     Clean ();
-                    while (documentsRoot.Children.Count () != 0) {
-                        documentsRoot.Children[0].Close ();
-                    }
-                    if (sender == itemLab1) {
-                        OpenFile ("C:\\Users\\li-fs\\Documents\\labs\\src\\lab1.c");
-                        OpenFile ("C:\\Users\\li-fs\\Documents\\labs\\src\\inc\\rule.c");
-                        OpenFile ("C:\\Users\\li-fs\\Documents\\labs\\src\\inc\\voidtable.c");
-                    } else if (sender == itemLab2) {
-                        OpenFile ("C:\\Users\\li-fs\\Documents\\labs\\src\\lab2.c");
-                        OpenFile ("C:\\Users\\li-fs\\Documents\\labs\\src\\inc\\rule.c");
-                        OpenFile ("C:\\Users\\li-fs\\Documents\\labs\\src\\inc\\voidtable.c");
-                        OpenFile ("C:\\Users\\li-fs\\Documents\\labs\\src\\inc\\first.c");
-                    } else if (sender == itemLab3) {
-                        OpenFile ("C:\\Users\\li-fs\\Documents\\labs\\src\\lab3.c");
-                        OpenFile ("C:\\Users\\li-fs\\Documents\\labs\\src\\inc\\rule.c");
-                        OpenFile ("C:\\Users\\li-fs\\Documents\\labs\\src\\inc\\voidtable.c");
-                        OpenFile ("C:\\Users\\li-fs\\Documents\\labs\\src\\inc\\first.c");
-                        OpenFile ("C:\\Users\\li-fs\\Documents\\labs\\src\\inc\\follow.c");
-                    } else if (sender == itemLab4) {
-                        OpenFile ("C:\\Users\\li-fs\\Documents\\labs\\src\\lab4.c");
-                        OpenFile ("C:\\Users\\li-fs\\Documents\\labs\\src\\inc\\rule.c");
-                        OpenFile ("C:\\Users\\li-fs\\Documents\\labs\\src\\inc\\voidtable.c");
-                        OpenFile ("C:\\Users\\li-fs\\Documents\\labs\\src\\inc\\first.c");
-                        OpenFile ("C:\\Users\\li-fs\\Documents\\labs\\src\\inc\\follow.c");
-                        OpenFile ("C:\\Users\\li-fs\\Documents\\labs\\src\\inc\\parsingtable.c");
-                    } else if (sender == itemLab5) {
-                        OpenFile ("C:\\Users\\li-fs\\Documents\\labs\\src\\lab5.c");
-                        OpenFile ("C:\\Users\\li-fs\\Documents\\labs\\src\\inc\\rule.c");
-                        OpenFile ("C:\\Users\\li-fs\\Documents\\labs\\src\\inc\\pickupleftfactor.c");
-                    } else if (sender == itemLab6) {
-                        OpenFile ("C:\\Users\\li-fs\\Documents\\labs\\src\\lab6.c");
-                        OpenFile ("C:\\Users\\li-fs\\Documents\\labs\\src\\inc\\rule.c");
-                        OpenFile ("C:\\Users\\li-fs\\Documents\\labs\\src\\inc\\removeleftrecursion1.c");
-                    } else if (sender == itemLab7) {
-                        OpenFile ("C:\\Users\\li-fs\\Documents\\labs\\src\\lab7.c");
-                        OpenFile ("C:\\Users\\li-fs\\Documents\\labs\\src\\inc\\rule.c");
-                        OpenFile ("C:\\Users\\li-fs\\Documents\\labs\\src\\inc\\removeleftrecursion2.c");
-                    } else if (sender == itemLab8) {
-                        OpenFile ("C:\\Users\\li-fs\\Documents\\labs\\src\\lab8.c");
-                        OpenFile ("C:\\Users\\li-fs\\Documents\\labs\\src\\inc\\rule.c");
-                        OpenFile ("C:\\Users\\li-fs\\Documents\\labs\\src\\inc\\voidtable.c");
-                        OpenFile ("C:\\Users\\li-fs\\Documents\\labs\\src\\inc\\first.c");
-                        OpenFile ("C:\\Users\\li-fs\\Documents\\labs\\src\\inc\\follow.c");
-                        OpenFile ("C:\\Users\\li-fs\\Documents\\labs\\src\\inc\\parsingtable.c");
-                        OpenFile ("C:\\Users\\li-fs\\Documents\\labs\\src\\inc\\parser.c");
-                    }
+                    documentsRoot.Children.Clear ();
+                    layoutAnchorablePane.Children.Clear ();
+                    filesMap[(MenuItem)sender].ForEach (f => OpenFile(f));
                 }
             }
-            
         }
         private void SetScintillaToCurrentOptions (DocumentForm doc) {
             ScintillaWPF ScintillaNet = doc.Scintilla;
@@ -271,13 +279,16 @@ namespace CPP_EP {
                 if (r.Item2.IndexOf ("breakpoint-hit") != -1
                     || r.Item2.IndexOf ("end-stepping-range") != -1
                     || r.Item2.IndexOf ("function-finished") != -1) {
-                    var lab4 = new Lab4(gdb);
-                    List<Lab.Rule> rules = lab4.GetRules("pHead");
+                    /*
+                    List<Lab.Lab.Rule> rules = lab4.GetRules("pHead");
                     Lab1.VoidTable voidTable = lab4.GetVoidTable("&VoidTable");
                     List<Lab2.Set> firstSet = lab4.GetSetList ("&FirstSetList");
                     List<Lab2.Set> followSet = lab4.GetSetList ("&FollowSetList");
                     List<Lab4.SelectSet> selectSet = lab4.GetSelectSetList ("&SelectSetList");
                     Lab4.ParsingTable parsingTable = lab4.GetParsingTable ("&ParsingTable");
+                    List<Lab.Lab.Symbol> stack = lab8.GetParsingStack("&Stack");
+                    */
+                    lab.Draw (layoutAnchorablePane);
                     foreach (DocumentForm doc in documentsRoot.Children) {
                         var b = BreakPoint.Parse(r.Item2);
                         if (b.HasValue) {

@@ -12,7 +12,6 @@ namespace CPP_EP.Execute {
         class ExecuteNotResponseException: Exception { }
         private object ReadLock = new object();
         private Process ExecuteProcess;
-        private Thread ReadThread;
         private readonly string Filename;
         private readonly string Arguments;
         private readonly Queue<string> ExecResult = new Queue<string>();
@@ -21,7 +20,7 @@ namespace CPP_EP.Execute {
         public GDB (string gdbpath, string filepath){
 
             Filename = gdbpath;
-            Arguments = "-silent --interpreter mi " + filepath;
+            Arguments = "-x C:\\Users\\li-fs\\Documents\\哈理工\\毕业设计\\CPP-EP\\script\\struct.gdb -silent --interpreter mi " + filepath;
 
             ExecuteProcess = new Process ();
             ExecuteProcess.StartInfo.FileName = Filename;
@@ -134,6 +133,23 @@ namespace CPP_EP.Execute {
             }
             return null;
         }
+        public string SendScript (string script) {
+            string r = "";
+            string s;
+            Console.WriteLine ("gdb <- " + script);
+            ExecuteProcess.StandardInput.WriteLine (script);
+            while ((s = ReadLine ()) != null) {
+                Console.WriteLine ("gdb -> " + s);
+                r += s;
+                if (s[0] == '^') {
+                    if (s != "^done") {
+                        r = null;
+                    }
+                    break;
+                }
+            }
+            return r;
+        }
         protected string GetExecResult(int time = 0) {
             if (time != 0) Thread.Sleep (100);
             string r = null;
@@ -154,13 +170,12 @@ namespace CPP_EP.Execute {
             }
             var task = Task.Run(() => ReadLine());
             if (Task.WhenAny (task, Task.Delay (100)).Result != task) {
-                return Send ("", false);
+                return null;
             }
             r = task.Result;
+            Console.WriteLine ("gdb -> " + r);
             if (r.IndexOf ("*stop") == -1) {
                 r = null;
-            } else {
-                Console.WriteLine ("gdb -> " + r);
             }
             return r ?? (time == 10 ? null : GetExecResult2 (time + 1));
         }
