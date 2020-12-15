@@ -3,126 +3,78 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        xmlns:local="clr-namespace:CPP_EP" xmlns:ad="http://schemas.xceed.com/wpf/xaml/avalondock" xmlns:s="clr-namespace:System;assembly=mscorlib"
+        xmlns:local="clr-namespace:CPP_EP"
         mc:Ignorable="d"
-        Loaded="Window_Loaded"
         Title="MainWindow" Height="720" Width="1280">
     <Grid>
-        <DockPanel HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
-            <Menu HorizontalAlignment="Stretch" VerticalAlignment="Top" DockPanel.Dock="Top">
-                <MenuItem Header="实验项目">
-                    <MenuItem Name="itemLab1" Header="1.空表" IsCheckable="True" Click="ItemLab_Click"/>
-                    <MenuItem Name="itemLab2" Header="2.FIRST 集" IsCheckable="True" Click="ItemLab_Click"/>
-                    <MenuItem Name="itemLab3" Header="3.FOLLOW 集" IsCheckable="True" Click="ItemLab_Click"/>
-                    <MenuItem Name="itemLab4" Header="4.预测分析表" IsCheckable="True" Click="ItemLab_Click"/>
-                    <MenuItem Name="itemLab5" Header="5.提取左因子" IsCheckable="True" Click="ItemLab_Click"/>
-                    <MenuItem Name="itemLab6" Header="6.消除左递归（无替换）" IsCheckable="True" Click="ItemLab_Click"/>
-                    <MenuItem Name="itemLab7" Header="7.消除左递归（有替换）" IsCheckable="True" Click="ItemLab_Click"/>
-                    <MenuItem Name="itemLab8" Header="8.预测分析方法" IsCheckable="True" Click="ItemLab_Click"/>
-                </MenuItem>
-                <MenuItem Header="_File">
-                    <MenuItem Name="newMenuItem" Header="_New">
-                        <MenuItem.Icon>
-                            <Image Height="16px" Source="/CPP-EP;component/Images/ImageFileNew.png" Stretch="Uniform" />
-                        </MenuItem.Icon>
-                    </MenuItem>
-                    <MenuItem Name="openMenuItem" Header="_Open...">
-                        <MenuItem.Icon>
-                            <Image Height="16px" Source="/CPP-EP;component/Images/ImageFileOpen.png" Stretch="Uniform" />
-                        </MenuItem.Icon>
-                    </MenuItem>
-                    <Separator />
-                    <MenuItem Name="closeMenuItem" Header="_Close" />
-                    <Separator />
-                    <MenuItem Name="saveMenuItem" Header="_Save">
-                        <MenuItem.Icon>
-                            <Image Height="16px" Source="/CPP-EP;component/Images/ImageFileSave.png" Stretch="Uniform" />
-                        </MenuItem.Icon>
-                    </MenuItem>
-                    <MenuItem Name="saveAsMenuItem" Header="Save _As..." />
-                    <MenuItem Name="saveAllMenuItem" Header="Save A_ll">
-                        <MenuItem.Icon>
-                            <Image Height="16px" Source="/CPP-EP;component/Images/ImageFileSaveAll.png" Stretch="Uniform" />
-                        </MenuItem.Icon>
-                    </MenuItem>
-                    <Separator />
-                    <MenuItem Name="exitMenuItem" Header="E_xit" />
-                </MenuItem>
-                <MenuItem Header="关于">
-                    <MenuItem Name="aboutMenuItem" Header="_About" />
-                </MenuItem>
-            </Menu>
-            <ToolBarPanel Name="toolStrip" HorizontalAlignment="Stretch" DockPanel.Dock="Top">
-                <ToolBarTray>
-                    <ToolBar Height="32px" ToolBarTray.IsLocked="True">
-                        <Button Width="30px" Height="30px" Padding="0px" Name="startButton" Click="startButton_Click"
-                                ToolTip="启动" IsEnabled="False">
-                            <Image Height="24px" Source="/CPP-EP;component/Images/play.png" Stretch="Uniform" />
-                        </Button>
-                        <Button Width="30px" Height="30px" Padding="0px" Name="stopButton" Click="stopButton_Click"
-                                ToolTip="停止" IsEnabled="False">
-                            <Image Height="24px" Source="/CPP-EP;component/Images/stop.png" Stretch="Uniform" />
-                        </Button>
-                        <Button Width="30px" Height="30px" Padding="0px" Name="refButton"
-                                ToolTip="重新启动" IsEnabled="False">
-                            <Image Height="24px" Source="/CPP-EP;component/Images/refresh.png" Stretch="Uniform" />
-                        </Button>
-                        <Button Width="30px" Height="30px" Padding="0px" Name="stepButton" Click="stepButton_Click"
-                                ToolTip="逐语句" IsEnabled="False">
-                            <Image Height="24px" Source="/CPP-EP;component/Images/step_into.png" Stretch="Uniform" />
-                        </Button>
-                        <Button Width="30px" Height="30px" Padding="0px" Name="nextButton" Click="nextButton_Click"
-                                ToolTip="逐过程" IsEnabled="False">
-                            <Image Height="24px" Source="/CPP-EP;component/Images/step_over.png" Stretch="Uniform" />
-                        </Button>
-                        <Button Width="30px" Height="30px" Padding="0px" Name="finishButton" Click="finishButton_Click"
-                                ToolTip="跳出" IsEnabled="False">
-                            <Image Height="24px" Source="/CPP-EP;component/Images/step_out.png" Stretch="Uniform" />
-                        </Button>
-                    </ToolBar>
-                </ToolBarTray>
-            </ToolBarPanel>
-            <DockPanel HorizontalAlignment="Stretch" VerticalAlignment="Stretch" DockPanel.Dock="Bottom">
-                <StatusBar Name="statusStrip" Height="22px" HorizontalAlignment="Stretch"
-                           DockPanel.Dock="Bottom">
-                    <StatusBarItem />
-                </StatusBar>
-                <ad:DockingManager Name="dockPanel">
-                    <ad:LayoutRoot>
-                        <ad:LayoutPanel Orientation="Horizontal">
-                            <ad:LayoutPanel Orientation="Vertical">
-                                <ad:LayoutDocumentPane x:Name="documentsRoot" IsMaximized="True" />
-                                <ad:LayoutAnchorablePaneGroup DockHeight="200">
-                                    <ad:LayoutAnchorablePane>
-                                        <ad:LayoutAnchorable Title="编译" ContentId="t1" CanHide="False">
-                                            <TextBox Name="buildText" TextWrapping="Wrap" AcceptsReturn="True" IsReadOnly="True" VerticalScrollBarVisibility="Visible"></TextBox>
-                                        </ad:LayoutAnchorable>
-                                        <ad:LayoutAnchorable Title="输出" ContentId="t1" CanHide="False">
-                                            <TextBox TextWrapping="Wrap" AcceptsReturn="True" IsReadOnly="True" VerticalScrollBarVisibility="Visible"></TextBox>
-                                        </ad:LayoutAnchorable>
-                                    </ad:LayoutAnchorablePane>
-                                </ad:LayoutAnchorablePaneGroup>
-                            </ad:LayoutPanel>
-                            <ad:LayoutAnchorablePaneGroup DockWidth="640">
-                                <ad:LayoutAnchorablePane x:Name="layoutAnchorablePane">
-                                    <!--<ad:LayoutAnchorable x:Name="ruleLayout" Title="文法" ContentId="t1" CanHide="False">
-                                    </ad:LayoutAnchorable>
-                                    <ad:LayoutAnchorable x:Name="voldTableLayout" Title="空表" ContentId="t2" CanHide="False">
-                                    </ad:LayoutAnchorable>
-                                    <ad:LayoutAnchorable x:Name="firstSetLayout" Title="FIRST 集" ContentId="t2" CanHide="False">
-                                    </ad:LayoutAnchorable>
-                                    <ad:LayoutAnchorable x:Name="followSetLayout" Title="FOLLOW 集" ContentId="t2" CanHide="False">
-                                    </ad:LayoutAnchorable>
-                                    <ad:LayoutAnchorable x:Name="parsingTableLayout" Title="预测分析表" ContentId="t2" CanHide="False">
-                                    </ad:LayoutAnchorable>
-                                    <ad:LayoutAnchorable x:Name="parsingLayout" Title="预测分析方法" ContentId="t2" CanHide="False">
-                                    </ad:LayoutAnchorable>-->
-                                </ad:LayoutAnchorablePane>
-                            </ad:LayoutAnchorablePaneGroup>
-                        </ad:LayoutPanel>
-                    </ad:LayoutRoot>
-                </ad:DockingManager>
-            </DockPanel>
-        </DockPanel>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="5*"/>
+            <ColumnDefinition Width="3"/>
+            <ColumnDefinition Width="3*"/>
+        </Grid.ColumnDefinitions>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="2*"/>
+            <RowDefinition Height="3"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+        <TabControl Grid.Row="0" Grid.Column="2" Grid.RowSpan="5" TabStripPlacement="Bottom">
+            <TabItem Header="文法">
+                <TextBlock></TextBlock>
+            </TabItem>
+            <TabItem Header="空表">
+                <TextBlock></TextBlock>
+            </TabItem>
+        </TabControl>
+        <GridSplitter Grid.Row="0" Grid.Column="1" Grid.RowSpan="5" Width="3" HorizontalAlignment="Stretch"/>
+        <Menu Grid.Row="0" Grid.Column="0">
+            <MenuItem Header="实验">
+                <MenuItem Name="itemLab1" Header="1.空表" IsCheckable="True"/>
+                <MenuItem Name="itemLab2" Header="2.FIRST 集" IsCheckable="True"/>
+                <MenuItem Name="itemLab3" Header="3.FOLLOW 集" IsCheckable="True"/>
+                <MenuItem Name="itemLab4" Header="4.预测分析表" IsCheckable="True"/>
+                <MenuItem Name="itemLab5" Header="5.提取左因子" IsCheckable="True"/>
+                <MenuItem Name="itemLab6" Header="6.消除左递归（无替换）" IsCheckable="True"/>
+                <MenuItem Name="itemLab7" Header="7.消除左递归（有替换）" IsCheckable="True"/>
+                <MenuItem Name="itemLab8" Header="8.预测分析方法" IsCheckable="True"/>
+            </MenuItem>
+            <MenuItem Header="File">
+                <MenuItem Header="Open"/>
+                <MenuItem Header="Save"/>
+                <MenuItem Header="Delete"/>
+            </MenuItem>
+            <MenuItem Header="Edit"></MenuItem>
+            <MenuItem Header="View"></MenuItem>
+            <MenuItem Header="About"></MenuItem>
+        </Menu>
+        <ToolBar Grid.Row="1" Grid.Column="0" ToolBarTray.IsLocked="True">
+            <Button Content="启动" IsEnabled="False"></Button>
+            <Button Content="停止" IsEnabled="False"></Button>
+            <Button Content="重新启动" IsEnabled="False"></Button>
+            <Button Content="逐语句" IsEnabled="False"></Button>
+            <Button Content="逐过程" IsEnabled="False"></Button>
+            <Button Content="跳出" IsEnabled="False"></Button>
+        </ToolBar>
+        <TabControl Grid.Row="2" Grid.Column="0">
+            <TabItem Header="rule.c">
+                <TextBlock></TextBlock>
+            </TabItem>
+            <TabItem Header="voidtable.c">
+                <TextBlock></TextBlock>
+            </TabItem>
+            <TabItem Header="lab1.c">
+                <TextBlock></TextBlock>
+            </TabItem>
+        </TabControl>
+        <GridSplitter Grid.Row="3" Grid.Column="0" Height="3" HorizontalAlignment="Stretch" ResizeDirection="Rows"/>
+        <TabControl Grid.Row="4" Grid.Column="0">
+            <TabItem Header="编译">
+                <TextBlock></TextBlock>
+            </TabItem>
+            <TabItem Header="输出">
+                <TextBlock></TextBlock>
+            </TabItem>
+        </TabControl>
     </Grid>
 </Window>

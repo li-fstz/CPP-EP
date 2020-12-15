@@ -6,11 +6,14 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Controls;
 
-namespace CPP_EP.Execute {
-    class Xmake {
+namespace CPP_EP.Execute
+{
+    class Xmake
+    {
         private Process ExecuteProcess;
-        public Xmake (string labsPath, string xmakePath, int lab) {
-            ExecuteProcess = new Process ();
+        public Xmake(string labsPath, string xmakePath, int lab)
+        {
+            ExecuteProcess = new Process();
             ExecuteProcess.StartInfo.WorkingDirectory = labsPath;
             ExecuteProcess.StartInfo.FileName = xmakePath;
             ExecuteProcess.StartInfo.Arguments = "build lab" + lab;
@@ -19,14 +22,16 @@ namespace CPP_EP.Execute {
             ExecuteProcess.StartInfo.RedirectStandardInput = true;
             ExecuteProcess.StartInfo.RedirectStandardError = true;
             ExecuteProcess.StartInfo.CreateNoWindow = true;
-            ExecuteProcess.Start ();
+            ExecuteProcess.Start();
         }
-        public void Build(TextBox t) {
-            t.Clear ();
+        public void Build(TextBox t)
+        {
+            t.Clear();
             string s;
-            while ((s = ExecuteProcess.StandardOutput.ReadLine ()) != null) {
-                t.AppendText (s + "\n");
-                t.ScrollToEnd ();
+            while ((s = ExecuteProcess.StandardOutput.ReadLine()) != null)
+            {
+                t.AppendText(s + "\n");
+                t.ScrollToEnd();
             }
         }
     }

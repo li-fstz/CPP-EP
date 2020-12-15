@@ -1,4 +1,4 @@
-define getaddress
+﻿define getaddress
 	set $arg0 = &*($arg1 *)$arg2
 end
 
@@ -9,16 +9,16 @@ define getsymbol
 	end
 end
 
-define getselect
-	getaddress $select RuleSymbol $arg0
-	while $select
-		set $symbol = $select
+define getproduction
+	getaddress $production RuleSymbol $arg0
+	while $production
+		set $symbol = $production
 		while $symbol
 			getsymbol $symbol
 			set $symbol = $symbol->pNextSymbol
 		end
-		set $select = $select->pOther
-		if $select
+		set $production = $production->pNextProduction
+		if $production
 			echo |
 		end
 	end
@@ -29,8 +29,8 @@ define getrule
 	while $rule
 		printf "0x%x=>%s", $rule, $rule->RuleName
 		echo |
-		set $select = $rule->pFirstSymbol
-		getselect $select
+		set $production = $rule->pFirstProduction
+		getproduction $production
 		set $rule = $rule->pNextRule
 		if $rule
 			echo ||
@@ -78,7 +78,7 @@ end
 define getselectset
 	getaddress $selectset SelectSet $arg0
 	set $i = 0
-	printf "0x%x=>0x%x=>0x%x", $selectset, $selectset->pRule, $selectset->pSelect
+	printf "0x%x=>0x%x=>0x%x", $selectset, $selectset->pRule, $selectset->pProduction
 	while $i < $selectset->nTerminalCount
 		printf "%s", $selectset->Terminal[$i]
 		set $i = $i + 1
