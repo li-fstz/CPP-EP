@@ -1,16 +1,16 @@
-﻿define getaddress
+define getaddress
 	set $arg0 = &*($arg1 *)$arg2
 end
 
 define getsymbol
-	getaddress $symbol RuleSymbol $arg0
+	getaddress $symbol Symbol $arg0
 	if $symbol
 		printf "0x%x=>%s", $symbol, $symbol->SymbolName
 	end
 end
 
 define getproduction
-	getaddress $production RuleSymbol $arg0
+	getaddress $production Symbol $arg0
 	while $production
 		set $symbol = $production
 		while $symbol
@@ -19,7 +19,7 @@ define getproduction
 		end
 		set $production = $production->pNextProduction
 		if $production
-			echo |
+			echo |production|
 		end
 	end
 end
@@ -28,24 +28,24 @@ define getrule
 	getaddress $rule Rule $arg0
 	while $rule
 		printf "0x%x=>%s", $rule, $rule->RuleName
-		echo |
+		echo |production|
 		set $production = $rule->pFirstProduction
 		getproduction $production
 		set $rule = $rule->pNextRule
 		if $rule
-			echo ||
+			echo |rule|
 		end
 	end
 end
 
 define getvoidtable
-	set $voidtable = &*(struct _VoidTable *)$arg0
+	getaddress $voidtable VoidTable $arg0
 	set $i = 0
 	while $i < $voidtable->ColCount
 		printf "%s", $voidtable->pTableHead[$i]
 		set $i = $i + 1
 	end
-	echo |
+	echo |voidtable|
 	set $i = 0
 	while $i < $voidtable->ColCount
 		printf "%d", $voidtable->TableRows->hasVoid[$i]
@@ -58,7 +58,7 @@ define getset
 	set $i = 0
 	printf "0x%x=>%s", $set, $set->Name
 	while $i < $set->nTerminalCount
-		printf "%s", $set->Terminal[$i]
+		printf "%s", $set->Terminals[$i]
 		set $i = $i + 1
 	end
 end
@@ -70,7 +70,7 @@ define getsetlist
 		getset $setlist->Sets+$j
 		set $j = $j + 1
 		if $j != $setlist->nSetCount
-			echo |
+			echo |setlist|
 		end
 	end
 end
@@ -80,42 +80,42 @@ define getselectset
 	set $i = 0
 	printf "0x%x=>0x%x=>0x%x", $selectset, $selectset->pRule, $selectset->pProduction
 	while $i < $selectset->nTerminalCount
-		printf "%s", $selectset->Terminal[$i]
+		printf "%s", $selectset->Terminals[$i]
 		set $i = $i + 1
 	end
 end
 
 define getselectsetlist
-	set $selectsetlist = &*(struct _SelectSetList *)$arg0
+	getaddress $selectsetlist SelectSetList $arg0
 	set $j = 0
 	while $j < $selectsetlist->nSetCount
 		getselectset $selectsetlist->Sets+$j
 		set $j = $j + 1
 		if $j != $selectsetlist->nSetCount
-			echo |
+			echo |selectsetlist|
 		end
 	end
 end
 
 define getparsingtable
-	set $parsingtable = &*(struct _ParsingTable *)$arg0
+	getaddress $parsingtable ParsingTable $arg0
 	set $i = 0
 	while $i < $parsingtable->ColCount
 		printf "%s", $parsingtable->pTableHead[$i]
 		set $i = $i + 1
 	end
-	echo |
+	echo |parsingtable|
 	set $j = 0
 	while $parsingtable->TableRows[$j].pRule
 		set $i = 0
 		printf "0x%x", $parsingtable->TableRows[$j].pRule
 		while $i < $parsingtable->ColCount
-			printf "0x%x", $parsingtable->TableRows[$j].Select[$i]
+			printf "0x%x", $parsingtable->TableRows[$j].Productions[$i]
 			set $i = $i + 1
 		end
 		set $j = $j + 1
 		if $parsingtable->TableRows[$j].pRule
-			echo |
+			echo |parsingtable|
 		end
 	end
 end
