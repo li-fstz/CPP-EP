@@ -10,12 +10,19 @@ namespace CPP_EP.Execute
 {
     class Xmake
     {
-        private Process ExecuteProcess;
-        public Xmake(string labsPath, string xmakePath, int lab)
+        private string LabsPath, XmakePath;
+        private Action<string> PrintXmakeLog;
+        public Xmake(string labsPath, string xmakePath, Action<string> printXmakeLog)
         {
-            ExecuteProcess = new Process();
-            ExecuteProcess.StartInfo.WorkingDirectory = labsPath;
-            ExecuteProcess.StartInfo.FileName = xmakePath;
+            LabsPath = labsPath;
+            XmakePath = xmakePath;
+            PrintXmakeLog = printXmakeLog;
+        }
+        public bool build(int lab)
+        {
+            Process ExecuteProcess = new Process();
+            ExecuteProcess.StartInfo.WorkingDirectory = LabsPath;
+            ExecuteProcess.StartInfo.FileName = XmakePath;
             ExecuteProcess.StartInfo.Arguments = "build lab" + lab;
             ExecuteProcess.StartInfo.UseShellExecute = false;
             ExecuteProcess.StartInfo.RedirectStandardOutput = true;
@@ -23,16 +30,14 @@ namespace CPP_EP.Execute
             ExecuteProcess.StartInfo.RedirectStandardError = true;
             ExecuteProcess.StartInfo.CreateNoWindow = true;
             ExecuteProcess.Start();
-        }
-        public void Build(TextBox t)
-        {
-            t.Clear();
             string s;
+            bool r = false;
             while ((s = ExecuteProcess.StandardOutput.ReadLine()) != null)
             {
-                t.AppendText(s + "\n");
-                t.ScrollToEnd();
+                PrintXmakeLog(s);
+                r = s == "[100%]: build ok!";
             }
+            return r;
         }
     }
 }

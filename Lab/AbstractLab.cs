@@ -22,7 +22,7 @@ namespace CPP_EP.Lab
 
 
         public static Dictionary<string, Rule> RuleHash = new Dictionary<string, Rule>();
-        public static Dictionary<string, Select> SelectHash = new Dictionary<string, Select>();
+        public static Dictionary<string, Production> ProductionHash = new Dictionary<string, Production>();
         public static Dictionary<string, Symbol> SymbolHash = new Dictionary<string, Symbol>();
         public static Rule GetRule(string address)
         {
@@ -35,11 +35,11 @@ namespace CPP_EP.Lab
                 return null;
             }
         }
-        public static Select GetSelect(string address)
+        public static Production GetProduction(string address)
         {
-            if (SelectHash.ContainsKey(address))
+            if (ProductionHash.ContainsKey(address))
             {
-                return SelectHash[address];
+                return ProductionHash[address];
             }
             else
             {
@@ -96,11 +96,11 @@ namespace CPP_EP.Lab
             }
         }
     }
-    public class Select
+    public class Production
     {
         public List<Symbol> Symbols;
         public string Address;
-        public Select(string s)
+        public Production(string s)
         {
             try
             {
@@ -110,11 +110,11 @@ namespace CPP_EP.Lab
                     Symbols.Add(new Symbol(m.Groups[1].Value));
                 }
                 Address = Symbols[0].Address;
-                AbstractLab.SelectHash[Address] = this;
+                AbstractLab.ProductionHash[Address] = this;
             }
             catch (Exception e)
             {
-                throw new Exception(e.Message + "\n" + "Parsing Select Error: " + s);
+                throw new Exception(e.Message + "\n" + "Parsing Production Error: " + s);
             }
 
         }
@@ -122,20 +122,20 @@ namespace CPP_EP.Lab
     public class Rule
     {
         public string Name;
-        public List<Select> Selects;
+        public List<Production> Productions;
         public string Address;
         public Rule(string s)
         {
             try
             {
-                string[] selectStrings = s.Split(new string[] { "~\"|\"" }, StringSplitOptions.RemoveEmptyEntries);
-                Match m = AbstractLab.AddressToSymbolInQuot.Match(selectStrings[0]);
+                string[] ProductionStrings = s.Split(new string[] { "~\"|\"" }, StringSplitOptions.RemoveEmptyEntries);
+                Match m = AbstractLab.AddressToSymbolInQuot.Match(ProductionStrings[0]);
                 Address = m.Groups[1].Value;
                 Name = m.Groups[2].Value;
-                Selects = new List<Select>();
-                for (int i = 1; i < selectStrings.Length; i++)
+                Productions = new List<Production>();
+                for (int i = 1; i < ProductionStrings.Length; i++)
                 {
-                    Selects.Add(new Select(selectStrings[i]));
+                    Productions.Add(new Production(ProductionStrings[i]));
                 }
                 AbstractLab.RuleHash[Address] = this;
             }

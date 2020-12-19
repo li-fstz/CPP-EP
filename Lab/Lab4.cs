@@ -22,7 +22,7 @@ namespace CPP_EP.Lab
             public class Row
             {
                 public Rule Rule;
-                public List<Select> Selects;
+                public List<Production> Productions;
             }
             public List<string> TableHead;
             public List<Row> TableRows;
@@ -38,12 +38,12 @@ namespace CPP_EP.Lab
                 for (int i = 1; i < structs.Length; i++)
                 {
                     var ms = Text.Matches(structs[i]);
-                    List<Select> selects = new List<Select>();
+                    List<Production> Productions = new List<Production>();
                     for (int j = 1; j < ms.Count; j++)
                     {
-                        selects.Add(GetSelect(ms[j].Groups[1].Value));
+                        Productions.Add(GetProduction(ms[j].Groups[1].Value));
                     }
-                    TableRows.Add(new Row() { Rule = GetRule(ms[0].Groups[1].Value), Selects = selects });
+                    TableRows.Add(new Row() { Rule = GetRule(ms[0].Groups[1].Value), Productions = Productions });
                 }
             }
 
@@ -66,7 +66,7 @@ namespace CPP_EP.Lab
     public class SelectSet
     {
         public Rule Rule;
-        public Select Select;
+        public Production Production;
         public string Address;
         public List<string> Terminal;
         public SelectSet(string s)
@@ -76,7 +76,7 @@ namespace CPP_EP.Lab
             {
                 Address = m.Groups[1].Value;
                 Rule = AbstractLab.RuleHash[m.Groups[2].Value];
-                Select = AbstractLab.SelectHash[m.Groups[3].Value];
+                Production = AbstractLab.ProductionHash[m.Groups[3].Value];
                 Terminal = new List<string>();
                 MatchCollection ms = AbstractLab.Text.Matches(s);
                 for (int i = 1; i < ms.Count; i++)

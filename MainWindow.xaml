@@ -29,16 +29,6 @@
         </TabControl>
         <GridSplitter Grid.Row="0" Grid.Column="1" Grid.RowSpan="5" Width="3" HorizontalAlignment="Stretch"/>
         <Menu Grid.Row="0" Grid.Column="0">
-            <MenuItem Header="实验">
-                <MenuItem Name="menuItem1" Header="1.空表" IsCheckable="True" Click="ItemLab_Click"/>
-                <MenuItem Name="menuItem2" Header="2.FIRST 集" IsCheckable="True" Click="ItemLab_Click"/>
-                <MenuItem Name="menuItem3" Header="3.FOLLOW 集" IsCheckable="True" Click="ItemLab_Click"/>
-                <MenuItem Name="menuItem4" Header="4.预测分析表" IsCheckable="True" Click="ItemLab_Click"/>
-                <MenuItem Name="menuItem5" Header="5.提取左因子" IsCheckable="True" Click="ItemLab_Click"/>
-                <MenuItem Name="menuItem6" Header="6.消除左递归（无替换）" IsCheckable="True" Click="ItemLab_Click"/>
-                <MenuItem Name="menuItem7" Header="7.消除左递归（有替换）" IsCheckable="True" Click="ItemLab_Click"/>
-                <MenuItem Name="menuItem8" Header="8.预测分析方法" IsCheckable="True" Click="ItemLab_Click"/>
-            </MenuItem>
             <MenuItem Header="File">
                 <MenuItem Header="Open"/>
                 <MenuItem Header="Save"/>
@@ -49,22 +39,36 @@
             <MenuItem Header="About"></MenuItem>
         </Menu>
         <ToolBar Grid.Row="1" Grid.Column="0" ToolBarTray.IsLocked="True">
-            <Button Content="启动" Click="Button_Click_1"></Button>
-            <Button Content="停止" Click="Button_Click_2"></Button>
-            <Button Content="重新启动" IsEnabled="False"></Button>
-            <Button Content="逐语句" IsEnabled="False"></Button>
-            <Button Content="逐过程" IsEnabled="False"></Button>
-            <Button Content="跳出" IsEnabled="False"></Button>
+            <Button Content="启动" Click="Button_Click_1" Name="startButton" IsEnabled="False"></Button>
+            <Button Content="停止" Click="Button_Click_2" Name="stopButton" IsEnabled="False"></Button>
+            <Button Content="重新启动" Click="Button_Click_3" Name="restartButton" IsEnabled="False"></Button>
+            <Button Content="逐语句" Click="Button_Click_4" Name="stepButton" IsEnabled="False"></Button>
+            <Button Content="逐过程" Click="Button_Click_5" Name="nextButton" IsEnabled="False"></Button>
+            <Button Content="跳出" Click="Button_Click_6" Name="finishButton" IsEnabled="False"></Button>
+            <ComboBox Name="labSelect" SelectionChanged="LabSelect_SelectionChanged">
+                <ComboBoxItem Content="实验项目" IsSelected="True"/>
+                <ComboBoxItem Content="1.空表"/>
+                <ComboBoxItem Content="2.FIRST 集"/>
+                <ComboBoxItem Content="3.FOLLOW 集"/>
+                <ComboBoxItem Content="4.预测分析表"/>
+                <ComboBoxItem Content="5.提取左因子"/>
+                <ComboBoxItem Content="6.消除左递归（无替换）"/>
+                <ComboBoxItem Content="7.消除左递归（有替换）"/>
+                <ComboBoxItem Content="8.预测分析方法"/>
+            </ComboBox>
         </ToolBar>
         <TabControl Name="tabControl" Grid.Row="2" Grid.Column="0">
         </TabControl>
         <GridSplitter Grid.Row="3" Grid.Column="0" Height="3" HorizontalAlignment="Stretch" ResizeDirection="Rows"/>
-        <TabControl Grid.Row="4" Grid.Column="0">
+        <TabControl Name="logControl" Grid.Row="4" Grid.Column="0">
             <TabItem Header="编译">
-                <TextBlock></TextBlock>
+                <TextBox AcceptsReturn="True" Name="buildText" IsReadOnly="true" VerticalScrollBarVisibility="Auto"/>
             </TabItem>
             <TabItem Header="输出">
-                <TextBlock></TextBlock>
+                <TextBox AcceptsReturn="True" Name="outputText" IsReadOnly="true" VerticalScrollBarVisibility="Auto"/>
+            </TabItem>
+            <TabItem Header="GDB" IsSelected="True">
+                <TextBox AcceptsReturn="True" Name="gdbText" IsReadOnly="true" VerticalScrollBarVisibility="Auto"/>
             </TabItem>
         </TabControl>
     </Grid>

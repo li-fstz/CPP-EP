@@ -18,6 +18,7 @@ namespace CPP_EP
     using CodePosition = ValueTuple<string, int>;
     public partial class FileTab : TabItem
     {
+        private static Dictionary<string, FileTab> fileTabHash = new Dictionary<string, FileTab>();
         private const int LINE_NUMBERS_MARGIN_WIDTH = 30;
 
         private const int BACK_COLOR = 0x2A211C;
@@ -28,22 +29,47 @@ namespace CPP_EP
 
         private const int BOOKMARK_MARGIN = 2;
 
-        private const int BOOKMARK_MARKER = 2;
+        public const int BOOKMARK_MARKER = 2;
+
+        public const int HIGHLIGHT_MARKER = 3;
 
         private const int FOLDING_MARGIN = 3;
 
         private const bool CODEFOLDING_CIRCULAR = false;
 
-        public delegate CodePosition MethodCorrectBreakPoint(CodePosition cp);
-        public MethodCorrectBreakPoint CorrectBreakPoint;
-        public delegate void MethodDeleteBreakPoint(CodePosition cp);
-        public MethodDeleteBreakPoint DeleteBreakPoint;
-        public FileTab(string filepath)
+        private string FilePath;
+        
+        private Func<CodePosition, CodePosition?> SetBreakPoint;
+        private Action<CodePosition> DeleteBreakPoint;
+        public static FileTab GetInstance(string filepath, Func<CodePosition, CodePosition?> setBreakPoint, Action<CodePosition> deleteBreakPoint)
+        {
+            if (fileTabHash.ContainsKey(filepath)) {
+                return fileTabHash[filepath];
+            } 
+            else
+            {
+                var tab = new FileTab(filepath, setBreakPoint, deleteBreakPoint);
+                fileTabHash[filepath] = tab;
+                return tab;
+            }
+        }
+        public static FileTab GetInstance(string filename)
+        {
+            foreach (var key in fileTabHash.Keys)
+            {
+                if (key.EndsWith(filename))
+                {
+                    return fileTabHash[key];
+                }
+            }
+            return null;
+        }
+        private FileTab(string filepath, Func<CodePosition, CodePosition?> setBreakPoint, Action<CodePosition> deleteBreakPoint)
         {
             InitializeComponent();
 
-            scintilla.WrapMode = ScintillaNET.WrapMode.None;
-            scintilla.IndentationGuides = ScintillaNET.IndentView.LookBoth;
+            scintilla.WrapMode = WrapMode.None;
+            scintilla.IndentationGuides = IndentView.LookBoth;
 
             scintilla.CaretForeColor = Colors.White;
             scintilla.SetSelectionBackColor(true, IntToMediaColor(0x114D9C));
@@ -74,7 +100,7 @@ namespace CPP_EP
             scintilla.Styles[ScintillaNET.Style.Cpp.CommentDocKeywordError].ForeColor = IntToColor(0xFF0000);
             scintilla.Styles[ScintillaNET.Style.Cpp.GlobalClass].ForeColor = IntToColor(0x48A8EE);
 
-            scintilla.Lexer = ScintillaNET.Lexer.Cpp;
+            scintilla.Lexer = Lexer.Cpp;
 
             scintilla.SetKeywords(0, "break case const continue default do else for goto if return sizeof static struct switch typedef union void while");
             scintilla.SetKeywords(1, "char int Rule VoidTable SetList SelectSetList ParsingTable Symbol Production");
@@ -94,6 +120,7 @@ namespace CPP_EP
             margin.Width = 20;
             margin.Sensitive = true;
             margin.Type = MarginType.Symbol;
+            
             margin.Mask = (1 << BOOKMARK_MARKER);
 
             var marker = scintilla.Markers[BOOKMARK_MARKER];
@@ -102,13 +129,25 @@ namespace CPP_EP
             marker.SetForeColor(IntToColor(0x000000));
             marker.SetAlpha(100);
 
+            marker = scintilla.Markers[HIGHLIGHT_MARKER];
+            marker.SetAlpha(100);
+
             scintilla.Text = File.ReadAllText(filepath);
 
             Header = Path.GetFileName(filepath);
 
             scintilla.MarginClick += Scintilla_MarginClick;
-        }
 
+            SetBreakPoint = setBreakPoint;
+
+            DeleteBreakPoint = deleteBreakPoint;
+
+            FilePath = filepath;
+        }
+        private void ReloadFile()
+        {
+            scintilla.Text = File.ReadAllText(FilePath);
+        }
         private void Scintilla_MarginClick(object sender, MarginClickEventArgs e)
         {
             if (e.Margin == BOOKMARK_MARGIN)
@@ -117,12 +156,17 @@ namespace CPP_EP
                 Line line = scintilla.Lines[scintilla.LineFromPosition(e.Position)];
                 if ((line.MarkerGet() & mask) > 0)
                 {
-                    line.MarkerDelete(BOOKMARK_MARKER);
                     DeleteBreakPoint(new CodePosition((string)Header, line.Index + 1));
+                    line.MarkerDelete(BOOKMARK_MARKER);
                 }
                 else
                 {
-                    SetBreakPoint(scintilla.LineFromPosition(e.Position));
+                    var r = SetBreakPoint(new CodePosition((string)Header, line.Index + 1));
+                    if (r.HasValue)
+                    {
+                        MarkLine(r.Value.Item2, BOOKMARK_MARKER);
+                    }
+                    
                 }
             }
         }
@@ -152,22 +196,18 @@ namespace CPP_EP
                 }
                 else
                 {
-                    lines.Add(line);
+                    lines.Add(line + 1);
                 }
             }
             return lines;
         }
-        public void SetBreakPoint(int line)
+        public void MarkLine(int line, int marker)
         {
-            MarkLine(CorrectBreakPoint(new CodePosition((string)Header, line + 1)).Item2);
+            scintilla.Lines[line - 1].MarkerAdd(marker);
         }
-        public void MarkLine(int line)
+        public void UnMarkLine(int line, int marker)
         {
-            scintilla.Lines[line - 1].MarkerAdd(BOOKMARK_MARKER);
-        }
-        public void UnMarkLine(int line)
-        {
-            scintilla.Lines[line - 1].MarkerDelete(BOOKMARK_MARKER);
+            scintilla.Lines[line - 1].MarkerDelete(marker);
         }
     }
 }
