@@ -1,4 +1,5 @@
 ﻿using CPP_EP.Execute;
+
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -6,25 +7,21 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Documents;
 
-namespace CPP_EP
-{
+namespace CPP_EP {
     using CodePosition = ValueTuple<string, int>;
-    public partial class MainWindow : Window
-    {
-        
+    public partial class MainWindow: Window {
+
         private List<string>[] labFiles;
         private GDB gdb;
         private Xmake xmake;
         private bool run;
         private FileTab lastStopTab;
         private int lastStopLine;
-        
 
-        public MainWindow()
-        {
-            InitializeComponent();
-            labFiles = new List<string>[]
-            {
+
+        public MainWindow () {
+            InitializeComponent ();
+            labFiles = new List<string>[] {
                 new List<string>() { "lab1.c", "src\\rule.c", "src\\voidtable.c" },
                 new List<string>() { "lab2.c", "src\\rule.c", "src\\voidtable.c", "src\\first.c" },
                 new List<string>() { "lab3.c", "src\\rule.c", "src\\voidtable.c", "src\\first.c", "src\\follow.c" },
@@ -35,94 +32,71 @@ namespace CPP_EP
                 new List<string>() { "lab8.c", "src\\rule.c", "src\\voidtable.c", "src\\first.c", "src\\follow.c", "src\\parsingtable.c", "src\\parser.c" }
             };
 
-            System.Text.Encoding.RegisterProvider(System.Text.CodePagesEncodingProvider.Instance);
+            System.Text.Encoding.RegisterProvider (System.Text.CodePagesEncodingProvider.Instance);
 
-            xmake = new Xmake("C:\\Users\\User\\CPP-Labs\\", "C:\\xmake\\xmake.exe", PrintXmakeLog);
+            xmake = new Xmake ("C:\\Users\\User\\CPP-Labs\\", "C:\\xmake\\xmake.exe", s => Dispatcher.BeginInvoke ((Action<string>)PrintXmakeLog, s));
         }
 
-        CodePosition? SetBreakPoint(CodePosition cp)
-        {
-            if (gdb == null)
-            {
-                return cp;
-            }
-            else
-            {
-                return gdb.SetBreakpoint(cp.Item1, cp.Item2);
-            }
-            
-        }
-
-        void DeleteBreakPoint(CodePosition cp)
-        {
-            if (gdb != null)
-            {
-                gdb.ClearBreakpoint(cp.Item1, cp.Item2);
+        void SetBreakPoint (CodePosition cp, Action<CodePosition?> AfterSetBreakPoint) {
+            if (gdb == null) {
+                AfterSetBreakPoint (cp);
+            } else {
+                gdb.SetBreakpoint (cp.Item1, cp.Item2, (r) => Dispatcher.BeginInvoke (AfterSetBreakPoint, r));
             }
         }
 
-        private void OpenLabFiles(int index)
-        {
-            tabControl.Items.Clear();
-            foreach (var file in labFiles[index])
-            {
-                tabControl.Items.Add(FileTab.GetInstance("C:\\Users\\User\\CPP-Labs\\" + file, SetBreakPoint, DeleteBreakPoint));
+        void DeleteBreakPoint (CodePosition cp) {
+            if (gdb != null) {
+                gdb.ClearBreakpoint (cp.Item1, cp.Item2, (r) => { });
+            }
+        }
+
+        private void OpenLabFiles (int index) {
+            tabControl.Items.Clear ();
+            foreach (var file in labFiles[index]) {
+                tabControl.Items.Add (FileTab.GetInstance ("C:\\Users\\User\\CPP-Labs\\" + file, SetBreakPoint, DeleteBreakPoint));
             }
             tabControl.SelectedIndex = 0;
-            tabControl.Focus();
+            tabControl.Focus ();
         }
 
-        private void Button_Click_1(object sender, RoutedEventArgs e)
-        {
-            if (run)
-            {
-                gdb.Continue();
-            } 
-            else
-            {
+        private void Button_Click_1 (object sender, RoutedEventArgs e) {
+            if (run) {
+                gdb.Continue ();
+            } else {
                 run = true;
                 startButton.Content = "继续";
                 stopButton.IsEnabled = true;
                 labSelect.IsEnabled = false;
-                if (gdb == null)
-                {
-                    if (xmake.build(labSelect.SelectedIndex))
-                    {
-                        gdb = new GDB(
-                            "C:\\MinGW\\bin\\gdb.exe", 
-                            "C:\\Users\\User\\CPP-Labs\\build\\lab" + labSelect.SelectedIndex + ".exe", 
-                            PrintGDBLog, 
-                            AfterRun
-                        );
-                    }
-                    else
-                    {
+                if (gdb == null) {
+                    xmake.build (labSelect.SelectedIndex, r => Dispatcher.BeginInvoke ((Action)(() => {
+                        if (r) {
+                            gdb = new GDB (
+                            "C:\\MinGW\\bin\\gdb.exe",
+                            "C:\\Users\\User\\CPP-Labs\\build\\lab" + labSelect.SelectedIndex + ".exe",
+                            s => Dispatcher.BeginInvoke ((Action<string>)PrintGDBLog, s),
+                            (s1, s2) => Dispatcher.BeginInvoke ((Action<string, string>)AfterRun, s1, s2));
+                            CorrectBreakPoint (gdb.Run);
+                        } else {
 
-                    }
-                    
+                        }
+                    })));
+                } else {
+                    CorrectBreakPoint (gdb.Run);
                 }
-                CorrectBreakPoint();
-                gdb.Run();
             }
-            
         }
 
-        private void AfterRun(string state, string res)
-        {
-            if (lastStopTab != null)
-            {
-                lastStopTab.UnMarkLine(lastStopLine, FileTab.HIGHLIGHT_MARKER);
+        private void AfterRun (string state, string res) {
+            if (lastStopTab != null) {
+                lastStopTab.UnMarkLine (lastStopLine, FileTab.HIGHLIGHT_MARKER);
             }
-            if (res == null)
-            {
+            if (res == null) {
 
-            }
-            else
-            {
-                if (res.IndexOf("breakpoint-hit") != -1
-                    || res.IndexOf("end-stepping-range") != -1
-                    || res.IndexOf("function-finished") != -1)
-                {
+            } else {
+                if (res.IndexOf ("breakpoint-hit") != -1
+                    || res.IndexOf ("end-stepping-range") != -1
+                    || res.IndexOf ("function-finished") != -1) {
                     /*
                     List<Lab.Lab.Rule> rules = lab4.GetRules("pHead");
                     Lab1.VoidTable voidTable = lab4.GetVoidTable("&VoidTable");
@@ -136,115 +110,100 @@ namespace CPP_EP
                     stepButton.IsEnabled = true;
                     nextButton.IsEnabled = true;
                     finishButton.IsEnabled = true;
-                    var b = BreakPoint.Parse(res);
-                    if (b.HasValue)
-                    {
-                        lastStopTab = FileTab.GetInstance(Path.GetFileName(b.Value.Item1));
+                    var b = BreakPoint.Parse (res);
+                    if (b.HasValue) {
+                        lastStopTab = FileTab.GetInstance (Path.GetFileName (b.Value.Item1));
                         tabControl.SelectedItem = lastStopTab;
                         lastStopLine = b.Value.Item2;
-                        lastStopTab.scintilla.Lines[lastStopLine - 1].Goto();
-                        lastStopTab.MarkLine(lastStopLine, FileTab.HIGHLIGHT_MARKER);
+                        lastStopTab.scintilla.Lines[lastStopLine - 1].Goto ();
+                        lastStopTab.MarkLine (lastStopLine, FileTab.HIGHLIGHT_MARKER);
                     }
-                }
-                else
-                {
+                } else {
                     restartButton.IsEnabled = false;
                     stepButton.IsEnabled = false;
                     nextButton.IsEnabled = false;
                     finishButton.IsEnabled = false;
                     startButton.Content = "启动";
                     run = false;
-                    PrintGDBLog(res);
-                    PrintOutput(File.ReadAllText("out.txt", System.Text.Encoding.GetEncoding("GB2312")));
+                    PrintGDBLog (res);
+                    PrintOutput (File.ReadAllText ("out.txt", System.Text.Encoding.GetEncoding ("GB2312")));
                 }
             }
         }
 
-        private void Button_Click_2(object sender, RoutedEventArgs e)
-        {
-            gdb.Stop();
+        private void Button_Click_2 (object sender, RoutedEventArgs e) {
+            gdb.Stop ();
             gdb = null;
             startButton.Content = "启动";
             stopButton.IsEnabled = false;
             labSelect.IsEnabled = true;
 
-            if (lastStopTab != null)
-            {
-                lastStopTab.UnMarkLine(lastStopLine, FileTab.HIGHLIGHT_MARKER);
+            if (lastStopTab != null) {
+                lastStopTab.UnMarkLine (lastStopLine, FileTab.HIGHLIGHT_MARKER);
                 lastStopTab = null;
             }
         }
-        private void Button_Click_3(object sender, RoutedEventArgs e)
-        {
-            
+        private void Button_Click_3 (object sender, RoutedEventArgs e) {
+
         }
-        private void Button_Click_4(object sender, RoutedEventArgs e)
-        {
-            gdb.Step();
+        private void Button_Click_4 (object sender, RoutedEventArgs e) {
+            gdb.Step ();
         }
-        private void Button_Click_5(object sender, RoutedEventArgs e)
-        {
-            gdb.Next();
+        private void Button_Click_5 (object sender, RoutedEventArgs e) {
+            gdb.Next ();
         }
-        private void Button_Click_6(object sender, RoutedEventArgs e)
-        {
-            gdb.Finish();
+        private void Button_Click_6 (object sender, RoutedEventArgs e) {
+            gdb.Finish ();
         }
 
-        private void LabSelect_SelectionChanged(object sender, SelectionChangedEventArgs e)
-        {
-            if (labSelect.SelectedIndex != 0)
-            {
-                OpenLabFiles(labSelect.SelectedIndex - 1);
+        private void LabSelect_SelectionChanged (object sender, SelectionChangedEventArgs e) {
+            if (labSelect.SelectedIndex != 0) {
+                OpenLabFiles (labSelect.SelectedIndex - 1);
                 startButton.IsEnabled = true;
-            }
-            else
-            {
+            } else {
                 startButton.IsEnabled = false;
             }
         }
-        private void PrintXmakeLog(string s)
-        {
+        private void PrintXmakeLog (string s) {
             logControl.SelectedIndex = 0;
-            buildText.AppendText(s);
-            buildText.AppendText("\n");
-            buildText.ScrollToEnd();
-
+            buildText.AppendText (s);
+            buildText.AppendText ("\n");
+            buildText.ScrollToEnd ();
         }
-        private void PrintOutput(string s)
-        {
+        private void PrintOutput (string s) {
             logControl.SelectedIndex = 1;
             outputText.Text = s;
-            outputText.ScrollToEnd();
+            outputText.ScrollToEnd ();
         }
-        private void PrintGDBLog(string s)
-        {
+        private void PrintGDBLog (string s) {
             logControl.SelectedIndex = 2;
-            gdbText.AppendText(s);
-            gdbText.AppendText("\n");
-            gdbText.ScrollToEnd();
+            gdbText.AppendText (s);
+            gdbText.AppendText ("\n");
+            gdbText.ScrollToEnd ();
         }
-        private void CorrectBreakPoint()
-        {
-            foreach (FileTab tab in tabControl.Items)
-            {
-                foreach (int line in tab.GetAllBreakPointLine())
-                {
-                    var b = gdb.SetBreakpoint(tab.Header as string, line);
-                    if (b.HasValue)
-                    {
-                        if (line != b.Value.Item2)
-                        {
-                            tab.UnMarkLine(line, FileTab.BOOKMARK_MARKER);
-                            tab.MarkLine(b.Value.Item2, FileTab.BOOKMARK_MARKER);
-                        }
-                    }
-                    else
-                    {
-                        tab.UnMarkLine(line, FileTab.BOOKMARK_MARKER);
-                    }
+        private void CorrectBreakPoint (Action AfterCorrectBreakPoint) {
+            List<(FileTab, string, int)> lines = new List<(FileTab, string, int)> ();
+            foreach (FileTab tab in tabControl.Items) {
+                foreach (int line in tab.GetAllBreakPointLine ()) {
+                    lines.Add ((tab, tab.Header as string, line));
                 }
             }
+
+            gdb.SetBreakpoints (
+                lines,
+                (r, tab, line) => Dispatcher.BeginInvoke ((Action)(
+                    () => {
+                        if (r.HasValue) {
+                            if (line != r.Value.Item2) {
+                                tab.UnMarkLine (line, FileTab.BOOKMARK_MARKER);
+                                tab.MarkLine (r.Value.Item2, FileTab.BOOKMARK_MARKER);
+                            }
+                        } else {
+                            tab.UnMarkLine (line, FileTab.BOOKMARK_MARKER);
+                        }
+                    }
+                )),
+            AfterCorrectBreakPoint);
         }
     }
 }
