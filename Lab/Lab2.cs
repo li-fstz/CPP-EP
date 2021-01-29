@@ -6,13 +6,23 @@ using System.Text.RegularExpressions;
 
 namespace CPP_EP.Lab {
     class Lab2: Lab1 {
+                
+        public override List<string> LabFiles => new List<string> () { "lab2.c", "src\\rule.c", "src\\voidtable.c", "src\\first.c" };
 
-        public Lab2 (GDB gdb) : base (gdb) { }
-
+        public override int LabNo => 2;
         public override void Draw () {
             throw new NotImplementedException ();
         }
-
+        public override void Build () {
+            Util.ThreadRun (() => {
+                new GCC ("C:\\MinGW\\bin\\gcc.exe")
+                .Compile ("src\\rule.c", "build\\obj\\rule.o")
+                .Compile ("src\\voidtable.c", "build\\obj\\voidtable.o")
+                .Compile ("src\\first.c", "build\\obj\\first.o")
+                .Compile ("lab2.c", "build\\obj\\lab2.o")
+                .Link ("build\\lab2.exe", "build\\obj\\rule.o", "build\\obj\\voidtable.o", "build\\obj\\first.o", "build\\obj\\lab2.o");
+            });
+        }
         public static Dictionary<string, Set> SetHash = new Dictionary<string, Set> ();
 
 

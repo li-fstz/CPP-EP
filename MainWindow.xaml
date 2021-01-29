@@ -39,12 +39,12 @@
             <MenuItem Header="About"></MenuItem>
         </Menu>
         <ToolBar Grid.Row="1" Grid.Column="0" ToolBarTray.IsLocked="True">
-            <Button Content="启动" Click="Button_Click_1" Name="startButton" IsEnabled="False"></Button>
-            <Button Content="停止" Click="Button_Click_2" Name="stopButton" IsEnabled="False"></Button>
-            <Button Content="重新启动" Click="Button_Click_3" Name="restartButton" IsEnabled="False"></Button>
-            <Button Content="逐语句" Click="Button_Click_4" Name="stepButton" IsEnabled="False"></Button>
-            <Button Content="逐过程" Click="Button_Click_5" Name="nextButton" IsEnabled="False"></Button>
-            <Button Content="跳出" Click="Button_Click_6" Name="finishButton" IsEnabled="False"></Button>
+            <Button Content="启动" Click="StartButton_Click" Name="startButton" IsEnabled="False"></Button>
+            <Button Content="停止" Click="StopButton_Click" Name="stopButton" IsEnabled="False"></Button>
+            <Button Content="重新启动" Click="RestartButton_Click" Name="restartButton" IsEnabled="False"></Button>
+            <Button Content="逐语句" Click="StepButton_Click" Name="stepButton" IsEnabled="False"></Button>
+            <Button Content="逐过程" Click="NextButton_Click" Name="nextButton" IsEnabled="False"></Button>
+            <Button Content="跳出" Click="FinishButton_Click" Name="finishButton" IsEnabled="False"></Button>
             <ComboBox Name="labSelect" SelectionChanged="LabSelect_SelectionChanged">
                 <ComboBoxItem Content="实验项目" IsSelected="True"/>
                 <ComboBoxItem Content="1.空表"/>

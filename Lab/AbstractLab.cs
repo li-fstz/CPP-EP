@@ -6,22 +6,29 @@ using System.Text.RegularExpressions;
 
 namespace CPP_EP.Lab {
     abstract class AbstractLab {
-        protected readonly GDB gdb;
+        public abstract List<string> LabFiles { get; }
+        public abstract int LabNo { get; }
+        protected GDB gdb;
         //protected static readonly Regex Int = new Regex(@"value=""(-?\d+)""");
         //protected static readonly Regex Address = new Regex(@"value=""(0x[0-9a-f]+)""");
         public static readonly Regex Text = new Regex (@"~""(.*?)""");
         //protected static readonly Regex Int = new Regex(@"~""(-?\d*)""");
         public static readonly Regex AddressToSymbolInQuot = new Regex (@"""(0x[0-9a-f]+)=>(.+?)""");
         public static readonly Regex AddressToSymbol = new Regex (@"(0x[0-9a-f]+)=>(.+?)");
-        public AbstractLab (GDB gdb) {
-            this.gdb = gdb;
-        }
         public abstract void Draw ();
-
+        public abstract void Build ();
 
         public static Dictionary<string, Rule> RuleHash = new Dictionary<string, Rule> ();
         public static Dictionary<string, Production> ProductionHash = new Dictionary<string, Production> ();
         public static Dictionary<string, Symbol> SymbolHash = new Dictionary<string, Symbol> ();
+
+        public GDB GetGDB () {
+            gdb = new GDB (
+                "C:\\MinGW\\bin\\gdb.exe",
+                "build\\lab" + LabNo + ".exe"
+            );
+            return gdb;
+        }
         public static Rule GetRule (string address) {
             if (RuleHash.ContainsKey (address)) {
                 return RuleHash[address];
@@ -56,7 +63,28 @@ namespace CPP_EP.Lab {
             } catch {
                 throw new Exception ("Parsing Rules Error: " + address);
             }
-
+        }
+        public static AbstractLab GetLab(int index) {
+            switch (index) {
+                case 1:
+                    return new Lab1 ();
+                case 2:
+                    return new Lab2 ();
+                case 3:
+                    return new Lab3 ();
+                case 4:
+                    return new Lab4 ();
+                case 5:
+                    return new Lab5 ();
+                case 6:
+                    return new Lab6 ();
+                case 7:
+                    return new Lab7 ();
+                case 8:
+                    return new Lab8 ();
+                default:
+                    return null;
+            }
         }
 
     }

@@ -10,27 +10,28 @@ namespace CPP_EP.Execute {
     class GDB {
         private Process ExecuteProcess;
         private readonly Queue<string> ExecResult = new Queue<string> ();
-        private Action<string> PrintLog;
-        private Action<string, string> AfterRun;
-        public GDB (string gdbpath, string filepath, Action<string> printLog, Action<string, string> afterRun) {
-            PrintLog = printLog;
-            AfterRun = afterRun;
+        public static Action<string> PrintLog { private get; set; }
+        public static Action<string, string> AfterRun { private get; set; }
+
+        public GDB (string gdbpath, string filepath) {
 
             ExecuteProcess = new Process ();
             ExecuteProcess.StartInfo.FileName = gdbpath;
-            ExecuteProcess.StartInfo.Arguments = "-x C:\\Users\\User\\source\\repos\\li-fstz\\CPP-EP\\script\\struct.gdb -silent --interpreter mi " + filepath;
+            ExecuteProcess.StartInfo.WorkingDirectory = "C:\\Users\\User\\CPP-Labs";
+            ExecuteProcess.StartInfo.Arguments = "-x script\\struct.gdb -silent --interpreter mi " + filepath;
             ExecuteProcess.StartInfo.UseShellExecute = false;
             ExecuteProcess.StartInfo.RedirectStandardOutput = true;
             ExecuteProcess.StartInfo.RedirectStandardInput = true;
             ExecuteProcess.StartInfo.RedirectStandardError = true;
             ExecuteProcess.StartInfo.CreateNoWindow = true;
+        }
+        public void Start() {
+            PrintLog (ExecuteProcess.StartInfo.FileName + " " + ExecuteProcess.StartInfo.Arguments);
             ExecuteProcess.Start ();
             ExecuteProcess.StandardInput.AutoFlush = true;
-
             GetExecResult (false);
-
-            Send ("set args > out.txt");
-            Send ("set print null-stop on");
+            Send ("-exec-arguments > out.txt");
+            Send ("-gdb-set print null-stop on");
         }
         private void SomeWayExecute (string cmd) {
             Util.ThreadRun (() => AfterRun (Send (cmd), GetExecResult ()));
@@ -165,8 +166,10 @@ namespace CPP_EP.Execute {
             }
         }
         public void Stop () {
-            ExecuteProcess.Kill ();
-            ExecuteProcess = null;
+            if (ExecuteProcess != null) {
+                ExecuteProcess.Kill ();
+                ExecuteProcess = null;
+            }
         }
     }
     static class BreakPoint {

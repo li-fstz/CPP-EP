@@ -10,7 +10,20 @@ using System.Threading.Tasks;
 
 namespace CPP_EP.Lab {
     class Lab1: AbstractLab {
-        public Lab1 (GDB gdb) : base (gdb) { }
+
+        public override List<string> LabFiles => new List<string> () { "lab1.c", "src\\rule.c", "src\\voidtable.c" };
+
+        public override int LabNo => 1;
+
+        public override void Build () {
+            Util.ThreadRun (() => {
+                new GCC ("C:\\MinGW\\bin\\gcc.exe")
+                .Compile ("src\\rule.c", "build\\obj\\rule.o")
+                .Compile ("src\\voidtable.c", "build\\obj\\voidtable.o")
+                .Compile ("lab1.c", "build\\obj\\lab1.o")
+                .Link ("build\\lab1.exe", "build\\obj\\rule.o", "build\\obj\\voidtable.o", "build\\obj\\lab1.o");
+            });
+        }
 
         public override void Draw () {
         }

@@ -5,19 +5,19 @@ end
 define getsymbol
 	getaddress $symbol Symbol $arg0
 	if $symbol
-		printf "0x%x=>%s", $symbol, $symbol->SymbolName
+		printf "0x%x=>%s", $symbol, ((struct Symbol *)$symbol->value)->symbolName
 	end
 end
 
 define getproduction
-	getaddress $production Symbol $arg0
+	getaddress $production Production $arg0
 	while $production
-		set $symbol = $production
+		set $symbol = ((struct Production *)$production->value)->symbolHead
 		while $symbol
 			getsymbol $symbol
-			set $symbol = $symbol->pNextSymbol
+			set $symbol = $symbol->next
 		end
-		set $production = $production->pNextProduction
+		set $production = $production->next
 		if $production
 			echo |production|
 		end
@@ -27,11 +27,11 @@ end
 define getrule
 	getaddress $rule Rule $arg0
 	while $rule
-		printf "0x%x=>%s", $rule, $rule->RuleName
+		printf "0x%x=>%s", $rule, ((struct Rule *)$rule->value)->ruleName
 		echo |production|
-		set $production = $rule->pFirstProduction
+		set $production = ((struct Rule *)$rule->value)->productionHead
 		getproduction $production
-		set $rule = $rule->pNextRule
+		set $rule = $rule->next
 		if $rule
 			echo |rule|
 		end
@@ -41,14 +41,14 @@ end
 define getvoidtable
 	getaddress $voidtable VoidTable $arg0
 	set $i = 0
-	while $i < $voidtable->ColCount
-		printf "%s", $voidtable->pTableHead[$i]
+	while $i < $voidtable->colCount
+		printf "%s", $voidtable->tableHead[$i]
 		set $i = $i + 1
 	end
 	echo |voidtable|
 	set $i = 0
-	while $i < $voidtable->ColCount
-		printf "%d", $voidtable->TableRows->hasVoid[$i]
+	while $i < $voidtable->colCount
+		printf "%d", ((struct VoidTableRow *)$voidtable->tableRows)[0]->hasVoid[$i]
 		set $i = $i + 1
 	end
 end
@@ -56,9 +56,9 @@ end
 define getset
 	getaddress $set Set $arg0
 	set $i = 0
-	printf "0x%x=>%s", $set, $set->Name
-	while $i < $set->nTerminalCount
-		printf "%s", $set->Terminals[$i]
+	printf "0x%x=>%s", $set, $set->key
+	while $i < $set->terminalCount
+		printf "%s", $set->terminals[$i]
 		set $i = $i + 1
 	end
 end
@@ -66,32 +66,32 @@ end
 define getsetlist
 	getaddress $setlist SetList $arg0
 	set $j = 0
-	while $j < $setlist->nSetCount
-		getset $setlist->Sets+$j
+	while $j < $setlist->setCount
+		getset $setlist->sets+$j
 		set $j = $j + 1
-		if $j != $setlist->nSetCount
+		if $j != $setlist->setCount
 			echo |setlist|
 		end
 	end
 end
 
 define getselectset
-	getaddress $selectset SelectSet $arg0
+	getaddress $selectset Set $arg0
 	set $i = 0
-	printf "0x%x=>0x%x=>0x%x", $selectset, $selectset->pRule, $selectset->pProduction
-	while $i < $selectset->nTerminalCount
-		printf "%s", $selectset->Terminals[$i]
+	printf "0x%x=>0x%x=>0x%x", $selectset, ((struct SelectSetKey *)$selectset->key)->rule, ((struct SelectSetKey *)$selectset->key)->production
+	while $i < $selectset->terminalCount
+		printf "%s", $selectset->terminals[$i]
 		set $i = $i + 1
 	end
 end
 
 define getselectsetlist
-	getaddress $selectsetlist SelectSetList $arg0
+	getaddress $selectsetlist SetList $arg0
 	set $j = 0
-	while $j < $selectsetlist->nSetCount
-		getselectset $selectsetlist->Sets+$j
+	while $j < $selectsetlist->setCount
+		getselectset $selectsetlist->sets+$j
 		set $j = $j + 1
-		if $j != $selectsetlist->nSetCount
+		if $j != $selectsetlist->setCount
 			echo |selectsetlist|
 		end
 	end
@@ -100,21 +100,21 @@ end
 define getparsingtable
 	getaddress $parsingtable ParsingTable $arg0
 	set $i = 0
-	while $i < $parsingtable->ColCount
-		printf "%s", $parsingtable->pTableHead[$i]
+	while $i < $parsingtable->colCount
+		printf "%s", $parsingtable->tableHead[$i]
 		set $i = $i + 1
 	end
 	echo |parsingtable|
 	set $j = 0
-	while $parsingtable->TableRows[$j].pRule
+	while $j < $parsingtable->rowCount
 		set $i = 0
-		printf "0x%x", $parsingtable->TableRows[$j].pRule
-		while $i < $parsingtable->ColCount
-			printf "0x%x", $parsingtable->TableRows[$j].Productions[$i]
+		printf "0x%x", ((struct ParsingTableRow *)$parsingtable->tableRows)[$j].rule
+		while $i < $parsingtable->colCount
+			printf "0x%x", ((struct ParsingTableRow *)$parsingtable->tableRows)[$j].productions[$i]
 			set $i = $i + 1
 		end
 		set $j = $j + 1
-		if $parsingtable->TableRows[$j].pRule
+		if $j < $parsingtable->rowCount
 			echo |parsingtable|
 		end
 	end

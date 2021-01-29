@@ -38,26 +38,23 @@ namespace CPP_EP {
 
         private string FilePath;
 
-        private Action<CodePosition, Action<CodePosition?>> SetBreakPoint;
-        private Action<CodePosition> DeleteBreakPoint;
-        public static FileTab GetInstance (string filepath, Action<CodePosition, Action<CodePosition?>> setBreakPoint, Action<CodePosition> deleteBreakPoint) {
+        public static Action<CodePosition, Action<CodePosition?>> SetBreakPoint { private get; set; }
+        public static Action<CodePosition> DeleteBreakPoint { private get; set; }
+        public static FileTab GetInstance (string filepath) {
             if (fileTabHash.ContainsKey (filepath)) {
                 return fileTabHash[filepath];
             } else {
-                var tab = new FileTab (filepath, setBreakPoint, deleteBreakPoint);
+                foreach (var key in fileTabHash.Keys) {
+                    if (key.EndsWith (filepath)) {
+                        return fileTabHash[key];
+                    }
+                }
+                var tab = new FileTab (filepath);
                 fileTabHash[filepath] = tab;
                 return tab;
             }
         }
-        public static FileTab GetInstance (string filename) {
-            foreach (var key in fileTabHash.Keys) {
-                if (key.EndsWith (filename)) {
-                    return fileTabHash[key];
-                }
-            }
-            return null;
-        }
-        private FileTab (string filepath, Action<CodePosition, Action<CodePosition?>> setBreakPoint, Action<CodePosition> deleteBreakPoint) {
+        private FileTab (string filepath) {
             InitializeComponent ();
 
             scintilla.WrapMode = WrapMode.None;
@@ -130,11 +127,9 @@ namespace CPP_EP {
 
             scintilla.MarginClick += Scintilla_MarginClick;
 
-            SetBreakPoint = setBreakPoint;
-
-            DeleteBreakPoint = deleteBreakPoint;
-
             FilePath = filepath;
+
+            scintilla.ReadOnly = true;
         }
         private void ReloadFile () {
             scintilla.Text = File.ReadAllText (FilePath);

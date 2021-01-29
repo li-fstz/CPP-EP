@@ -1,4 +1,5 @@
 ﻿using CPP_EP.Execute;
+using CPP_EP.Lab;
 
 using System;
 using System.Collections.Generic;
@@ -11,9 +12,8 @@ namespace CPP_EP {
     using CodePosition = ValueTuple<string, int>;
     public partial class MainWindow: Window {
 
-        private List<string>[] labFiles;
+        private AbstractLab lab;
         private GDB gdb;
-        private Xmake xmake;
         private bool run;
         private FileTab lastStopTab;
         private int lastStopLine;
@@ -21,72 +21,51 @@ namespace CPP_EP {
 
         public MainWindow () {
             InitializeComponent ();
-            labFiles = new List<string>[] {
-                new List<string>() { "lab1.c", "src\\rule.c", "src\\voidtable.c" },
-                new List<string>() { "lab2.c", "src\\rule.c", "src\\voidtable.c", "src\\first.c" },
-                new List<string>() { "lab3.c", "src\\rule.c", "src\\voidtable.c", "src\\first.c", "src\\follow.c" },
-                new List<string>() { "lab4.c", "src\\rule.c", "src\\voidtable.c", "src\\first.c", "src\\follow.c", "src\\parsingtable.c" },
-                new List<string>() { "lab5.c", "src\\rule.c", "src\\pickupleftfactor.c" },
-                new List<string>() { "lab6.c", "src\\rule.c", "src\\removeleftrecursion1.c" },
-                new List<string>() { "lab7.c", "src\\rule.c", "src\\removeleftrecursion2.c" },
-                new List<string>() { "lab8.c", "src\\rule.c", "src\\voidtable.c", "src\\first.c", "src\\follow.c", "src\\parsingtable.c", "src\\parser.c" }
-            };
-
             System.Text.Encoding.RegisterProvider (System.Text.CodePagesEncodingProvider.Instance);
-
-            xmake = new Xmake ("C:\\Users\\User\\CPP-Labs\\", "C:\\xmake\\xmake.exe", s => Dispatcher.BeginInvoke ((Action<string>)PrintXmakeLog, s));
+            GDB.PrintLog = s => Dispatcher.BeginInvoke ((Action<string>)PrintGDBLog, s);
+            GDB.AfterRun = (s1, s2) => Dispatcher.BeginInvoke ((Action<string, string>)AfterRun, s1, s2);
+            GCC.AfterBuild = b => Dispatcher.BeginInvoke ((Action<bool>)AfterBuild, b);
+            GCC.PrintLog = s => Dispatcher.BeginInvoke ((Action<string>)PrintMakeLog, s);
+            FileTab.SetBreakPoint = SetBreakPoint;
+            FileTab.DeleteBreakPoint = DeleteBreakPoint;
         }
 
         void SetBreakPoint (CodePosition cp, Action<CodePosition?> AfterSetBreakPoint) {
             if (gdb == null) {
                 AfterSetBreakPoint (cp);
             } else {
-                gdb.SetBreakpoint (cp.Item1, cp.Item2, (r) => Dispatcher.BeginInvoke (AfterSetBreakPoint, r));
+                gdb.SetBreakpoint (cp.Item1, cp.Item2, r => Dispatcher.BeginInvoke (AfterSetBreakPoint, r));
             }
         }
 
         void DeleteBreakPoint (CodePosition cp) {
             if (gdb != null) {
-                gdb.ClearBreakpoint (cp.Item1, cp.Item2, (r) => { });
+                gdb.ClearBreakpoint (cp.Item1, cp.Item2, r => { });
             }
         }
 
-        private void OpenLabFiles (int index) {
-            tabControl.Items.Clear ();
-            foreach (var file in labFiles[index]) {
-                tabControl.Items.Add (FileTab.GetInstance ("C:\\Users\\User\\CPP-Labs\\" + file, SetBreakPoint, DeleteBreakPoint));
-            }
-            tabControl.SelectedIndex = 0;
-            tabControl.Focus ();
-        }
-
-        private void Button_Click_1 (object sender, RoutedEventArgs e) {
+        private void StartButton_Click (object sender, RoutedEventArgs e) {
             if (run) {
                 gdb.Continue ();
             } else {
-                run = true;
-                startButton.Content = "继续";
-                stopButton.IsEnabled = true;
+                startButton.IsEnabled = false;
                 labSelect.IsEnabled = false;
-                if (gdb == null) {
-                    xmake.build (labSelect.SelectedIndex, r => Dispatcher.BeginInvoke ((Action)(() => {
-                        if (r) {
-                            gdb = new GDB (
-                            "C:\\MinGW\\bin\\gdb.exe",
-                            "C:\\Users\\User\\CPP-Labs\\build\\lab" + labSelect.SelectedIndex + ".exe",
-                            s => Dispatcher.BeginInvoke ((Action<string>)PrintGDBLog, s),
-                            (s1, s2) => Dispatcher.BeginInvoke ((Action<string, string>)AfterRun, s1, s2));
-                            CorrectBreakPoint (gdb.Run);
-                        } else {
-
-                        }
-                    })));
-                } else {
-                    CorrectBreakPoint (gdb.Run);
-                }
+                lab.Build ();
             }
         }
+        private void AfterBuild (bool buildOk) {
+            if (buildOk) {
+                gdb = lab.GetGDB ();
+                gdb.Start ();
+                CorrectBreakPoint (gdb.Run);
+                run = true;
+                startButton.IsEnabled = true;
+                startButton.Content = "继续";
+                stopButton.IsEnabled = true;
+            } else {
 
+            }
+        }
         private void AfterRun (string state, string res) {
             if (lastStopTab != null) {
                 lastStopTab.UnMarkLine (lastStopLine, FileTab.HIGHLIGHT_MARKER);
@@ -98,13 +77,13 @@ namespace CPP_EP {
                     || res.IndexOf ("end-stepping-range") != -1
                     || res.IndexOf ("function-finished") != -1) {
                     /*
-                    List<Lab.Lab.Rule> rules = lab4.GetRules("pHead");
-                    Lab1.VoidTable voidTable = lab4.GetVoidTable("&VoidTable");
-                    List<Lab2.Set> firstSet = lab4.GetSetList ("&FirstSetList");
-                    List<Lab2.Set> followSet = lab4.GetSetList ("&FollowSetList");
-                    List<Lab4.SelectSet> selectSet = lab4.GetSelectSetList ("&SelectSetList");
-                    Lab4.ParsingTable parsingTable = lab4.GetParsingTable ("&ParsingTable");
-                    List<Lab.Lab.Symbol> stack = lab8.GetParsingStack("&Stack");
+                        List<Lab.Lab.Rule> rules = lab4.GetRules("pHead");
+                        Lab1.VoidTable voidTable = lab4.GetVoidTable("&VoidTable");
+                        List<Lab2.Set> firstSet = lab4.GetSetList ("&FirstSetList");
+                        List<Lab2.Set> followSet = lab4.GetSetList ("&FollowSetList");
+                        List<Lab4.SelectSet> selectSet = lab4.GetSelectSetList ("&SelectSetList");
+                        Lab4.ParsingTable parsingTable = lab4.GetParsingTable ("&ParsingTable");
+                        List<Lab.Lab.Symbol> stack = lab8.GetParsingStack("&Stack");
                     */
                     restartButton.IsEnabled = true;
                     stepButton.IsEnabled = true;
@@ -125,15 +104,15 @@ namespace CPP_EP {
                     finishButton.IsEnabled = false;
                     startButton.Content = "启动";
                     run = false;
+                    gdb.Stop ();
                     PrintGDBLog (res);
-                    PrintOutput (File.ReadAllText ("out.txt", System.Text.Encoding.GetEncoding ("GB2312")));
+                    PrintOutput (File.ReadAllText ("C:\\Users\\User\\CPP-Labs\\out.txt", System.Text.Encoding.GetEncoding ("GB2312")));
                 }
             }
         }
 
-        private void Button_Click_2 (object sender, RoutedEventArgs e) {
+        private void StopButton_Click (object sender, RoutedEventArgs e) {
             gdb.Stop ();
-            gdb = null;
             startButton.Content = "启动";
             stopButton.IsEnabled = false;
             labSelect.IsEnabled = true;
@@ -143,28 +122,34 @@ namespace CPP_EP {
                 lastStopTab = null;
             }
         }
-        private void Button_Click_3 (object sender, RoutedEventArgs e) {
+        private void RestartButton_Click (object sender, RoutedEventArgs e) {
 
         }
-        private void Button_Click_4 (object sender, RoutedEventArgs e) {
+        private void StepButton_Click (object sender, RoutedEventArgs e) {
             gdb.Step ();
         }
-        private void Button_Click_5 (object sender, RoutedEventArgs e) {
+        private void NextButton_Click (object sender, RoutedEventArgs e) {
             gdb.Next ();
         }
-        private void Button_Click_6 (object sender, RoutedEventArgs e) {
+        private void FinishButton_Click (object sender, RoutedEventArgs e) {
             gdb.Finish ();
         }
 
         private void LabSelect_SelectionChanged (object sender, SelectionChangedEventArgs e) {
+            lab = AbstractLab.GetLab (labSelect.SelectedIndex);
             if (labSelect.SelectedIndex != 0) {
-                OpenLabFiles (labSelect.SelectedIndex - 1);
+                tabControl.Items.Clear ();
+                foreach (var file in lab.LabFiles) {
+                    tabControl.Items.Add (FileTab.GetInstance ("C:\\Users\\User\\CPP-Labs\\" + file));
+                }
+                tabControl.SelectedIndex = 0;
+                tabControl.Focus ();
                 startButton.IsEnabled = true;
             } else {
                 startButton.IsEnabled = false;
             }
         }
-        private void PrintXmakeLog (string s) {
+        private void PrintMakeLog (string s) {
             logControl.SelectedIndex = 0;
             buildText.AppendText (s);
             buildText.AppendText ("\n");
@@ -203,7 +188,8 @@ namespace CPP_EP {
                         }
                     }
                 )),
-            AfterCorrectBreakPoint);
+                AfterCorrectBreakPoint
+            );
         }
     }
 }
