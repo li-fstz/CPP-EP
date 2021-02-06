@@ -38,7 +38,10 @@ namespace CPP_EP.Execute {
             if (!lastTimeHash.ContainsKey(input) || DateTime.Compare(lastTimeHash[input], file.LastWriteTime) != 0 || !File.Exists("C:\\Users\\User\\CPP-Labs\\" + output)) {
                 ExecuteProcess.StartInfo.Arguments = "-g -fexec-charset=GBK -c -I inc " + input + " -o " + output;
                 Run ();
-                lastTimeHash[input] = file.LastWriteTime;
+                if (buildOk) {
+                    lastTimeHash[input] = file.LastWriteTime;
+                }
+                
             }
             return this;
         }

@@ -67,27 +67,30 @@ namespace CPP_EP {
             scintilla.StyleResetDefault ();
             scintilla.Styles[ScintillaNET.Style.Default].Font = "Consolas";
             scintilla.Styles[ScintillaNET.Style.Default].Size = 11;
-            scintilla.Styles[ScintillaNET.Style.Default].BackColor = IntToColor (0x212121);
-            scintilla.Styles[ScintillaNET.Style.Default].ForeColor = IntToColor (0xFFFFFF);
+            
+            //scintilla.Styles[ScintillaNET.Style.Default].BackColor = IntToColor (0x212121);
+            //scintilla.Styles[ScintillaNET.Style.Default].ForeColor = IntToColor (0xFFFFFF);
             scintilla.StyleClearAll ();
 
             // Configure the CPP (C#) lexer styles
-            scintilla.Styles[ScintillaNET.Style.Cpp.Identifier].ForeColor = IntToColor (0xD0DAE2);
-            scintilla.Styles[ScintillaNET.Style.Cpp.Comment].ForeColor = IntToColor (0xBD758B);
+            scintilla.Styles[ScintillaNET.Style.Cpp.Identifier].ForeColor = System.Drawing.Color.FromArgb (38, 127, 153);
+            scintilla.Styles[ScintillaNET.Style.Cpp.Comment].ForeColor = System.Drawing.Color.FromArgb (0, 128, 0);
             scintilla.Styles[ScintillaNET.Style.Cpp.CommentLine].ForeColor = IntToColor (0x40BF57);
-            scintilla.Styles[ScintillaNET.Style.Cpp.CommentDoc].ForeColor = IntToColor (0x2FAE35);
-            scintilla.Styles[ScintillaNET.Style.Cpp.Number].ForeColor = IntToColor (0xFFFF00);
-            scintilla.Styles[ScintillaNET.Style.Cpp.String].ForeColor = IntToColor (0xFFFF00);
-            scintilla.Styles[ScintillaNET.Style.Cpp.Character].ForeColor = IntToColor (0xE95454);
-            scintilla.Styles[ScintillaNET.Style.Cpp.Preprocessor].ForeColor = IntToColor (0x8AAFEE);
-            scintilla.Styles[ScintillaNET.Style.Cpp.Operator].ForeColor = IntToColor (0xE0E0E0);
-            scintilla.Styles[ScintillaNET.Style.Cpp.Regex].ForeColor = IntToColor (0xff00ff);
+            scintilla.Styles[ScintillaNET.Style.Cpp.CommentDoc].ForeColor = System.Drawing.Color.FromArgb (0, 128, 0);
+            scintilla.Styles[ScintillaNET.Style.Cpp.Number].ForeColor = System.Drawing.Color.FromArgb (9, 134, 88);
+            scintilla.Styles[ScintillaNET.Style.Cpp.String].ForeColor = System.Drawing.Color.FromArgb (163, 21, 21);
+            scintilla.Styles[ScintillaNET.Style.Cpp.Character].ForeColor = System.Drawing.Color.FromArgb (163, 21, 21);
+            scintilla.Styles[ScintillaNET.Style.Cpp.Preprocessor].ForeColor = System.Drawing.Color.FromArgb (163, 21, 21);
+            scintilla.Styles[ScintillaNET.Style.Cpp.Operator].ForeColor = System.Drawing.Color.FromArgb (0, 0, 0);
             scintilla.Styles[ScintillaNET.Style.Cpp.CommentLineDoc].ForeColor = IntToColor (0x77A7DB);
-            scintilla.Styles[ScintillaNET.Style.Cpp.Word].ForeColor = IntToColor (0x48A8EE);
-            scintilla.Styles[ScintillaNET.Style.Cpp.Word2].ForeColor = IntToColor (0xF98906);
-            scintilla.Styles[ScintillaNET.Style.Cpp.CommentDocKeyword].ForeColor = IntToColor (0xB3D991);
-            scintilla.Styles[ScintillaNET.Style.Cpp.CommentDocKeywordError].ForeColor = IntToColor (0xFF0000);
+            //scintilla.Styles[ScintillaNET.Style.Cpp.Word].ForeColor = IntToColor (0x48A8EE);
+            //scintilla.Styles[ScintillaNET.Style.Cpp.Word2].ForeColor = IntToColor (0xF98906);
+            scintilla.Styles[ScintillaNET.Style.Cpp.CommentDocKeyword].ForeColor = System.Drawing.Color.FromArgb (0, 0, 255);
+            scintilla.Styles[ScintillaNET.Style.Cpp.CommentDocKeywordError].ForeColor = System.Drawing.Color.FromArgb (0, 0, 255);
             scintilla.Styles[ScintillaNET.Style.Cpp.GlobalClass].ForeColor = IntToColor (0x48A8EE);
+            scintilla.Styles[ScintillaNET.Style.Cpp.Verbatim].ForeColor = System.Drawing.Color.FromArgb (0, 16, 128);
+
+
 
             scintilla.Lexer = Lexer.Cpp;
 
