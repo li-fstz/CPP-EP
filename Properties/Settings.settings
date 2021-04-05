@@ -1,6 +1,15 @@
 ﻿<?xml version='1.0' encoding='utf-8'?>
-<SettingsFile xmlns="http://schemas.microsoft.com/VisualStudio/2004/01/settings" CurrentProfile="(Default)">
-  <Profiles>
-    <Profile Name="(Default)" />
-  </Profiles>
+<SettingsFile xmlns="http://schemas.microsoft.com/VisualStudio/2004/01/settings" CurrentProfile="(Default)" GeneratedClassNamespace="CPP_EP.Properties" GeneratedClassName="Settings">
+  <Profiles />
+  <Settings>
+    <Setting Name="GCCPath" Type="System.String" Scope="User">
+      <Value Profile="(Default)">D:\MinGW\bin\gcc.exe</Value>
+    </Setting>
+    <Setting Name="GDBPath" Type="System.String" Scope="User">
+      <Value Profile="(Default)">D:\MinGW\bin\gdb.exe</Value>
+    </Setting>
+    <Setting Name="LabsPath" Type="System.String" Scope="User">
+      <Value Profile="(Default)">C:\Users\li-fs\Documents\labs\</Value>
+    </Setting>
+  </Settings>
 </SettingsFile>

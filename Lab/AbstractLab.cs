@@ -24,7 +24,6 @@ namespace CPP_EP.Lab {
 
         public GDB GetGDB () {
             gdb = new GDB (
-                "C:\\MinGW\\bin\\gdb.exe",
                 "build\\lab" + LabNo + ".exe"
             );
             return gdb;

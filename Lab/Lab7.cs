@@ -10,7 +10,7 @@ namespace CPP_EP.Lab {
         public override int LabNo => 7;
         public override void Build () {
             Util.ThreadRun (() => {
-                new GCC ("C:\\MinGW\\bin\\gcc.exe")
+                new GCC ()
                 .Compile ("src\\rule.c", "build\\obj\\rule.o")
                 .Compile ("src\\removeleftrecursion2.c", "build\\obj\\removeleftrecursion2.o")
                 .Link ("build\\lab7.exe", "build\\obj\\rule.o", "build\\obj\\removeleftrecursion2.o", "build\\obj\\lab7.o");

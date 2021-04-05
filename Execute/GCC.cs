@@ -17,7 +17,7 @@ namespace CPP_EP.Execute {
          * gcc .\lab1.c -c -I .\inc\ -o build\obj\lab1.o
          * gcc .\build\obj\lab1.o .\build\obj\rule.o .\build\obj\voidtable.o -o build\lab1.exe
          */
-        public GCC (string gccpath) {
+        public GCC () {
             if (!Directory.Exists ("build")) {
                 Directory.CreateDirectory ("build");
             }
@@ -25,8 +25,8 @@ namespace CPP_EP.Execute {
                 Directory.CreateDirectory ("build\\obj");
             }
             ExecuteProcess = new Process ();
-            ExecuteProcess.StartInfo.WorkingDirectory = "C:\\Users\\User\\CPP-Labs";
-            ExecuteProcess.StartInfo.FileName = gccpath;
+            ExecuteProcess.StartInfo.WorkingDirectory = Properties.Settings.Default.LabsPath;
+            ExecuteProcess.StartInfo.FileName = Properties.Settings.Default.GCCPath;
             ExecuteProcess.StartInfo.UseShellExecute = false;
             ExecuteProcess.StartInfo.RedirectStandardOutput = true;
             ExecuteProcess.StartInfo.RedirectStandardInput = true;
@@ -34,8 +34,8 @@ namespace CPP_EP.Execute {
             ExecuteProcess.StartInfo.CreateNoWindow = true;
         }
         public GCC Compile (string input, string output) {
-            FileInfo file = new FileInfo ("C:\\Users\\User\\CPP-Labs\\" + input);
-            if (!lastTimeHash.ContainsKey(input) || DateTime.Compare(lastTimeHash[input], file.LastWriteTime) != 0 || !File.Exists("C:\\Users\\User\\CPP-Labs\\" + output)) {
+            FileInfo file = new FileInfo (Properties.Settings.Default.LabsPath + input);
+            if (!lastTimeHash.ContainsKey(input) || DateTime.Compare(lastTimeHash[input], file.LastWriteTime) != 0 || !File.Exists(Properties.Settings.Default.LabsPath + output)) {
                 ExecuteProcess.StartInfo.Arguments = "-g -fexec-charset=GBK -c -I inc " + input + " -o " + output;
                 Run ();
                 if (buildOk) {
@@ -46,7 +46,7 @@ namespace CPP_EP.Execute {
             return this;
         }
         public void Link (string output, params string[] objs) {
-            if (update || !File.Exists("C:\\Users\\User\\CPP-Labs\\" + output)) {
+            if (update || !File.Exists(Properties.Settings.Default.LabsPath + output)) {
                 ExecuteProcess.StartInfo.Arguments = "-g " + string.Join (" ", objs) + " -o " + output;
                 Run ();
             }

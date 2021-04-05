@@ -17,7 +17,7 @@ namespace CPP_EP.Lab {
 
         public override void Build () {
             Util.ThreadRun (() => {
-                new GCC ("C:\\MinGW\\bin\\gcc.exe")
+                new GCC ()
                 .Compile ("src\\rule.c", "build\\obj\\rule.o")
                 .Compile ("src\\voidtable.c", "build\\obj\\voidtable.o")
                 .Compile ("lab1.c", "build\\obj\\lab1.o")

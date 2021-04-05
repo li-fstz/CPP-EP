@@ -22,5 +22,41 @@ namespace CPP_EP.Properties {
                 return defaultInstance;
             }
         }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("D:\\MinGW\\bin\\gcc.exe")]
+        public string GCCPath {
+            get {
+                return ((string)(this["GCCPath"]));
+            }
+            set {
+                this["GCCPath"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("D:\\MinGW\\bin\\gdb.exe")]
+        public string GDBPath {
+            get {
+                return ((string)(this["GDBPath"]));
+            }
+            set {
+                this["GDBPath"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("C:\\Users\\li-fs\\Documents\\labs\\")]
+        public string LabsPath {
+            get {
+                return ((string)(this["LabsPath"]));
+            }
+            set {
+                this["LabsPath"] = value;
+            }
+        }
     }
 }

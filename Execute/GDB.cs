@@ -13,11 +13,10 @@ namespace CPP_EP.Execute {
         public static Action<string> PrintLog { private get; set; }
         public static Action<string, string> AfterRun { private get; set; }
 
-        public GDB (string gdbpath, string filepath) {
-
+        public GDB (string filepath) {
             ExecuteProcess = new Process ();
-            ExecuteProcess.StartInfo.FileName = gdbpath;
-            ExecuteProcess.StartInfo.WorkingDirectory = "C:\\Users\\User\\CPP-Labs";
+            ExecuteProcess.StartInfo.FileName = Properties.Settings.Default.GDBPath;
+            ExecuteProcess.StartInfo.WorkingDirectory = Properties.Settings.Default.LabsPath;
             ExecuteProcess.StartInfo.Arguments = "-x script\\struct.gdb -silent --interpreter mi " + filepath;
             ExecuteProcess.StartInfo.UseShellExecute = false;
             ExecuteProcess.StartInfo.RedirectStandardOutput = true;

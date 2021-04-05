@@ -57,13 +57,19 @@ namespace CPP_EP {
             if (buildOk) {
                 gdb = lab.GetGDB ();
                 gdb.Start ();
-                CorrectBreakPoint (gdb.Run);
-                run = true;
-                startButton.IsEnabled = true;
-                startButton.Content = "继续";
-                stopButton.IsEnabled = true;
+                CorrectBreakPoint (() => {
+                    Dispatcher.BeginInvoke ((Action)(() => {
+                        run = true;
+                        startButton.IsEnabled = true;
+                        startButton.Content = "继续";
+                        stopButton.IsEnabled = true;
+                    }));
+                    gdb.Run ();
+                });
             } else {
-
+                startButton.IsEnabled = true;
+                labSelect.IsEnabled = true;
+                logControl.SelectedIndex = 0;
             }
         }
         private void AfterRun (string state, string res) {
@@ -105,8 +111,9 @@ namespace CPP_EP {
                     startButton.Content = "启动";
                     run = false;
                     gdb.Stop ();
+                    gdb = null;
                     PrintGDBLog (res);
-                    PrintOutput (File.ReadAllText ("C:\\Users\\User\\CPP-Labs\\out.txt", System.Text.Encoding.GetEncoding ("GB2312")));
+                    PrintOutput (File.ReadAllText (Properties.Settings.Default.LabsPath + "out.txt", System.Text.Encoding.GetEncoding ("GB2312")));
                 }
             }
         }
@@ -140,7 +147,7 @@ namespace CPP_EP {
             if (labSelect.SelectedIndex != 0) {
                 tabControl.Items.Clear ();
                 foreach (var file in lab.LabFiles) {
-                    tabControl.Items.Add (FileTab.GetInstance ("C:\\Users\\User\\CPP-Labs\\" + file));
+                    tabControl.Items.Add (FileTab.GetInstance (Properties.Settings.Default.LabsPath + file));
                 }
                 tabControl.SelectedIndex = 0;
                 tabControl.Focus ();

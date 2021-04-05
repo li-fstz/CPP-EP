@@ -57,7 +57,7 @@
                 <ComboBoxItem Content="8.预测分析方法"/>
             </ComboBox>
         </ToolBar>
-        <TabControl Name="tabControl" Grid.Row="2" Grid.Column="0">
+        <TabControl Name="tabControl" Grid.Row="2" Grid.Column="0" TabStripPlacement="Top">
         </TabControl>
         <GridSplitter Grid.Row="3" Grid.Column="0" Height="3" HorizontalAlignment="Stretch" ResizeDirection="Rows"/>
         <TabControl Name="logControl" Grid.Row="4" Grid.Column="0">

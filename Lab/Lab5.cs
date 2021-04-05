@@ -11,7 +11,7 @@ namespace CPP_EP.Lab {
         public override int LabNo => 5;
         public override void Build () {
             Util.ThreadRun (() => {
-                new GCC ("C:\\MinGW\\bin\\gcc.exe")
+                new GCC ()
                 .Compile ("src\\rule.c", "build\\obj\\rule.o")
                 .Compile ("src\\pickupleftfactor.c", "build\\obj\\pickupleftfactor.o")
                 .Link ("build\\lab5.exe", "build\\obj\\rule.o", "build\\obj\\pickupleftfactor.o", "build\\obj\\lab5.o");
