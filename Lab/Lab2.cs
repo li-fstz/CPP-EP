@@ -1,4 +1,5 @@
 ﻿using CPP_EP.Execute;
+using CPP_EP.Lab.Data;
 
 using System;
 using System.Collections.Generic;
@@ -56,10 +57,9 @@ namespace CPP_EP.Lab {
                 .Compile ("src\\voidtable.c", "build\\obj\\voidtable.o")
                 .Compile ("src\\first.c", "build\\obj\\first.o")
                 .Compile ("lab2.c", "build\\obj\\lab2.o")
-                .Link ("build\\lab2.exe", "build\\obj\\rule.o", "build\\obj\\voidtable.o", "build\\obj\\first.o", "build\\obj\\lab2.o");
+                .Link ("build\\lab2.exe");
             });
         }
-        public static Dictionary<string, Set> SetHash = new Dictionary<string, Set> ();
         public void GetSetList (string address, Action<List<Set>> AfterGetSetList) {
             gdb.SendScript ("getsetlist " + address, r => {
                 List<Set> setList = new List<Set> ();
@@ -74,38 +74,6 @@ namespace CPP_EP.Lab {
             });
         }
 
-        public class Set {
-            public string Name;
-            public string Address;
-            public List<string> Terminal;
-            private Set () { }
-            public override bool Equals (object obj) {
-                Set s = obj as Set;
-                return s == this || (s != null && s.Address == Address && s.Name == Name && s.Terminal.SequenceEqual (Terminal));
-            }
-            public static Set GenSet (string s) {
-                Set set = null;
-                Match m = AddressToSymbolInQuot.Match (s);
-                if (m.Success) {
-                    set = new Set () {
-                        Address = m.Groups[1].Value,
-                        Name = m.Groups[2].Value,
-                        Terminal = new List<string> (),
-                    };
-                    MatchCollection ms = Text.Matches (s);
-                    for (int i = 1; i < ms.Count; i++) {
-                        set.Terminal.Add (ms[i].Groups[1].Value);
-                    }
-                    if (set.Equals (Get (SetHash, set.Address))) {
-                        set = Get (SetHash, set.Address);
-                    } else {
-                        SetHash[set.Address] = set;
-                    }
-                } else {
-                    //throw new Exception ("Parsing Set Error: " + s);
-                }
-                return set;
-            }
-        }
+        
     }
 }

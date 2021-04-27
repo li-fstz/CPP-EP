@@ -1,4 +1,5 @@
 ﻿using CPP_EP.Execute;
+using CPP_EP.Lab.Data;
 
 using System;
 using System.Collections.Generic;
@@ -24,36 +25,7 @@ namespace CPP_EP.Lab {
                 .Compile ("src\\rule.c", "build\\obj\\rule.o")
                 .Compile ("src\\voidtable.c", "build\\obj\\voidtable.o")
                 .Compile ("lab1.c", "build\\obj\\lab1.o")
-                .Link ("build\\lab1.exe", "build\\obj\\rule.o", "build\\obj\\voidtable.o", "build\\obj\\lab1.o");
-            });
-        }
-        protected void DrawRules (int i, string label, string key = null) {
-            GetRules (label, rules => {
-                if (rules != null && rules.Count > 0) {
-                    if (key == null) key = label;
-                    if (DataHash.ContainsKey(key) && rules.SequenceEqual(DataHash[key] as List<Rule>)) {
-                        return;
-                    }
-                    DataHash[key] = rules;
-                    UpdateUI (i, (tb) => {
-                        tb.Inlines.Clear ();
-                        tb.Inlines.Add (label + ":");
-                        tb.Inlines.Add (new LineBreak ());
-                        foreach (var rule in rules) {
-                            tb.Inlines.Add (rule.Name);
-                            tb.Inlines.Add (new Run (" -> ") { Foreground = Brushes.Gray });
-                            foreach (var production in rule.Productions) {
-                                if (production != rule.Productions[0]) {
-                                    tb.Inlines.Add (new Run (" | ") { Foreground = Brushes.Gray });
-                                }
-                                foreach (var synbol in production.Symbols) {
-                                    tb.Inlines.Add (synbol.Name);
-                                }
-                            }
-                            tb.Inlines.Add (new LineBreak ());
-                        }
-                    });
-                }
+                .Link ("build\\lab1.exe");
             });
         }
         protected void DrawVoidTable (int i, string label) {
@@ -105,42 +77,6 @@ namespace CPP_EP.Lab {
             gdb.SendScript ("getvoidtable " + address, r => AfterGetVoidTable (VoidTable.GenVoidTable (r)));
         }
 
-        public class VoidTable {
-            public List<string> TableHead;
-            public List<bool?> HasVoid;
-            private VoidTable () { }
-            public override bool Equals (object obj) {
-                return obj is VoidTable v && v.TableHead.SequenceEqual (TableHead) && v.HasVoid.SequenceEqual (HasVoid);
-            }
-            public static VoidTable GenVoidTable (string s) {
-                VoidTable v = null;
-                try {
-                    if (s == null) {
-                        throw new Exception ("Parsing VoidTable Error: " + s);
-                    }
-                    string[] structs = s.Split (new string[] { "~\"|voidtable|\"" }, StringSplitOptions.RemoveEmptyEntries);
-                    v = new VoidTable () {
-                        TableHead = new List<string> (),
-                        HasVoid = new List<bool?> ()
-                    };
-                    foreach (Match m in Text.Matches (structs[0])) {
-                        v.TableHead.Add (m.Groups[1].Value);
-                    }
-                    foreach (Match m in Text.Matches (structs[1])) {
-                        if (m.Groups[1].Value == "1") {
-                            v.HasVoid.Add (true);
-                        } else if (m.Groups[1].Value == "0") {
-                            v.HasVoid.Add (false);
-                        } else {
-                            v.HasVoid.Add (null);
-                        }
-                    }
-                    if (v.HasVoid.Count == 0 || v.TableHead.Count == 0) {
-                        v = null;
-                    }
-                } catch { }
-                return v;
-            }
-        }
+        
     }
 }

@@ -11,6 +11,7 @@ namespace CPP_EP.Execute {
         public static Action<bool> AfterBuild { private get; set; }
         private bool buildOk = true, update = false;
         private static readonly Dictionary<string, DateTime> lastTimeHash = new Dictionary<string, DateTime>();
+        private readonly List<string> objs = new List<string> ();
         /*
          * gcc .\src\rule.c -c -I .\inc\ -o build\obj\rule.o
          * gcc .\src\voidtable.c -c -I .\inc\ -o build\obj\voidtable.o
@@ -35,17 +36,17 @@ namespace CPP_EP.Execute {
         }
         public GCC Compile (string input, string output) {
             FileInfo file = new FileInfo (Properties.Settings.Default.LabsPath + input);
+            objs.Add (output);
             if (!lastTimeHash.ContainsKey(input) || DateTime.Compare(lastTimeHash[input], file.LastWriteTime) != 0 || !File.Exists(Properties.Settings.Default.LabsPath + output)) {
                 ExecuteProcess.StartInfo.Arguments = "-g -fexec-charset=GBK -c -I inc " + input + " -o " + output;
                 Run ();
                 if (buildOk) {
                     lastTimeHash[input] = file.LastWriteTime;
                 }
-                
             }
             return this;
         }
-        public void Link (string output, params string[] objs) {
+        public void Link (string output) {
             if (update || !File.Exists(Properties.Settings.Default.LabsPath + output)) {
                 ExecuteProcess.StartInfo.Arguments = "-g " + string.Join (" ", objs) + " -o " + output;
                 Run ();

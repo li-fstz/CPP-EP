@@ -145,24 +145,51 @@ namespace CPP_EP.Execute {
                     string s;
                     PrintLog ("gdb <- " + script);
                     //Console.WriteLine ("gdb <- " + script);
-                    ExecuteProcess.StandardInput.WriteLine (script);
+                    try {
+                        ExecuteProcess.StandardInput.WriteLine (script);
+                        while ((s = ReadLine ()) != null) {
+                            PrintLog ("gdb -> " + s);
+                            //Console.WriteLine ("gdb -> " + s);
+                            r += s;
+                            if (s[0] == '^') {
+                                if (s != "^done") {
+                                    r = null;
+                                }
+                            } else if (s[0] == '(') {
+                                break;
+                            }
+                        }
+                        AfterSendScript (r);
+                    } catch (Exception e) {
+                        PrintLog (e.Message);
+                    }
+                };
+            });
+        }
+        public void GetValue (string name, Action<string> AfterGetValue) {
+            Util.ThreadRun (() => {
+                lock (gdbLock) {
+                    string r = "";
+                    string s;
+                    PrintLog ("gdb <- " + name);
+                    //Console.WriteLine ("gdb <- " + script);
+                    ExecuteProcess.StandardInput.WriteLine ("-data-evaluate-expression \"" + name + "\"");
                     while ((s = ReadLine ()) != null) {
                         PrintLog ("gdb -> " + s);
                         //Console.WriteLine ("gdb -> " + s);
                         r += s;
                         if (s[0] == '^') {
-                            if (s != "^done") {
+                            if (s.IndexOf("^done") == -1) {
                                 r = null;
                             }
                         } else if (s[0] == '(') {
                             break;
                         }
                     }
-                    AfterSendScript (r);
+                    AfterGetValue (r);
                 };
             });
         }
-
         private string GetExecResult (bool first = true) {
             string r = null, s;
             if (ExecResult.Count != 0) {

@@ -1,4 +1,5 @@
 ﻿using CPP_EP.Execute;
+using CPP_EP.Lab.Data;
 
 using System;
 using System.Collections.Generic;
@@ -23,7 +24,7 @@ namespace CPP_EP.Lab {
                 .Compile ("src\\follow.c", "build\\obj\\follow.o")
                 .Compile ("src\\parsingtable.c", "build\\obj\\parsingtable.o")
                 .Compile ("lab4.c", "build\\obj\\lab4.o")
-                .Link ("build\\lab4.exe", "build\\obj\\rule.o", "build\\obj\\voidtable.o", "build\\obj\\first.o", "build\\obj\\follow.o", "build\\obj\\parsingtable.o", "build\\obj\\lab4.o");
+                .Link ("build\\lab4.exe");
             });
         }
         public override void Draw () {
@@ -103,38 +104,7 @@ namespace CPP_EP.Lab {
                 }
             });
         }
-        public static readonly Regex AddressToAddressToAddress = new Regex (@"(0x[0-9a-f]+)=>(0x[0-9a-f]+)=>(0x[0-9a-f]+)");
-        public static Dictionary<string, SelectSet> SelectSetHash = new Dictionary<string, SelectSet> ();
-        public class ParsingTable {
-            public class Row {
-                public Rule Rule;
-                public List<Production> Productions;
-            }
-            public List<string> TableHead;
-            public List<Row> TableRows;
-            private ParsingTable () {}
-            public static ParsingTable GenParsingTabele (string s) {
-                string[] structs = s.Split (new string[] { "~\"|parsingtable|\"" }, StringSplitOptions.RemoveEmptyEntries);
-                ParsingTable p = new ParsingTable () {
-                    TableHead = new List<string> (),
-                    TableRows = new List<Row> ()
-                };
-                foreach (Match m in Text.Matches (structs[0])) {
-                    p.TableHead.Add (m.Groups[1].Value);
-                }
-                for (int i = 1; i < structs.Length; i++) {
-                    var ms = Text.Matches (structs[i]);
-                    List<Production> Productions = new List<Production> ();
-                    for (int j = 1; j < ms.Count; j++) {
-                        Productions.Add (Get (ProductionHash, ms[j].Groups[1].Value));
-                    }
-                    if (ms.Count > 0) {
-                        p.TableRows.Add (new Row () { Rule = Get (RuleHash, ms[0].Groups[1].Value), Productions = Productions });
-                    }
-                }
-                return p;
-            }
-        }
+        
         public void GetParsingTable (string address, Action<ParsingTable> AfterGetParsingTable) {
             gdb.SendScript ("getparsingtable " + address, r => AfterGetParsingTable (ParsingTable.GenParsingTabele (r)));
         }
@@ -150,40 +120,6 @@ namespace CPP_EP.Lab {
             });
         }
 
-        public class SelectSet {
-            public Rule Rule;
-            public Production Production;
-            public string Address;
-            public List<string> Terminal;
-            private SelectSet () { }
-            public override bool Equals (object obj) {
-                SelectSet s = obj as SelectSet;
-                return s == this || (s != null && s.Address == Address && s.Rule.Address == Rule.Address && s.Production.Address == Production.Address && s.Terminal.SequenceEqual (Terminal));
-            }
-            public static SelectSet GenSelectSet (string s) {
-                SelectSet set = null;
-                Match m = AddressToAddressToAddress.Match (s);
-                if (m.Success) {
-                    set = new SelectSet () {
-                        Address = m.Groups[1].Value,
-                        Rule = Get(RuleHash,m.Groups[2].Value),
-                        Production = Get(ProductionHash,m.Groups[3].Value),
-                        Terminal = new List<string> ()
-                    };
-                    MatchCollection ms = Text.Matches (s);
-                    for (int i = 1; i < ms.Count; i++) {
-                        set.Terminal.Add (ms[i].Groups[1].Value);
-                    }
-                    if (set.Equals (Get (SelectSetHash, set.Address))) {
-                        set = Get (SelectSetHash, set.Address);
-                    } else {
-                        SelectSetHash[set.Address] = set;
-                    }
-                } else {
-                    //throw new Exception ("Parsing SelectSet Error: " + s);
-                }
-                return set;
-            }
-        }
+        
     }
 }

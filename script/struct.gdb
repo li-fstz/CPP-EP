@@ -12,6 +12,7 @@ end
 define getproduction
 	getaddress $production Production $arg0
 	while $production
+		printf "0x%x", $production
 		set $symbol = ((struct Production *)$production->value)->symbolHead
 		while $symbol
 			getsymbol $symbol
@@ -40,6 +41,7 @@ end
 
 define getvoidtable
 	getaddress $voidtable VoidTable $arg0
+	printf "0x%x", $voidtable
 	set $i = 0
 	while $i < $voidtable->colCount
 		printf "%s", $voidtable->tableHead[$i]
@@ -78,7 +80,7 @@ end
 define getselectset
 	getaddress $selectset Set $arg0
 	set $i = 0
-	printf "0x%x=>0x%x=>0x%x", $selectset, ((struct SelectSetKey *)$selectset->key)->rule, ((struct Production *)((struct SelectSetKey *)$selectset->key)->production->value)->symbolHead
+	printf "0x%x=>0x%x=>0x%x", $selectset, ((struct SelectSetKey *)$selectset->key)->rule, ((struct SelectSetKey *)$selectset->key)->production
 	while $i < $selectset->terminalCount
 		printf "%s", $selectset->terminals[$i]
 		set $i = $i + 1
@@ -99,6 +101,7 @@ end
 
 define getparsingtable
 	getaddress $parsingtable ParsingTable $arg0
+	printf "0x%x", $parsingtable
 	set $i = 0
 	while $i < $parsingtable->colCount
 		printf "%s", $parsingtable->tableHead[$i]
@@ -110,17 +113,21 @@ define getparsingtable
 		set $i = 0
 		printf "0x%x", ((struct ParsingTableRow *)$parsingtable->tableRows)[$j].rule
 		while $i < $parsingtable->colCount
-			set $p = ((struct ParsingTableRow *)$parsingtable->tableRows)[$j].productions[$i]
-			if $p
-				printf "0x%x", ((struct Production *)$p->value)->symbolHead
-			else
-				echo null
-			end
+			printf "0x%x", ((struct ParsingTableRow *)$parsingtable->tableRows)[$j].productions[$i]
 			set $i = $i + 1
 		end
 		set $j = $j + 1
 		if $j < $parsingtable->rowCount
 			echo |parsingtable|
 		end
+	end
+end
+
+define getparsingstack
+	getaddress $parsingstack ParsingStack $arg0
+	set $i = 0
+	while $i < $parsingstack->symbolCount
+		printf "%s", ((struct Symbol *)$parsingstack->symbols[$i]->value)->symbolName
+		set $i = $i + 1
 	end
 end

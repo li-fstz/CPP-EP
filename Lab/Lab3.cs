@@ -17,7 +17,7 @@ namespace CPP_EP.Lab {
                 .Compile ("src\\first.c", "build\\obj\\first.o")
                 .Compile ("src\\follow.c", "build\\obj\\follow.o")
                 .Compile ("lab3.c", "build\\obj\\lab3.o")
-                .Link ("build\\lab3.exe", "build\\obj\\rule.o", "build\\obj\\voidtable.o", "build\\obj\\first.o", "build\\obj\\follow.o", "build\\obj\\lab3.o");
+                .Link ("build\\lab3.exe");
             });
         }
         public override void Draw () {

@@ -15,11 +15,13 @@ namespace CPP_EP.Lab {
                 new GCC ()
                 .Compile ("src\\rule.c", "build\\obj\\rule.o")
                 .Compile ("src\\removeleftrecursion1.c", "build\\obj\\removeleftrecursion1.o")
-                .Link ("build\\lab6.exe", "build\\obj\\rule.o", "build\\obj\\removeleftrecursion1.o", "build\\obj\\lab6.o");
+                .Compile ("lab6.c", "build\\obj\\lab6.o")
+                .Link ("build\\lab6.exe");
             });
         }
         public override void Draw () {
-            throw new NotImplementedException ();
+            DrawRules (1, "ruleHead");
+            DrawRules (2, "newRule");
         }
     }
 }
