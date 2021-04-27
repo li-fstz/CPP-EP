@@ -6,5 +6,23 @@
          xmlns:local="clr-namespace:CPP_EP"
          xmlns:sn="https://github.com/fernandreu/ScintillaNET.WPF"
          mc:Ignorable="d">
-    <sn:ScintillaWPF Name="scintilla" HorizontalAlignment="Stretch" VerticalAlignment="Stretch"/>
+    <Grid>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Name="breakPointGrid"/>
+            <ColumnDefinition/>
+        </Grid.ColumnDefinitions>
+        <Canvas Grid.Column="0" Name="breakPointArea" MouseDown="BreakPointArea_MouseUp" Focusable="True" Width="15px">
+            <Canvas.Background>
+                <SolidColorBrush Color="White" Opacity="0"/>
+            </Canvas.Background>
+        </Canvas>
+        <avalonEdit:TextEditor
+        xmlns:avalonEdit="http://icsharpcode.net/sharpdevelop/avalonedit"
+        Name="textEditor"
+        FontFamily="Consolas"
+        SyntaxHighlighting="C++"
+        FontSize="10pt"
+        ShowLineNumbers="True"
+        Grid.Column="1"/>
+    </Grid>
 </TabItem>

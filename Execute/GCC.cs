@@ -6,11 +6,11 @@ using System.Text;
 
 namespace CPP_EP.Execute {
     class GCC {
-        private Process ExecuteProcess;
+        private readonly Process ExecuteProcess;
         public static Action<string> PrintLog { private get; set; }
         public static Action<bool> AfterBuild { private get; set; }
         private bool buildOk = true, update = false;
-        private static Dictionary<string, DateTime> lastTimeHash = new Dictionary<string, DateTime>();
+        private static readonly Dictionary<string, DateTime> lastTimeHash = new Dictionary<string, DateTime>();
         /*
          * gcc .\src\rule.c -c -I .\inc\ -o build\obj\rule.o
          * gcc .\src\voidtable.c -c -I .\inc\ -o build\obj\voidtable.o

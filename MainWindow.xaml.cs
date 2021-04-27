@@ -17,19 +17,33 @@ namespace CPP_EP {
         private bool run;
         private FileTab lastStopTab;
         private int lastStopLine;
-
-
+        private readonly List<TextBlock> textBlocks = new List<TextBlock>();
         public MainWindow () {
             InitializeComponent ();
             System.Text.Encoding.RegisterProvider (System.Text.CodePagesEncodingProvider.Instance);
             GDB.PrintLog = s => Dispatcher.BeginInvoke ((Action<string>)PrintGDBLog, s);
+            //GDB.PrintLog = s => { };
             GDB.AfterRun = (s1, s2) => Dispatcher.BeginInvoke ((Action<string, string>)AfterRun, s1, s2);
             GCC.AfterBuild = b => Dispatcher.BeginInvoke ((Action<bool>)AfterBuild, b);
             GCC.PrintLog = s => Dispatcher.BeginInvoke ((Action<string>)PrintMakeLog, s);
+            AbstractLab.UpdateUI = UpdateUI;
             FileTab.SetBreakPoint = SetBreakPoint;
             FileTab.DeleteBreakPoint = DeleteBreakPoint;
         }
-
+        void UpdateUI(int i, Action<TextBlock> a) {
+            Dispatcher.BeginInvoke ((Action)(() => {
+                var c = textBlocks.Count;
+                if (c < i) {
+                    for (; c <= i; c++) {
+                        var tb = new TextBlock ();
+                        textBlocks.Add (tb);
+                        dataStructureView.Inlines.Add (tb);
+                        dataStructureView.Inlines.Add (new LineBreak());
+                    }
+                }
+                a (textBlocks[i - 1]);
+            }));
+        }
         void SetBreakPoint (CodePosition cp, Action<CodePosition?> AfterSetBreakPoint) {
             if (gdb == null) {
                 AfterSetBreakPoint (cp);
@@ -46,8 +60,12 @@ namespace CPP_EP {
 
         private void StartButton_Click (object sender, RoutedEventArgs e) {
             if (run) {
+                SetRunButton (false);
                 gdb.Continue ();
             } else {
+                textBlocks.Clear();
+                dataStructureView.Inlines.Clear();
+                AbstractLab.DataHash.Clear ();
                 startButton.IsEnabled = false;
                 labSelect.IsEnabled = false;
                 lab.Build ();
@@ -73,11 +91,24 @@ namespace CPP_EP {
             }
         }
         private void AfterRun (string state, string res) {
+            SetRunButton (true);
+            if (state != null && state.IndexOf("^error") != -1) {
+                return;
+            }
             if (lastStopTab != null) {
-                lastStopTab.UnMarkLine (lastStopLine, FileTab.HIGHLIGHT_MARKER);
+                lastStopTab.UnRunMarkLine ();
             }
             if (res == null) {
-
+                restartButton.IsEnabled = false;
+                stepButton.IsEnabled = false;
+                nextButton.IsEnabled = false;
+                finishButton.IsEnabled = false;
+                startButton.Content = "启动";
+                run = false;
+                gdb.Stop ();
+                gdb = null;
+                PrintGDBLog (res);
+                PrintOutput (File.ReadAllText (Properties.Settings.Default.LabsPath + "out.txt", System.Text.Encoding.GetEncoding ("GB2312")));
             } else {
                 if (res.IndexOf ("breakpoint-hit") != -1
                     || res.IndexOf ("end-stepping-range") != -1
@@ -100,14 +131,17 @@ namespace CPP_EP {
                         lastStopTab = FileTab.GetInstance (Path.GetFileName (b.Value.Item1));
                         tabControl.SelectedItem = lastStopTab;
                         lastStopLine = b.Value.Item2;
-                        lastStopTab.scintilla.Lines[lastStopLine - 1].Goto ();
-                        lastStopTab.MarkLine (lastStopLine, FileTab.HIGHLIGHT_MARKER);
+                        lastStopTab.GotoLine (lastStopLine);
+                        lastStopTab.RunMarkLine (lastStopLine);
                     }
+                    lab.Draw ();
                 } else {
                     restartButton.IsEnabled = false;
                     stepButton.IsEnabled = false;
                     nextButton.IsEnabled = false;
                     finishButton.IsEnabled = false;
+                    stopButton.IsEnabled = false;
+                    labSelect.IsEnabled = true;
                     startButton.Content = "启动";
                     run = false;
                     gdb.Stop ();
@@ -119,26 +153,38 @@ namespace CPP_EP {
         }
 
         private void StopButton_Click (object sender, RoutedEventArgs e) {
-            gdb.Stop ();
+            if (gdb != null) {
+                gdb.Stop ();
+                gdb = null;
+            }
+            run = false;
             startButton.Content = "启动";
             stopButton.IsEnabled = false;
             labSelect.IsEnabled = true;
-
+            SetRunButton (false);
+            startButton.IsEnabled = true;
+            restartButton.IsEnabled = false;
             if (lastStopTab != null) {
-                lastStopTab.UnMarkLine (lastStopLine, FileTab.HIGHLIGHT_MARKER);
+                lastStopTab.UnRunMarkLine ();
                 lastStopTab = null;
             }
         }
         private void RestartButton_Click (object sender, RoutedEventArgs e) {
 
         }
+        private void SettingButton_Click (object sender, RoutedEventArgs e) {
+            
+        }
         private void StepButton_Click (object sender, RoutedEventArgs e) {
+            SetRunButton (false);
             gdb.Step ();
         }
         private void NextButton_Click (object sender, RoutedEventArgs e) {
+            SetRunButton (false);
             gdb.Next ();
         }
         private void FinishButton_Click (object sender, RoutedEventArgs e) {
+            SetRunButton (false);
             gdb.Finish ();
         }
 
@@ -168,15 +214,22 @@ namespace CPP_EP {
             outputText.ScrollToEnd ();
         }
         private void PrintGDBLog (string s) {
+            if (s == null || s.IndexOf ("~") != -1) return;
             logControl.SelectedIndex = 2;
             gdbText.AppendText (s);
             gdbText.AppendText ("\n");
             gdbText.ScrollToEnd ();
         }
+        private void SetRunButton (bool enabled) {
+            startButton.IsEnabled = enabled;
+            stepButton.IsEnabled = enabled;
+            nextButton.IsEnabled = enabled;
+            finishButton.IsEnabled = enabled;
+        }
         private void CorrectBreakPoint (Action AfterCorrectBreakPoint) {
             List<(FileTab, string, int)> lines = new List<(FileTab, string, int)> ();
             foreach (FileTab tab in tabControl.Items) {
-                foreach (int line in tab.GetAllBreakPointLine ()) {
+                foreach (int line in tab.breakPoints.Keys) {
                     lines.Add ((tab, tab.Header as string, line));
                 }
             }
@@ -187,16 +240,20 @@ namespace CPP_EP {
                     () => {
                         if (r.HasValue) {
                             if (line != r.Value.Item2) {
-                                tab.UnMarkLine (line, FileTab.BOOKMARK_MARKER);
-                                tab.MarkLine (r.Value.Item2, FileTab.BOOKMARK_MARKER);
+                                tab.UnBreakPointLine (line);
+                                tab.BreakPointLine (r.Value.Item2);
                             }
                         } else {
-                            tab.UnMarkLine (line, FileTab.BOOKMARK_MARKER);
+                            tab.UnBreakPointLine (line);
                         }
                     }
                 )),
                 AfterCorrectBreakPoint
             );
+        }
+
+        private void Window_Closed (object sender, EventArgs e) {
+            StopButton_Click (sender, null);
         }
     }
 }

@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Windows.Controls;
 
 namespace CPP_EP.Lab {
     class Lab6: AbstractLab {

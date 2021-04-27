@@ -3,37 +3,55 @@ using System.Collections.Generic;
 using System.Text.RegularExpressions;
 using System.Diagnostics;
 using System.Threading.Tasks;
+using System.Threading;
 
 namespace CPP_EP.Execute {
     using CodePosition = Nullable<ValueTuple<string, int>>;
 
     class GDB {
         private Process ExecuteProcess;
+        private Thread readLineThread;
         private readonly Queue<string> ExecResult = new Queue<string> ();
         public static Action<string> PrintLog { private get; set; }
         public static Action<string, string> AfterRun { private get; set; }
-
+        private readonly Queue<string> ReadLines = new Queue<string> ();
+        private readonly object gdbLock = new object();
         public GDB (string filepath) {
             ExecuteProcess = new Process ();
             ExecuteProcess.StartInfo.FileName = Properties.Settings.Default.GDBPath;
             ExecuteProcess.StartInfo.WorkingDirectory = Properties.Settings.Default.LabsPath;
-            ExecuteProcess.StartInfo.Arguments = "-x script\\struct.gdb -silent --interpreter mi " + filepath;
+            ExecuteProcess.StartInfo.Arguments = "-x " + Properties.Settings.Default.ScriptPath + " -silent --interpreter mi " + filepath;
             ExecuteProcess.StartInfo.UseShellExecute = false;
             ExecuteProcess.StartInfo.RedirectStandardOutput = true;
             ExecuteProcess.StartInfo.RedirectStandardInput = true;
             ExecuteProcess.StartInfo.RedirectStandardError = true;
             ExecuteProcess.StartInfo.CreateNoWindow = true;
+            readLineThread = new Thread (ReadLineThreadFunc);
         }
         public void Start() {
             PrintLog (ExecuteProcess.StartInfo.FileName + " " + ExecuteProcess.StartInfo.Arguments);
             ExecuteProcess.Start ();
             ExecuteProcess.StandardInput.AutoFlush = true;
+            readLineThread.Start ();
             GetExecResult (false);
             Send ("-exec-arguments > out.txt");
             Send ("-gdb-set print null-stop on");
         }
+        private void ReadLineThreadFunc() {
+            try {
+                while (true) {
+                    string s = ExecuteProcess.StandardOutput.ReadLine ();
+                    ReadLines.Enqueue (s);
+                }
+            } catch { };
+        }
         private void SomeWayExecute (string cmd) {
-            Util.ThreadRun (() => AfterRun (Send (cmd), GetExecResult ()));
+            Util.ThreadRun (() => {
+                lock (gdbLock) {
+                    string r = Send (cmd);
+                    AfterRun (r, r.IndexOf ("^error") != -1 ? null : GetExecResult ());
+                }
+            });
         }
         public void Run () {
             SomeWayExecute ("-exec-run");
@@ -88,29 +106,31 @@ namespace CPP_EP.Execute {
             ExecuteProcess.StandardInput.WriteLine (cmd);
             return GetCmdResult ();
         }
-        private string ReadLine (bool timelimit = false) {
+
+        private string ReadLine () {
             string r = null;
-            if (timelimit) {
-                var task = Task.Run (() => ReadLine ());
-                if (Task.WhenAny (task, Task.Delay (1000)).Result == task) {
-                    r = task.Result;
+            int times = 10;
+            while (times != 0) {
+                if (ReadLines.Count > 0) {
+                    r = ReadLines.Dequeue ();
+                    break;
+                } else {
+                    Thread.Sleep (100);
+                    times -= 1;
                 }
-            } else {
-                r = ExecuteProcess.StandardOutput.ReadLine ();
             }
             return r;
         }
         private string GetCmdResult () {
             string s, r = null;
-            while ((s = ReadLine ()) != null) {
+            while ((s = ReadLine ()) != null && s.Length >= 0) {
                 if (s[0] == '^') {
                     PrintLog ("gdb -> " + s);
-                    Console.WriteLine ("gdb -> " + s);
+                    //Console.WriteLine ("gdb -> " + s);
                     r = s;
-
                 } else if (s[0] == '*') {
                     PrintLog ("gdb -> " + s);
-                    Console.WriteLine ("gdb -> " + s);
+                    //Console.WriteLine ("gdb -> " + s);
                     ExecResult.Enqueue (s);
                 } else if (s[0] == '(') {
                     return r;
@@ -120,24 +140,26 @@ namespace CPP_EP.Execute {
         }
         public void SendScript (string script, Action<string> AfterSendScript) {
             Util.ThreadRun (() => {
-                string r = "";
-                string s;
-                PrintLog ("gdb <- " + script);
-                Console.WriteLine ("gdb <- " + script);
-                ExecuteProcess.StandardInput.WriteLine (script);
-                while ((s = ReadLine ()) != null) {
-                    PrintLog ("gdb -> " + s);
-                    Console.WriteLine ("gdb -> " + s);
-                    r += s;
-                    if (s[0] == '^') {
-                        if (s != "^done") {
-                            r = null;
+                lock (gdbLock) {
+                    string r = "";
+                    string s;
+                    PrintLog ("gdb <- " + script);
+                    //Console.WriteLine ("gdb <- " + script);
+                    ExecuteProcess.StandardInput.WriteLine (script);
+                    while ((s = ReadLine ()) != null) {
+                        PrintLog ("gdb -> " + s);
+                        //Console.WriteLine ("gdb -> " + s);
+                        r += s;
+                        if (s[0] == '^') {
+                            if (s != "^done") {
+                                r = null;
+                            }
+                        } else if (s[0] == '(') {
+                            break;
                         }
-                    } else if (s[0] == '(') {
-                        break;
                     }
-                }
-                AfterSendScript (r);
+                    AfterSendScript (r);
+                };
             });
         }
 
@@ -146,7 +168,7 @@ namespace CPP_EP.Execute {
             if (ExecResult.Count != 0) {
                 r = ExecResult.Dequeue ();
             } else {
-                while ((s = ReadLine (true)) != null) {
+                while ((s = ReadLine ()) != null) {
                     if (s[0] == '*') {
                         r = s;
                     } else if (s[0] == '(') {
@@ -165,6 +187,9 @@ namespace CPP_EP.Execute {
             }
         }
         public void Stop () {
+            if (readLineThread != null) {
+                readLineThread = null;
+            }
             if (ExecuteProcess != null) {
                 ExecuteProcess.Kill ();
                 ExecuteProcess = null;

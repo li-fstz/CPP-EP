@@ -2,7 +2,11 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text.RegularExpressions;
+using System.Windows.Controls;
+using System.Windows.Documents;
+using System.Windows.Media;
 
 namespace CPP_EP.Lab {
     class Lab4: Lab3 {
@@ -23,9 +27,82 @@ namespace CPP_EP.Lab {
             });
         }
         public override void Draw () {
-            throw new NotImplementedException ();
+            DrawRules (1, "ruleHead");
+            DrawVoidTable (2, "voidTable");
+            DrawSetList (3, "firstSetList", "FIRST");
+            DrawSetList (4, "followSetList", "FOLLOW");
+            DrawSelectSetList (5, "selectSetList");
+            DrawParsingTable (6, "parsingTable");
         }
-
+        protected void DrawSelectSetList (int i, string label) {
+            GetSelectSetList (label, setList => {
+                if (setList != null && setList.Count > 0) {
+                    if (DataHash.ContainsKey (label) && setList.SequenceEqual (DataHash[label] as List<SelectSet>)) {
+                        return;
+                    }
+                    DataHash[label] = setList;
+                    UpdateUI (i, (tb) => {
+                        tb.Inlines.Clear ();
+                        tb.Inlines.Add (label + ":");
+                        tb.Inlines.Add (new LineBreak ());
+                        foreach (var set in setList) {
+                            tb.Inlines.Add (new Run ("SELECT( ") { Foreground = Brushes.Gray });
+                            tb.Inlines.Add (set.Rule.Name);
+                            tb.Inlines.Add (new Run (" -> ") { Foreground = Brushes.Gray });
+                            if (set.Production != null) {
+                                foreach (var s in set.Production.Symbols) {
+                                    tb.Inlines.Add (s.Name);
+                                }
+                            }
+                            tb.Inlines.Add (new Run (" ) = { ") { Foreground = Brushes.Gray });
+                            for (int i = 0; i < set.Terminal.Count; i++) {
+                                if (i == 0) {
+                                    tb.Inlines.Add (set.Terminal[i]);
+                                } else {
+                                    tb.Inlines.Add (new Run (" , ") { Foreground = Brushes.Gray });
+                                    tb.Inlines.Add (set.Terminal[i]);
+                                }
+                            }
+                            tb.Inlines.Add (new Run (" }") { Foreground = Brushes.Gray });
+                            tb.Inlines.Add (new LineBreak ());
+                        }
+                    });
+                }
+            });
+        }
+        protected void DrawParsingTable (int i, string label) {
+            GetParsingTable (label, parsingTable => {
+                if (parsingTable != null && parsingTable.TableHead.Count > 0) {
+                    if (DataHash.ContainsKey (label) && parsingTable.Equals (DataHash[label] as ParsingTable)) {
+                        return;
+                    }
+                    DataHash[label] = parsingTable;
+                    UpdateUI (i, (tb) => {
+                        tb.Inlines.Clear ();
+                        tb.Inlines.Add (label + ":");
+                        tb.Inlines.Add (new LineBreak ());
+                        tb.Inlines.Add (NewBorder (new TextBlock(), 1, 1, 1, 1));
+                        foreach (var h in parsingTable.TableHead) {
+                            tb.Inlines.Add (NewBorder (new TextBlock (new Run (h)), 0, 1, 1, 1));
+                        }
+                        tb.Inlines.Add (new LineBreak ());
+                        foreach (var r in parsingTable.TableRows) {
+                            tb.Inlines.Add (NewBorder (new TextBlock (new Run (r.Rule.Name)), 1, 0, 1, 1));
+                            foreach (var c in r.Productions) {
+                                var t = new TextBlock ();
+                                if (c != null) {
+                                    foreach (var s in c.Symbols) {
+                                        t.Inlines.Add (s.Name);
+                                    }
+                                }
+                                tb.Inlines.Add (NewBorder (t, 0, 0, 1, 1));
+                            }
+                            tb.Inlines.Add (new LineBreak ());
+                        }
+                    });
+                }
+            });
+        }
         public static readonly Regex AddressToAddressToAddress = new Regex (@"(0x[0-9a-f]+)=>(0x[0-9a-f]+)=>(0x[0-9a-f]+)");
         public static Dictionary<string, SelectSet> SelectSetHash = new Dictionary<string, SelectSet> ();
         public class ParsingTable {
@@ -35,57 +112,77 @@ namespace CPP_EP.Lab {
             }
             public List<string> TableHead;
             public List<Row> TableRows;
-            public ParsingTable (string s) {
-                string[] structs = s.Split (new string[] { "~\"|\"" }, StringSplitOptions.RemoveEmptyEntries);
-                TableHead = new List<string> ();
+            private ParsingTable () {}
+            public static ParsingTable GenParsingTabele (string s) {
+                string[] structs = s.Split (new string[] { "~\"|parsingtable|\"" }, StringSplitOptions.RemoveEmptyEntries);
+                ParsingTable p = new ParsingTable () {
+                    TableHead = new List<string> (),
+                    TableRows = new List<Row> ()
+                };
                 foreach (Match m in Text.Matches (structs[0])) {
-                    TableHead.Add (m.Groups[1].Value);
+                    p.TableHead.Add (m.Groups[1].Value);
                 }
-                TableRows = new List<Row> ();
                 for (int i = 1; i < structs.Length; i++) {
                     var ms = Text.Matches (structs[i]);
                     List<Production> Productions = new List<Production> ();
                     for (int j = 1; j < ms.Count; j++) {
-                        Productions.Add (GetProduction (ms[j].Groups[1].Value));
+                        Productions.Add (Get (ProductionHash, ms[j].Groups[1].Value));
                     }
-                    TableRows.Add (new Row () { Rule = GetRule (ms[0].Groups[1].Value), Productions = Productions });
+                    if (ms.Count > 0) {
+                        p.TableRows.Add (new Row () { Rule = Get (RuleHash, ms[0].Groups[1].Value), Productions = Productions });
+                    }
                 }
+                return p;
             }
-
         }
         public void GetParsingTable (string address, Action<ParsingTable> AfterGetParsingTable) {
-            gdb.SendScript ("getparsing " + address, r => AfterGetParsingTable (new ParsingTable (r)));
+            gdb.SendScript ("getparsingtable " + address, r => AfterGetParsingTable (ParsingTable.GenParsingTabele (r)));
         }
         public void GetSelectSetList (string address, Action<List<SelectSet>> AfterGetSelectSetList) {
             gdb.SendScript ("getselectsetlist " + address, r => {
                 List<SelectSet> selectsetList = new List<SelectSet> ();
-                string[] ruleStrings = r.Split (new string[] { "~\"|\"" }, StringSplitOptions.RemoveEmptyEntries);
+                string[] ruleStrings = r.Split (new string[] { "~\"|selectsetlist|\"" }, StringSplitOptions.RemoveEmptyEntries);
                 foreach (var s in ruleStrings) {
-                    selectsetList.Add (new SelectSet (s));
+                    var set = SelectSet.GenSelectSet (s);
+                    if (set != null) selectsetList.Add (set);
                 }
                 AfterGetSelectSetList (selectsetList);
             });
         }
-    }
-    public class SelectSet {
-        public Rule Rule;
-        public Production Production;
-        public string Address;
-        public List<string> Terminal;
-        public SelectSet (string s) {
-            Match m = Lab4.AddressToAddressToAddress.Match (s);
-            if (m.Success) {
-                Address = m.Groups[1].Value;
-                Rule = AbstractLab.RuleHash[m.Groups[2].Value];
-                Production = AbstractLab.ProductionHash[m.Groups[3].Value];
-                Terminal = new List<string> ();
-                MatchCollection ms = AbstractLab.Text.Matches (s);
-                for (int i = 1; i < ms.Count; i++) {
-                    Terminal.Add (ms[i].Groups[1].Value);
+
+        public class SelectSet {
+            public Rule Rule;
+            public Production Production;
+            public string Address;
+            public List<string> Terminal;
+            private SelectSet () { }
+            public override bool Equals (object obj) {
+                SelectSet s = obj as SelectSet;
+                return s == this || (s != null && s.Address == Address && s.Rule.Address == Rule.Address && s.Production.Address == Production.Address && s.Terminal.SequenceEqual (Terminal));
+            }
+            public static SelectSet GenSelectSet (string s) {
+                SelectSet set = null;
+                Match m = AddressToAddressToAddress.Match (s);
+                if (m.Success) {
+                    set = new SelectSet () {
+                        Address = m.Groups[1].Value,
+                        Rule = Get(RuleHash,m.Groups[2].Value),
+                        Production = Get(ProductionHash,m.Groups[3].Value),
+                        Terminal = new List<string> ()
+                    };
+                    MatchCollection ms = Text.Matches (s);
+                    for (int i = 1; i < ms.Count; i++) {
+                        set.Terminal.Add (ms[i].Groups[1].Value);
+                    }
+                    if (set.Equals (Get (SelectSetHash, set.Address))) {
+                        set = Get (SelectSetHash, set.Address);
+                    } else {
+                        SelectSetHash[set.Address] = set;
+                    }
+                } else {
+                    //throw new Exception ("Parsing SelectSet Error: " + s);
                 }
-                Lab4.SelectSetHash[Address] = this;
-            } else {
-                throw new Exception ("Parsing SelectSet Error: " + s);
+                return set;
             }
         }
     }

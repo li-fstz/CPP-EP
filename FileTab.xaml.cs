@@ -1,9 +1,9 @@
-﻿using ScintillaNET;
-using ScintillaNET.WPF;
+﻿
 
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Text;
 using System.Windows;
 using System.Windows.Controls;
@@ -13,33 +13,23 @@ using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
+using System.Windows.Shapes;
+
+using ICSharpCode.AvalonEdit;
+using ICSharpCode.AvalonEdit.Rendering;
 
 namespace CPP_EP {
     using CodePosition = ValueTuple<string, int>;
     public partial class FileTab: TabItem {
-        private static Dictionary<string, FileTab> fileTabHash = new Dictionary<string, FileTab> ();
-        private const int LINE_NUMBERS_MARGIN_WIDTH = 30;
+        private static readonly Dictionary<string, FileTab> fileTabHash = new Dictionary<string, FileTab> ();
 
-        private const int BACK_COLOR = 0x2A211C;
-
-        private const int FORE_COLOR = 0xB7B7B7;
-
-        private const int NUMBER_MARGIN = 1;
-
-        private const int BOOKMARK_MARGIN = 2;
-
-        public const int BOOKMARK_MARKER = 2;
-
-        public const int HIGHLIGHT_MARKER = 3;
-
-        private const int FOLDING_MARGIN = 3;
-
-        private const bool CODEFOLDING_CIRCULAR = false;
-
-        private string FilePath;
-
+        private readonly string FilePath;
+        public Dictionary<int, CodePosition> breakPoints = new Dictionary<int, CodePosition>();
         public static Action<CodePosition, Action<CodePosition?>> SetBreakPoint { private get; set; }
         public static Action<CodePosition> DeleteBreakPoint { private get; set; }
+        public double breakPointAreaWidth;
+        private int runMarkLine = -1;
+        private HighlightCurrentLineBackgroundRenderer backgroundRenderer;
         public static FileTab GetInstance (string filepath) {
             if (fileTabHash.ContainsKey (filepath)) {
                 return fileTabHash[filepath];
@@ -56,131 +46,145 @@ namespace CPP_EP {
         }
         private FileTab (string filepath) {
             InitializeComponent ();
-
-            scintilla.WrapMode = WrapMode.None;
-            scintilla.IndentationGuides = IndentView.LookBoth;
-
-            scintilla.CaretForeColor = Colors.White;
-            scintilla.SetSelectionBackColor (true, IntToMediaColor (0x114D9C));
-
-            // Configure the default style
-            scintilla.StyleResetDefault ();
-            scintilla.Styles[ScintillaNET.Style.Default].Font = "Consolas";
-            scintilla.Styles[ScintillaNET.Style.Default].Size = 11;
-            
-            //scintilla.Styles[ScintillaNET.Style.Default].BackColor = IntToColor (0x212121);
-            //scintilla.Styles[ScintillaNET.Style.Default].ForeColor = IntToColor (0xFFFFFF);
-            scintilla.StyleClearAll ();
-
-            // Configure the CPP (C#) lexer styles
-            scintilla.Styles[ScintillaNET.Style.Cpp.Identifier].ForeColor = System.Drawing.Color.FromArgb (38, 127, 153);
-            scintilla.Styles[ScintillaNET.Style.Cpp.Comment].ForeColor = System.Drawing.Color.FromArgb (0, 128, 0);
-            scintilla.Styles[ScintillaNET.Style.Cpp.CommentLine].ForeColor = IntToColor (0x40BF57);
-            scintilla.Styles[ScintillaNET.Style.Cpp.CommentDoc].ForeColor = System.Drawing.Color.FromArgb (0, 128, 0);
-            scintilla.Styles[ScintillaNET.Style.Cpp.Number].ForeColor = System.Drawing.Color.FromArgb (9, 134, 88);
-            scintilla.Styles[ScintillaNET.Style.Cpp.String].ForeColor = System.Drawing.Color.FromArgb (163, 21, 21);
-            scintilla.Styles[ScintillaNET.Style.Cpp.Character].ForeColor = System.Drawing.Color.FromArgb (163, 21, 21);
-            scintilla.Styles[ScintillaNET.Style.Cpp.Preprocessor].ForeColor = System.Drawing.Color.FromArgb (163, 21, 21);
-            scintilla.Styles[ScintillaNET.Style.Cpp.Operator].ForeColor = System.Drawing.Color.FromArgb (0, 0, 0);
-            scintilla.Styles[ScintillaNET.Style.Cpp.CommentLineDoc].ForeColor = IntToColor (0x77A7DB);
-            //scintilla.Styles[ScintillaNET.Style.Cpp.Word].ForeColor = IntToColor (0x48A8EE);
-            //scintilla.Styles[ScintillaNET.Style.Cpp.Word2].ForeColor = IntToColor (0xF98906);
-            scintilla.Styles[ScintillaNET.Style.Cpp.CommentDocKeyword].ForeColor = System.Drawing.Color.FromArgb (0, 0, 255);
-            scintilla.Styles[ScintillaNET.Style.Cpp.CommentDocKeywordError].ForeColor = System.Drawing.Color.FromArgb (0, 0, 255);
-            scintilla.Styles[ScintillaNET.Style.Cpp.GlobalClass].ForeColor = IntToColor (0x48A8EE);
-            scintilla.Styles[ScintillaNET.Style.Cpp.Verbatim].ForeColor = System.Drawing.Color.FromArgb (0, 16, 128);
-
-
-
-            scintilla.Lexer = Lexer.Cpp;
-
-            scintilla.SetKeywords (0, "break case const continue default do else for goto if return sizeof static struct switch typedef union void while");
-            scintilla.SetKeywords (1, "char int Rule VoidTable SetList SelectSetList ParsingTable Symbol Production");
-
-            scintilla.Styles[ScintillaNET.Style.LineNumber].BackColor = IntToColor (BACK_COLOR);
-            scintilla.Styles[ScintillaNET.Style.LineNumber].ForeColor = IntToColor (FORE_COLOR);
-            scintilla.Styles[ScintillaNET.Style.IndentGuide].ForeColor = IntToColor (FORE_COLOR);
-            scintilla.Styles[ScintillaNET.Style.IndentGuide].BackColor = IntToColor (BACK_COLOR);
-
-            var nums = scintilla.Margins[NUMBER_MARGIN];
-            nums.Width = LINE_NUMBERS_MARGIN_WIDTH;
-            nums.Type = MarginType.Number;
-            nums.Sensitive = true;
-            nums.Mask = 0;
-
-            var margin = scintilla.Margins[BOOKMARK_MARGIN];
-            margin.Width = 20;
-            margin.Sensitive = true;
-            margin.Type = MarginType.Symbol;
-
-            margin.Mask = (1 << BOOKMARK_MARKER);
-
-            var marker = scintilla.Markers[BOOKMARK_MARKER];
-            marker.Symbol = MarkerSymbol.Circle;
-            marker.SetBackColor (IntToColor (0xFF003B));
-            marker.SetForeColor (IntToColor (0x000000));
-            marker.SetAlpha (100);
-
-            marker = scintilla.Markers[HIGHLIGHT_MARKER];
-            marker.SetAlpha (100);
-
-            scintilla.Text = File.ReadAllText (filepath);
-
-            Header = Path.GetFileName (filepath);
-
-            scintilla.MarginClick += Scintilla_MarginClick;
-
             FilePath = filepath;
-
-            scintilla.ReadOnly = true;
+            Header = System.IO.Path.GetFileName (filepath);
+            ReloadFile ();
+            textEditor.TextArea.TextView.VisualLinesChanged += TextView_VisualLinesChanged;
+            breakPointAreaWidth = textEditor.TextArea.TextView.DefaultLineHeight;
+            breakPointGrid.Width = new GridLength (breakPointAreaWidth);
+            backgroundRenderer = new HighlightCurrentLineBackgroundRenderer (textEditor);
+            textEditor.TextArea.TextView.BackgroundRenderers.Add (backgroundRenderer);
+            
         }
+
+        private void TextView_VisualLinesChanged (object sender, EventArgs e) {
+            DrawAllBreakPoint ();
+        }
+
         private void ReloadFile () {
-            scintilla.Text = File.ReadAllText (FilePath);
+            textEditor.Text = File.ReadAllText (FilePath);
         }
-        private void Scintilla_MarginClick (object sender, MarginClickEventArgs e) {
-            if (e.Margin == BOOKMARK_MARGIN) {
-                const uint mask = (1 << BOOKMARK_MARKER);
-                Line line = scintilla.Lines[scintilla.LineFromPosition (e.Position)];
-                if ((line.MarkerGet () & mask) > 0) {
-                    DeleteBreakPoint (new CodePosition ((string)Header, line.Index + 1));
-                    line.MarkerDelete (BOOKMARK_MARKER);
-                } else {
-                    SetBreakPoint (new CodePosition ((string)Header, line.Index + 1), r => {
-                        if (r.HasValue) {
-                            MarkLine (r.Value.Item2, BOOKMARK_MARKER);
+
+        private void BreakPointArea_MouseUp (object sender, MouseButtonEventArgs e) {
+            //textEditor.Text += e.GetPosition (breakPointArea).Y;
+            var y = e.GetPosition (breakPointArea).Y;
+            var visualLine = textEditor.TextArea.TextView.VisualLines.FirstOrDefault (vl => vl.GetTextLineVisualYPosition(vl.TextLines[0], VisualYPosition.LineBottom) - textEditor.TextArea.TextView.VerticalOffset > y);
+            var lineNumber = visualLine.FirstDocumentLine.LineNumber;
+            if (breakPoints.ContainsKey(lineNumber)) {
+                breakPoints.Remove (lineNumber);
+                DeleteBreakPoint (new CodePosition ((string)Header, lineNumber));
+                DrawAllBreakPoint ();
+            } else {
+                SetBreakPoint (new CodePosition ((string)Header, lineNumber), r => {
+                    if (r.HasValue && !breakPoints.ContainsKey (r.Value.Item2)) {
+                        breakPoints.Add (r.Value.Item2, r.Value);
+                        DrawAllBreakPoint ();
+                    }
+                });
+            }
+        }
+
+        private void DrawAllBreakPoint () {
+            if (textEditor.TextArea.TextView.VisualLinesValid && textEditor.TextArea.TextView.VisualLines.Count > 0) {
+                breakPointArea.Children.Clear ();
+                foreach (var vl in textEditor.TextArea.TextView.VisualLines) {
+                    if (breakPoints.ContainsKey(vl.FirstDocumentLine.LineNumber)) {
+                        breakPointArea.Children.Add (GenCircle (vl));
+                        if (vl.FirstDocumentLine.LineNumber == runMarkLine) {
+                            breakPointArea.Children.Add (GenRectangle (vl));
                         }
-                    });
+                    } 
+                    if (vl.FirstDocumentLine.LineNumber == runMarkLine) {
+                        breakPointArea.Children.Add (GenArrow (vl));
+                    }
                 }
             }
         }
 
-        public ScintillaWPF Scintilla {
-            get { return scintilla; }
+
+        public void BreakPointLine (int line) {
+            if (!breakPoints.ContainsKey(line)) {
+                breakPoints.Add (line, new CodePosition ((string)Header, line));
+                DrawAllBreakPoint ();
+            }
         }
-        public static Color IntToMediaColor (int rgb) {
-            return Color.FromArgb (255, (byte)(rgb >> 16), (byte)(rgb >> 8), (byte)rgb);
+        public void UnBreakPointLine (int line) {
+            if (breakPoints.Remove (line)) {
+                DrawAllBreakPoint ();
+            }
         }
-        public static System.Drawing.Color IntToColor (int rgb) {
-            return System.Drawing.Color.FromArgb (255, (byte)(rgb >> 16), (byte)(rgb >> 8), (byte)rgb);
+        
+        public void GotoLine (int line) {
+            textEditor.ScrollToLine (line);
         }
-        public List<int> GetAllBreakPointLine () {
-            List<int> lines = new List<int> ();
-            int line = 0;
-            while (true) {
-                line = scintilla.Lines[line + 1].MarkerNext (1 << BOOKMARK_MARKER);
-                if (line == -1) {
+        private Ellipse GenCircle (VisualLine visualLine) {
+            Ellipse el = new Ellipse {
+                Fill = new SolidColorBrush (Color.FromRgb(255, 80, 65)),
+                Width = breakPointAreaWidth - 2,
+                Height = breakPointAreaWidth - 2
+            };
+            el.SetValue (Canvas.LeftProperty, 1.0);
+            el.SetValue (Canvas.TopProperty, visualLine.GetTextLineVisualYPosition (visualLine.TextLines[0], VisualYPosition.LineTop) - textEditor.TextArea.TextView.VerticalOffset + 1);
+            el.SetValue (Canvas.ZIndexProperty, 2);
+            return el;
+        }
+        private Rectangle GenRectangle (VisualLine visualLine) {
+            Rectangle r = new Rectangle {
+                Fill = new SolidColorBrush (Colors.Green),
+                Width = breakPointAreaWidth,
+                Height = breakPointAreaWidth
+            };
+            r.SetValue (Canvas.ZIndexProperty, 1);
+            r.SetValue (Canvas.TopProperty, visualLine.GetTextLineVisualYPosition (visualLine.TextLines[0], VisualYPosition.LineTop) - textEditor.TextArea.TextView.VerticalOffset);
+            return r;
+        }
+        private Polygon GenArrow (VisualLine visualLine) {
+            Polygon p = new Polygon {
+                Fill = new SolidColorBrush (Color.FromRgb(0, 176, 80)),
+                Points = new PointCollection (new Point[] { new Point(3.5, 0), new Point (breakPointAreaWidth, breakPointAreaWidth / 2), new Point (3.5, breakPointAreaWidth) })
+            };
+            p.SetValue (Canvas.ZIndexProperty, 3);
+            p.SetValue (Canvas.TopProperty, visualLine.GetTextLineVisualYPosition (visualLine.TextLines[0], VisualYPosition.LineTop) - textEditor.TextArea.TextView.VerticalOffset);
+            return p;
+        }
+        public void RunMarkLine (int line) {
+            runMarkLine = line;
+            backgroundRenderer.LineNumber = line;
+            DrawAllBreakPoint ();
+            textEditor.TextArea.TextView.Redraw ();
+        }
+        public void UnRunMarkLine () {
+            runMarkLine = 0;
+            backgroundRenderer.LineNumber = 0;
+            DrawAllBreakPoint ();
+            textEditor.TextArea.TextView.Redraw ();
+        }
+        public class HighlightCurrentLineBackgroundRenderer: IBackgroundRenderer {
+            private TextEditor _editor;
+            public int LineNumber { get; set; } /* DiffPlex model's lines */
+
+            public HighlightCurrentLineBackgroundRenderer (TextEditor editor) {
+                _editor = editor;
+            }
+
+            public KnownLayer Layer {
+                get { return KnownLayer.Background; }
+            }
+
+            public void Draw (TextView textView, DrawingContext drawingContext) {
+                if (_editor.Document == null || LineNumber == 0)
+                    return;
+
+                textView.EnsureVisualLines ();
+                var highlight = new SolidColorBrush(Color.FromArgb (100, 0, 176, 80));
+                var currentLine = _editor.Document.GetLineByNumber (LineNumber);
+                
+                foreach (var rect in BackgroundGeometryBuilder.GetRectsForSegment (textView, currentLine)) {
+                    drawingContext.DrawRectangle (highlight, null, new Rect (rect.Location, new Size (9999, rect.Height)));
                     break;
-                } else {
-                    lines.Add (line + 1);
                 }
             }
-            return lines;
-        }
-        public void MarkLine (int line, int marker) {
-            scintilla.Lines[line - 1].MarkerAdd (marker);
-        }
-        public void UnMarkLine (int line, int marker) {
-            scintilla.Lines[line - 1].MarkerDelete (marker);
         }
     }
 }
+

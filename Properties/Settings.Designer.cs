@@ -58,5 +58,17 @@ namespace CPP_EP.Properties {
                 this["LabsPath"] = value;
             }
         }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("C:\\Users\\li-fs\\Documents\\哈理工\\毕业设计\\CPP-EP\\script\\struct.gdb")]
+        public string ScriptPath {
+            get {
+                return ((string)(this["ScriptPath"]));
+            }
+            set {
+                this["ScriptPath"] = value;
+            }
+        }
     }
 }

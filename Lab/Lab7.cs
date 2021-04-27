@@ -2,11 +2,11 @@
 
 using System;
 using System.Collections.Generic;
+using System.Windows.Controls;
 
 namespace CPP_EP.Lab {
     class Lab7: AbstractLab {
         public override List<string> LabFiles => new List<string> () { "lab7.c", "src\\rule.c", "src\\removeleftrecursion2.c" };
-
         public override int LabNo => 7;
         public override void Build () {
             Util.ThreadRun (() => {

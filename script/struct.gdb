@@ -78,7 +78,7 @@ end
 define getselectset
 	getaddress $selectset Set $arg0
 	set $i = 0
-	printf "0x%x=>0x%x=>0x%x", $selectset, ((struct SelectSetKey *)$selectset->key)->rule, ((struct SelectSetKey *)$selectset->key)->production
+	printf "0x%x=>0x%x=>0x%x", $selectset, ((struct SelectSetKey *)$selectset->key)->rule, ((struct Production *)((struct SelectSetKey *)$selectset->key)->production->value)->symbolHead
 	while $i < $selectset->terminalCount
 		printf "%s", $selectset->terminals[$i]
 		set $i = $i + 1
@@ -110,7 +110,12 @@ define getparsingtable
 		set $i = 0
 		printf "0x%x", ((struct ParsingTableRow *)$parsingtable->tableRows)[$j].rule
 		while $i < $parsingtable->colCount
-			printf "0x%x", ((struct ParsingTableRow *)$parsingtable->tableRows)[$j].productions[$i]
+			set $p = ((struct ParsingTableRow *)$parsingtable->tableRows)[$j].productions[$i]
+			if $p
+				printf "0x%x", ((struct Production *)$p->value)->symbolHead
+			else
+				echo null
+			end
 			set $i = $i + 1
 		end
 		set $j = $j + 1

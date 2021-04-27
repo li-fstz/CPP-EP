@@ -21,7 +21,10 @@ namespace CPP_EP.Lab {
             });
         }
         public override void Draw () {
-            throw new NotImplementedException ();
+            DrawRules (1, "ruleHead");
+            DrawVoidTable (2, "voidTable");
+            DrawSetList (3, "firstSetList", "FIRST");
+            DrawSetList (4, "followSetList", "FOLLOW");
         }
     }
 }

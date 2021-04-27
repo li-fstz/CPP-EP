@@ -11,5 +11,8 @@
     <Setting Name="LabsPath" Type="System.String" Scope="User">
       <Value Profile="(Default)">C:\Users\li-fs\Documents\labs\</Value>
     </Setting>
+    <Setting Name="ScriptPath" Type="System.String" Scope="User">
+      <Value Profile="(Default)">C:\Users\li-fs\Documents\哈理工\毕业设计\CPP-EP\script\struct.gdb</Value>
+    </Setting>
   </Settings>
 </SettingsFile>
