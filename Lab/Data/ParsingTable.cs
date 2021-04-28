@@ -1,19 +1,26 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Text.RegularExpressions;
 
 namespace CPP_EP.Lab.Data {
+
     public class ParsingTable: GDBData {
+
         public class Row {
             public Rule Rule;
-            public List<Production> Productions;
+            public List<(string, Production)> Productions;
         }
+
         public List<string> TableHead;
         public List<Row> TableRows;
-        private ParsingTable (string a, string s) : base (a, s) { }
-        public static ParsingTable GenParsingTabele (string s) {
+
+        public static readonly Regex AddressToAddress = new Regex (@"(0x[0-9a-f]+)=>(0x[0-9a-f]+)");
+
+        private ParsingTable (string a, string s) : base (a, s) {
+        }
+
+        public static ParsingTable Gen (string s) {
             ParsingTable p = null;
             string[] structs = s.Split (new string[] { "~\"|parsingtable|\"" }, StringSplitOptions.RemoveEmptyEntries);
             if (structs.Length > 0) {
@@ -34,13 +41,16 @@ namespace CPP_EP.Lab.Data {
                             }
                         }
                         for (int i = 1; i < structs.Length; i++) {
-                            ms = Text.Matches (structs[i]);
-                            List<Production> Productions = new List<Production> ();
-                            if (ms.Count > 0 && ms.First ().Success) {
-                                p.TableRows.Add (new Row () { Rule = Get<Rule> (ms.First ().Groups[1].Value), Productions = Productions });
-                            }
-                            for (int j = 1; j < ms.Count; j++) {
-                                Productions.Add (Get<Production> (ms[j].Groups[1].Value));
+                            List<(string, Production)> Productions = new List<(string, Production)> ();
+                            var m = Text.Match (structs[i]);
+                            if (m.Success) {
+                                p.TableRows.Add (new Row () { Rule = Get<Rule> (m.Groups[1].Value), Productions = Productions });
+                                ms = AddressToAddress.Matches (structs[i]);
+                                for (int j = 0; j < ms.Count; j++) {
+                                    if (ms[j].Success) {
+                                        Productions.Add ((ms[j].Groups[1].Value, Get<Production> (ms[j].Groups[2].Value)));
+                                    }
+                                }
                             }
                         }
                     }

@@ -1,14 +1,16 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
+﻿using System.Collections.Generic;
 using System.Text.RegularExpressions;
 
 namespace CPP_EP.Lab.Data {
+
     public class Set: GDBData {
         public string Name;
         public List<string> Terminal;
-        private Set (string a, string s) : base (a, s) { }
-        public static Set GenSet (string s) {
+
+        private Set (string a, string s) : base (a, s) {
+        }
+
+        public static Set Gen (string s) {
             Set set = null;
             Match m = AddressToSymbolInQuot.Match (s);
             if (m.Success) {

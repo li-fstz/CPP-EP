@@ -1,35 +1,31 @@
-﻿
-
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Text;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
 using System.Windows.Input;
 using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
 using System.Windows.Shapes;
 
 using ICSharpCode.AvalonEdit;
 using ICSharpCode.AvalonEdit.Rendering;
 
 namespace CPP_EP {
+
     using CodePosition = ValueTuple<string, int>;
+
     public partial class FileTab: TabItem {
         private static readonly Dictionary<string, FileTab> fileTabHash = new Dictionary<string, FileTab> ();
 
         private readonly string FilePath;
-        public Dictionary<int, CodePosition> breakPoints = new Dictionary<int, CodePosition>();
+        public Dictionary<int, CodePosition> breakPoints = new Dictionary<int, CodePosition> ();
         public static Action<CodePosition, Action<CodePosition?>> SetBreakPoint { private get; set; }
         public static Action<CodePosition> DeleteBreakPoint { private get; set; }
         public double breakPointAreaWidth;
         private int runMarkLine = -1;
-        private HighlightCurrentLineBackgroundRenderer backgroundRenderer;
+        private readonly HighlightCurrentLineBackgroundRenderer backgroundRenderer;
+
         public static FileTab GetInstance (string filepath) {
             if (fileTabHash.ContainsKey (filepath)) {
                 return fileTabHash[filepath];
@@ -44,6 +40,7 @@ namespace CPP_EP {
                 return tab;
             }
         }
+
         private FileTab (string filepath) {
             InitializeComponent ();
             FilePath = filepath;
@@ -54,7 +51,6 @@ namespace CPP_EP {
             breakPointGrid.Width = new GridLength (breakPointAreaWidth);
             backgroundRenderer = new HighlightCurrentLineBackgroundRenderer (textEditor);
             textEditor.TextArea.TextView.BackgroundRenderers.Add (backgroundRenderer);
-            
         }
 
         private void TextView_VisualLinesChanged (object sender, EventArgs e) {
@@ -68,9 +64,9 @@ namespace CPP_EP {
         private void BreakPointArea_MouseUp (object sender, MouseButtonEventArgs e) {
             //textEditor.Text += e.GetPosition (breakPointArea).Y;
             var y = e.GetPosition (breakPointArea).Y;
-            var visualLine = textEditor.TextArea.TextView.VisualLines.FirstOrDefault (vl => vl.GetTextLineVisualYPosition(vl.TextLines[0], VisualYPosition.LineBottom) - textEditor.TextArea.TextView.VerticalOffset > y);
+            var visualLine = textEditor.TextArea.TextView.VisualLines.FirstOrDefault (vl => vl.GetTextLineVisualYPosition (vl.TextLines[0], VisualYPosition.LineBottom) - textEditor.TextArea.TextView.VerticalOffset > y);
             var lineNumber = visualLine.FirstDocumentLine.LineNumber;
-            if (breakPoints.ContainsKey(lineNumber)) {
+            if (breakPoints.ContainsKey (lineNumber)) {
                 breakPoints.Remove (lineNumber);
                 DeleteBreakPoint (new CodePosition ((string)Header, lineNumber));
                 DrawAllBreakPoint ();
@@ -88,12 +84,12 @@ namespace CPP_EP {
             if (textEditor.TextArea.TextView.VisualLinesValid && textEditor.TextArea.TextView.VisualLines.Count > 0) {
                 breakPointArea.Children.Clear ();
                 foreach (var vl in textEditor.TextArea.TextView.VisualLines) {
-                    if (breakPoints.ContainsKey(vl.FirstDocumentLine.LineNumber)) {
+                    if (breakPoints.ContainsKey (vl.FirstDocumentLine.LineNumber)) {
                         breakPointArea.Children.Add (GenCircle (vl));
                         if (vl.FirstDocumentLine.LineNumber == runMarkLine) {
                             breakPointArea.Children.Add (GenRectangle (vl));
                         }
-                    } 
+                    }
                     if (vl.FirstDocumentLine.LineNumber == runMarkLine) {
                         breakPointArea.Children.Add (GenArrow (vl));
                     }
@@ -101,25 +97,26 @@ namespace CPP_EP {
             }
         }
 
-
         public void BreakPointLine (int line) {
-            if (!breakPoints.ContainsKey(line)) {
+            if (!breakPoints.ContainsKey (line)) {
                 breakPoints.Add (line, new CodePosition ((string)Header, line));
                 DrawAllBreakPoint ();
             }
         }
+
         public void UnBreakPointLine (int line) {
             if (breakPoints.Remove (line)) {
                 DrawAllBreakPoint ();
             }
         }
-        
+
         public void GotoLine (int line) {
             textEditor.ScrollToLine (line);
         }
+
         private Ellipse GenCircle (VisualLine visualLine) {
             Ellipse el = new Ellipse {
-                Fill = new SolidColorBrush (Color.FromRgb(255, 80, 65)),
+                Fill = new SolidColorBrush (Color.FromRgb (255, 80, 65)),
                 Width = breakPointAreaWidth - 2,
                 Height = breakPointAreaWidth - 2
             };
@@ -128,6 +125,7 @@ namespace CPP_EP {
             el.SetValue (Canvas.ZIndexProperty, 2);
             return el;
         }
+
         private Rectangle GenRectangle (VisualLine visualLine) {
             Rectangle r = new Rectangle {
                 Fill = new SolidColorBrush (Colors.Green),
@@ -138,29 +136,33 @@ namespace CPP_EP {
             r.SetValue (Canvas.TopProperty, visualLine.GetTextLineVisualYPosition (visualLine.TextLines[0], VisualYPosition.LineTop) - textEditor.TextArea.TextView.VerticalOffset);
             return r;
         }
+
         private Polygon GenArrow (VisualLine visualLine) {
             Polygon p = new Polygon {
-                Fill = new SolidColorBrush (Color.FromRgb(0, 176, 80)),
-                Points = new PointCollection (new Point[] { new Point(3.5, 0), new Point (breakPointAreaWidth, breakPointAreaWidth / 2), new Point (3.5, breakPointAreaWidth) })
+                Fill = new SolidColorBrush (Color.FromRgb (0, 176, 80)),
+                Points = new PointCollection (new Point[] { new Point (3.5, 0), new Point (breakPointAreaWidth, breakPointAreaWidth / 2), new Point (3.5, breakPointAreaWidth) })
             };
             p.SetValue (Canvas.ZIndexProperty, 3);
             p.SetValue (Canvas.TopProperty, visualLine.GetTextLineVisualYPosition (visualLine.TextLines[0], VisualYPosition.LineTop) - textEditor.TextArea.TextView.VerticalOffset);
             return p;
         }
+
         public void RunMarkLine (int line) {
             runMarkLine = line;
             backgroundRenderer.LineNumber = line;
             DrawAllBreakPoint ();
             textEditor.TextArea.TextView.Redraw ();
         }
+
         public void UnRunMarkLine () {
             runMarkLine = 0;
             backgroundRenderer.LineNumber = 0;
             DrawAllBreakPoint ();
             textEditor.TextArea.TextView.Redraw ();
         }
+
         public class HighlightCurrentLineBackgroundRenderer: IBackgroundRenderer {
-            private TextEditor _editor;
+            private readonly TextEditor _editor;
             public int LineNumber { get; set; } /* DiffPlex model's lines */
 
             public HighlightCurrentLineBackgroundRenderer (TextEditor editor) {
@@ -176,9 +178,9 @@ namespace CPP_EP {
                     return;
 
                 textView.EnsureVisualLines ();
-                var highlight = new SolidColorBrush(Color.FromArgb (100, 0, 176, 80));
+                var highlight = new SolidColorBrush (Color.FromArgb (100, 0, 176, 80));
                 var currentLine = _editor.Document.GetLineByNumber (LineNumber);
-                
+
                 foreach (var rect in BackgroundGeometryBuilder.GetRectsForSegment (textView, currentLine)) {
                     drawingContext.DrawRectangle (highlight, null, new Rect (rect.Location, new Size (9999, rect.Height)));
                     break;
@@ -187,4 +189,3 @@ namespace CPP_EP {
         }
     }
 }
-

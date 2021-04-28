@@ -1,14 +1,14 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using System.Text.RegularExpressions;
+﻿using System.Text.RegularExpressions;
 
 namespace CPP_EP.Lab.Data {
 
     public class Symbol: GDBData {
         public string Name;
-        private Symbol (string a, string s) : base (a, s) { }
-        public static Symbol GenSymbol (string s) {
+
+        private Symbol (string a, string s) : base (a, s) {
+        }
+
+        public static Symbol Gen (string s) {
             Symbol syb = null;
             Match m = AddressToSymbol.Match (s);
             if (m.Success) {

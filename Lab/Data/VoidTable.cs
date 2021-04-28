@@ -1,21 +1,24 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Text.RegularExpressions;
 
 namespace CPP_EP.Lab.Data {
+
     public class VoidTable: GDBData {
         public List<string> TableHead;
         public List<bool?> HasVoid;
-        private VoidTable (string a, string s) : base (a, s) { }
-        public static VoidTable GenVoidTable (string s) {
+
+        private VoidTable (string a, string s) : base (a, s) {
+        }
+
+        public static VoidTable Gen (string s) {
             if (s == null) return null;
             VoidTable v = null;
             string[] structs = s.Split (new string[] { "~\"|voidtable|\"" }, StringSplitOptions.RemoveEmptyEntries);
             if (structs.Length > 0) {
                 var ms = Text.Matches (structs[0]);
-                if (ms.Count > 0 && ms.First ().Success) {
+                if (ms.Count > 1 && ms.First ().Success) {
                     var address = ms.First ().Groups[1].Value;
                     var h = Get<VoidTable> (address);
                     if (h != null && h.GetHashCode () == s.GetHashCode ()) {

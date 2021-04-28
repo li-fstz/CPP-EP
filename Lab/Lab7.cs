@@ -1,13 +1,14 @@
-﻿using CPP_EP.Execute;
+﻿using System.Collections.Generic;
 
-using System;
-using System.Collections.Generic;
-using System.Windows.Controls;
+using CPP_EP.Execute;
 
 namespace CPP_EP.Lab {
-    class Lab7: AbstractLab {
-        public override List<string> LabFiles => new List<string> () { "lab7.c", "src\\rule.c", "src\\removeleftrecursion2.c" };
+
+    internal class Lab7: AbstractLab {
+        private readonly List<string> _LabFiles = new List<string> () { "lab7.c", "src\\rule.c", "src\\removeleftrecursion2.c" };
+        public override List<string> LabFiles => _LabFiles;
         public override int LabNo => 7;
+
         public override void Build () {
             Util.ThreadRun (() => {
                 new GCC ()
@@ -17,9 +18,12 @@ namespace CPP_EP.Lab {
                 .Link ("build\\lab7.exe");
             });
         }
+
         public override void Draw () {
-            DrawRules (1, "ruleHead");
-            DrawRules (2, "newRule");
+            WatchValues (() => {
+                DrawRules (1, "ruleHead");
+                DrawRules (2, "newRule");
+            }, "rule", "production", "symbol");
         }
     }
 }

@@ -1,28 +1,30 @@
-﻿using CPP_EP.Execute;
-using CPP_EP.Lab;
-
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Documents;
 
-namespace CPP_EP {
-    using CodePosition = ValueTuple<string, int>;
-    public partial class MainWindow: Window {
+using CPP_EP.Execute;
+using CPP_EP.Lab;
 
+namespace CPP_EP {
+
+    using CodePosition = ValueTuple<string, int>;
+
+    public partial class MainWindow: Window {
         private AbstractLab lab;
         private GDB gdb;
         private bool run;
         private FileTab lastStopTab;
         private int lastStopLine;
-        private readonly List<TextBlock> textBlocks = new List<TextBlock>();
+        private readonly List<TextBlock> textBlocks = new List<TextBlock> ();
+
         public MainWindow () {
             InitializeComponent ();
             System.Text.Encoding.RegisterProvider (System.Text.CodePagesEncodingProvider.Instance);
             GDB.PrintLog = s => Dispatcher.BeginInvoke ((Action<string>)PrintGDBLog, s);
-            //GDB.PrintLog = s => { };
+            GDB.PrintLog = s => { };
             GDB.AfterRun = (s1, s2) => Dispatcher.BeginInvoke ((Action<string, string>)AfterRun, s1, s2);
             GCC.AfterBuild = b => Dispatcher.BeginInvoke ((Action<bool>)AfterBuild, b);
             GCC.PrintLog = s => Dispatcher.BeginInvoke ((Action<string>)PrintMakeLog, s);
@@ -30,21 +32,25 @@ namespace CPP_EP {
             FileTab.SetBreakPoint = SetBreakPoint;
             FileTab.DeleteBreakPoint = DeleteBreakPoint;
         }
-        void UpdateUI(int i, Action<TextBlock> a) {
+
+        private void UpdateUI (int i, Action<TextBlock> a) {
             Dispatcher.BeginInvoke ((Action)(() => {
                 var c = textBlocks.Count;
                 if (c < i) {
                     for (; c <= i; c++) {
                         var tb = new TextBlock ();
+                        var cb = new TextBlock ();
                         textBlocks.Add (tb);
                         dataStructureView.Inlines.Add (tb);
-                        dataStructureView.Inlines.Add (new LineBreak());
+                        dataStructureView.Inlines.Add (cb);
+                        dataStructureView.Inlines.Add (new LineBreak ());
                     }
                 }
                 a (textBlocks[i - 1]);
             }));
         }
-        void SetBreakPoint (CodePosition cp, Action<CodePosition?> AfterSetBreakPoint) {
+
+        private void SetBreakPoint (CodePosition cp, Action<CodePosition?> AfterSetBreakPoint) {
             if (gdb == null) {
                 AfterSetBreakPoint (cp);
             } else {
@@ -52,7 +58,7 @@ namespace CPP_EP {
             }
         }
 
-        void DeleteBreakPoint (CodePosition cp) {
+        private void DeleteBreakPoint (CodePosition cp) {
             if (gdb != null) {
                 gdb.ClearBreakpoint (cp.Item1, cp.Item2, r => { });
             }
@@ -63,14 +69,15 @@ namespace CPP_EP {
                 SetRunButton (false);
                 gdb.Continue ();
             } else {
-                textBlocks.Clear();
-                dataStructureView.Inlines.Clear();
+                textBlocks.Clear ();
+                dataStructureView.Inlines.Clear ();
                 AbstractLab.DataHash.Clear ();
                 startButton.IsEnabled = false;
                 labSelect.IsEnabled = false;
                 lab.Build ();
             }
         }
+
         private void AfterBuild (bool buildOk) {
             if (buildOk) {
                 gdb = lab.GetGDB ();
@@ -90,9 +97,10 @@ namespace CPP_EP {
                 logControl.SelectedIndex = 0;
             }
         }
+
         private void AfterRun (string state, string res) {
             SetRunButton (true);
-            if (state != null && state.IndexOf("^error") != -1) {
+            if (state != null && state.IndexOf ("^error") != -1) {
                 return;
             }
             if (lastStopTab != null) {
@@ -169,20 +177,23 @@ namespace CPP_EP {
                 lastStopTab = null;
             }
         }
-        private void RestartButton_Click (object sender, RoutedEventArgs e) {
 
+        private void RestartButton_Click (object sender, RoutedEventArgs e) {
         }
+
         private void SettingButton_Click (object sender, RoutedEventArgs e) {
-            
         }
+
         private void StepButton_Click (object sender, RoutedEventArgs e) {
             SetRunButton (false);
             gdb.Step ();
         }
+
         private void NextButton_Click (object sender, RoutedEventArgs e) {
             SetRunButton (false);
             gdb.Next ();
         }
+
         private void FinishButton_Click (object sender, RoutedEventArgs e) {
             SetRunButton (false);
             gdb.Finish ();
@@ -202,17 +213,20 @@ namespace CPP_EP {
                 startButton.IsEnabled = false;
             }
         }
+
         private void PrintMakeLog (string s) {
             logControl.SelectedIndex = 0;
             buildText.AppendText (s);
             buildText.AppendText ("\n");
             buildText.ScrollToEnd ();
         }
+
         private void PrintOutput (string s) {
             logControl.SelectedIndex = 1;
             outputText.Text = s;
             outputText.ScrollToEnd ();
         }
+
         private void PrintGDBLog (string s) {
             if (s == null || s.IndexOf ("~") != -1) return;
             logControl.SelectedIndex = 2;
@@ -220,12 +234,14 @@ namespace CPP_EP {
             gdbText.AppendText ("\n");
             gdbText.ScrollToEnd ();
         }
+
         private void SetRunButton (bool enabled) {
             startButton.IsEnabled = enabled;
             stepButton.IsEnabled = enabled;
             nextButton.IsEnabled = enabled;
             finishButton.IsEnabled = enabled;
         }
+
         private void CorrectBreakPoint (Action AfterCorrectBreakPoint) {
             List<(FileTab, string, int)> lines = new List<(FileTab, string, int)> ();
             foreach (FileTab tab in tabControl.Items) {

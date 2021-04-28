@@ -1,21 +1,21 @@
-﻿using CPP_EP.Execute;
-using CPP_EP.Lab.Data;
-
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text.RegularExpressions;
+using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Documents;
 using System.Windows.Media;
 
-namespace CPP_EP.Lab {
-    class Lab8: Lab4 {
-               
-        public override List<string> LabFiles => new List<string> () { "lab8.c", "src\\rule.c", "src\\voidtable.c", "src\\first.c", "src\\follow.c", "src\\parsingtable.c", "src\\parser.c" };
+using CPP_EP.Execute;
+using CPP_EP.Lab.Data;
 
-        public static readonly Regex StringValue = new Regex (@"\\""(.+)\\""");
+namespace CPP_EP.Lab {
+
+    internal class Lab8: Lab4 {
+        private readonly List<string> _LabFiles = new List<string> () { "lab8.c", "src\\rule.c", "src\\voidtable.c", "src\\first.c", "src\\follow.c", "src\\parsingtable.c", "src\\parser.c" };
+        public override List<string> LabFiles => _LabFiles;
         public override int LabNo => 8;
+
         public override void Build () {
             Util.ThreadRun (() => {
                 new GCC ()
@@ -29,28 +29,26 @@ namespace CPP_EP.Lab {
                 .Link ("build\\lab8.exe");
             });
         }
+
         public override void Draw () {
-            DrawRules (1, "ruleHead");
-            DrawParsingTable (2, "parsingTable");
-            DrawValue (3, "string");
-            DrawValue (4, "topSymbol", "((struct Symbol *)topSymbol->value)->symbolName");
-            DrawParsingStack (5, "stack");
+            WatchValues (() => {
+                DrawRules (1, "ruleHead");
+                DrawParsingTable (2, "parsingTable");
+                //DrawValue (3, "string");
+                //DrawValue (4, "topSymbol", "((struct Symbol *)topSymbol->value)->symbolName");
+                DrawParsingStack (3, "stack");
+            }, "rule", "production", "symbol", "foundProduction", "((struct Symbol *)topSymbol->value)->symbolName", "string");
         }
-        public void GetParsingStack (string address, Action<List<string>> AfterParsingStack) {
-            gdb.SendScript ("getparsingstack " + address, r => {
-                List<string> stack = new List<string> ();
-                foreach (Match m in GDBData.Text.Matches (r)) {
-                    if (m.Success) {
-                        stack.Add (m.Groups[1].Value);
-                    }
-                }
-                AfterParsingStack (stack);
-            });
+
+        public void GetParsingStack (string address, Action<Stack> AfterParsingStack) {
+            gdb.SendScript ("getparsingstack " + address, r => AfterParsingStack (Stack.Gen (r)));
         }
+
         protected void DrawValue (int i, string label, string path = null) {
             if (path == null) {
                 path = label;
             }
+            /*
             gdb.GetValue (path, (value) => {
                 if (value == null) {
                     return;
@@ -63,7 +61,7 @@ namespace CPP_EP.Lab {
                     return;
                 }
                 DataHash[label] = m.Groups[1].Value;
-                UpdateUI (i, (tb) => {
+                UpdateUI (i, (tb, cb) => {
                     tb.Inlines.Clear ();
                     tb.Inlines.Add (label);
                     tb.Inlines.Add (new Run (" = ") { Foreground = Brushes.Gray });
@@ -71,22 +69,42 @@ namespace CPP_EP.Lab {
                     tb.Inlines.Add (new LineBreak ());
                 });
             });
+            */
         }
+
         protected void DrawParsingStack (int i, string label) {
             GetParsingStack (label, stack => {
-                if (stack == null || stack.Count == 0) {
+                if (stack == null || stack.Symbols.Count == 0) {
                     return;
                 }
-                if (DataHash.ContainsKey (label) && stack.SequenceEqual (DataHash[label] as List<string>)) {
+                if (DataHash.ContainsKey (label) && stack.Equals (DataHash[label] as List<string>)
+                    && !CheckWatchedValueChanged ("((struct Symbol *)topSymbol->value)->symbolName", "DrawParsingStack_")
+                    && !CheckWatchedValueChanged ("string", "DrawParsingStack_")) {
                     return;
                 }
+                WatchedValue.TryGetValue ("((struct Symbol *)topSymbol->value)->symbolName", out string topSymbol);
+                WatchedValue.TryGetValue ("string", out string str);
                 DataHash[label] = stack;
-                UpdateUI (i, (tb) => {
+                UpdateUI (i, tb => {
                     tb.Inlines.Clear ();
-                    tb.Inlines.Add (label + ":");
+                    tb.Inlines.Add ("string: " + str);
                     tb.Inlines.Add (new LineBreak ());
-                    for (int i = stack.Count () - 1; i >= 0; i --) {
-                        tb.Inlines.Add (NewBorder (new TextBlock (new Run(stack[i])), 1, 0, 1, 1));
+                    tb.Inlines.Add (label + ":");
+                    var tsb = new Border () {
+                        Background = Brushes.PaleGreen,
+                        Child = new TextBlock (new Run ("topSymbol")),
+                        Visibility = Visibility.Collapsed
+                    };
+                    tb.Inlines.Add (tsb);
+                    tb.Inlines.Add (new LineBreak ());
+                    if (topSymbol != null && topSymbol.IndexOf ("0x") == -1) {
+                        tsb.Visibility = Visibility.Visible;
+                        tb.Inlines.Add (NewBorder (new TextBlock (new Run (topSymbol)), 1, 1, 1, 1, Brushes.PaleGreen));
+                        tb.Inlines.Add (new LineBreak ());
+                        tb.Inlines.Add (new LineBreak ());
+                    }
+                    for (int i = stack.Symbols.Count () - 1; i >= 0; i--) {
+                        tb.Inlines.Add (NewBorder (new TextBlock (new Run (stack.Symbols[i])), 1, 0, 1, 1));
                         tb.Inlines.Add (new LineBreak ());
                     }
                 });

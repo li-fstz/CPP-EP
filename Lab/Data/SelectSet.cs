@@ -1,16 +1,18 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
+﻿using System.Collections.Generic;
 using System.Text.RegularExpressions;
 
 namespace CPP_EP.Lab.Data {
+
     public class SelectSet: GDBData {
         public Rule Rule;
         public Production Production;
         public List<string> Terminal;
         public static readonly Regex AddressToAddressToAddress = new Regex (@"(0x[0-9a-f]+)=>(0x[0-9a-f]+)=>(0x[0-9a-f]+)");
-        private SelectSet (string a, string s) : base (a, s) { }
-        public static SelectSet GenSelectSet (string s) {
+
+        private SelectSet (string a, string s) : base (a, s) {
+        }
+
+        public static SelectSet Gen (string s) {
             SelectSet set = null;
             Match m = AddressToAddressToAddress.Match (s);
             if (m.Success) {

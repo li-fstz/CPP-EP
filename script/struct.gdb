@@ -113,7 +113,7 @@ define getparsingtable
 		set $i = 0
 		printf "0x%x", ((struct ParsingTableRow *)$parsingtable->tableRows)[$j].rule
 		while $i < $parsingtable->colCount
-			printf "0x%x", ((struct ParsingTableRow *)$parsingtable->tableRows)[$j].productions[$i]
+			printf "0x%x=>0x%x", ((struct ParsingTableRow *)$parsingtable->tableRows)[$j].productions + $i, ((struct ParsingTableRow *)$parsingtable->tableRows)[$j].productions[$i]
 			set $i = $i + 1
 		end
 		set $j = $j + 1
@@ -125,6 +125,7 @@ end
 
 define getparsingstack
 	getaddress $parsingstack ParsingStack $arg0
+	printf "0x%x", $parsingstack
 	set $i = 0
 	while $i < $parsingstack->symbolCount
 		printf "%s", ((struct Symbol *)$parsingstack->symbols[$i]->value)->symbolName

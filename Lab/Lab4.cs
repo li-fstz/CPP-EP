@@ -1,20 +1,23 @@
-﻿using CPP_EP.Execute;
-using CPP_EP.Lab.Data;
-
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text.RegularExpressions;
+using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Documents;
 using System.Windows.Media;
 
+using CPP_EP.Execute;
+using CPP_EP.Lab.Data;
+
 namespace CPP_EP.Lab {
-    class Lab4: Lab3 {
-                
-        public override List<string> LabFiles => new List<string> () { "lab4.c", "src\\rule.c", "src\\voidtable.c", "src\\first.c", "src\\follow.c", "src\\parsingtable.c" };
+
+    internal class Lab4: Lab3 {
+        private readonly List<string> _LabFiles = new List<string> () { "lab4.c", "src\\rule.c", "src\\voidtable.c", "src\\first.c", "src\\follow.c", "src\\parsingtable.c" };
+
+        public override List<string> LabFiles => _LabFiles;
 
         public override int LabNo => 4;
+
         public override void Build () {
             Util.ThreadRun (() => {
                 new GCC ()
@@ -27,76 +30,94 @@ namespace CPP_EP.Lab {
                 .Link ("build\\lab4.exe");
             });
         }
+
         public override void Draw () {
-            DrawRules (1, "ruleHead");
-            DrawVoidTable (2, "voidTable");
-            DrawSetList (3, "firstSetList", "FIRST");
-            DrawSetList (4, "followSetList", "FOLLOW");
-            DrawSelectSetList (5, "selectSetList");
-            DrawParsingTable (6, "parsingTable");
+            WatchValues (() => {
+                DrawRules (1, "ruleHead");
+                DrawVoidTable (2, "voidTable");
+                DrawSetList (3, "firstSetList", "FIRST");
+                DrawSetList (4, "followSetList", "FOLLOW");
+                DrawSelectSetList (5, "selectSetList");
+                DrawParsingTable (6, "parsingTable");
+            }, "rule", "production", "symbol", "srcSet", "selectSet", "foundProduction");
         }
+
         protected void DrawSelectSetList (int i, string label) {
             GetSelectSetList (label, setList => {
                 if (setList != null && setList.Count > 0) {
-                    if (DataHash.ContainsKey (label) && setList.SequenceEqual (DataHash[label] as List<SelectSet>)) {
+                    if (DataHash.ContainsKey (label) && setList.SequenceEqual (DataHash[label] as List<SelectSet>)
+                        && !CheckWatchedValueChanged ("selectSet", "DrawSelectSetList_")) {
                         return;
                     }
+                    WatchedValue.TryGetValue ("selectSet", out string selectSet);
                     DataHash[label] = setList;
-                    UpdateUI (i, (tb) => {
+                    UpdateUI (i, tb => {
                         tb.Inlines.Clear ();
                         tb.Inlines.Add (label + ":");
+                        var selectb = new Border () {
+                            Background = Brushes.PaleGreen,
+                            Child = new TextBlock (new Run ("selectSet")),
+                            Visibility = Visibility.Collapsed
+                        };
+                        bool selectv = false;
                         tb.Inlines.Add (new LineBreak ());
                         foreach (var set in setList) {
-                            tb.Inlines.Add (new Run ("SELECT( ") { Foreground = Brushes.Gray });
-                            tb.Inlines.Add (set.Rule.Name);
-                            tb.Inlines.Add (new Run (" -> ") { Foreground = Brushes.Gray });
+                            var sb = new TextBlock ();
+                            sb.Inlines.Add (new Run ("SELECT( ") { Foreground = Brushes.Gray });
+                            sb.Inlines.Add (set.Rule.Name);
+                            sb.Inlines.Add (new Run (" -> ") { Foreground = Brushes.Gray });
                             if (set.Production != null) {
                                 foreach (var s in set.Production.Symbols) {
-                                    tb.Inlines.Add (s.Name);
+                                    sb.Inlines.Add (s.Name);
                                 }
                             }
-                            tb.Inlines.Add (new Run (" ) = { ") { Foreground = Brushes.Gray });
+                            sb.Inlines.Add (new Run (" ) = { ") { Foreground = Brushes.Gray });
                             for (int i = 0; i < set.Terminal.Count; i++) {
                                 if (i == 0) {
-                                    tb.Inlines.Add (set.Terminal[i]);
+                                    sb.Inlines.Add (set.Terminal[i]);
                                 } else {
-                                    tb.Inlines.Add (new Run (" , ") { Foreground = Brushes.Gray });
-                                    tb.Inlines.Add (set.Terminal[i]);
+                                    sb.Inlines.Add (new Run (" , ") { Foreground = Brushes.Gray });
+                                    sb.Inlines.Add (set.Terminal[i]);
                                 }
                             }
-                            tb.Inlines.Add (new Run (" }") { Foreground = Brushes.Gray });
+                            sb.Inlines.Add (new Run (" }") { Foreground = Brushes.Gray });
+                            tb.Inlines.Add (Border (sb, set.Address == selectSet, Brushes.PaleGreen));
+                            selectv |= set.Address == selectSet;
                             tb.Inlines.Add (new LineBreak ());
                         }
                     });
                 }
             });
         }
+
         protected void DrawParsingTable (int i, string label) {
             GetParsingTable (label, parsingTable => {
                 if (parsingTable != null && parsingTable.TableHead.Count > 0) {
-                    if (DataHash.ContainsKey (label) && parsingTable.Equals (DataHash[label] as ParsingTable)) {
+                    if (DataHash.ContainsKey (label) && parsingTable.Equals (DataHash[label] as ParsingTable)
+                        && !CheckWatchedValueChanged ("foundProduction", "DrawParsingTable_")) {
                         return;
                     }
+                    WatchedValue.TryGetValue ("foundProduction", out string pAddress);
                     DataHash[label] = parsingTable;
-                    UpdateUI (i, (tb) => {
+                    UpdateUI (i, tb => {
                         tb.Inlines.Clear ();
                         tb.Inlines.Add (label + ":");
                         tb.Inlines.Add (new LineBreak ());
-                        tb.Inlines.Add (NewBorder (new TextBlock(), 1, 1, 1, 1));
+                        tb.Inlines.Add (NewBorder (new TextBlock (), 1, 1, 1, 1));
                         foreach (var h in parsingTable.TableHead) {
                             tb.Inlines.Add (NewBorder (new TextBlock (new Run (h)), 0, 1, 1, 1));
                         }
                         tb.Inlines.Add (new LineBreak ());
                         foreach (var r in parsingTable.TableRows) {
-                            tb.Inlines.Add (NewBorder (new TextBlock (new Run (r.Rule.Name)), 1, 0, 1, 1));
+                            tb.Inlines.Add (NewBorder (new TextBlock (new Run (r.Rule == null ? "" : r.Rule.Name)), 1, 0, 1, 1));
                             foreach (var c in r.Productions) {
                                 var t = new TextBlock ();
-                                if (c != null) {
-                                    foreach (var s in c.Symbols) {
+                                if (c.Item2 != null) {
+                                    foreach (var s in c.Item2.Symbols) {
                                         t.Inlines.Add (s.Name);
                                     }
                                 }
-                                tb.Inlines.Add (NewBorder (t, 0, 0, 1, 1));
+                                tb.Inlines.Add (NewBorder (t, 0, 0, 1, 1, c.Item1 == pAddress ? Brushes.PaleGreen : Brushes.White));
                             }
                             tb.Inlines.Add (new LineBreak ());
                         }
@@ -104,22 +125,21 @@ namespace CPP_EP.Lab {
                 }
             });
         }
-        
+
         public void GetParsingTable (string address, Action<ParsingTable> AfterGetParsingTable) {
-            gdb.SendScript ("getparsingtable " + address, r => AfterGetParsingTable (ParsingTable.GenParsingTabele (r)));
+            gdb.SendScript ("getparsingtable " + address, r => AfterGetParsingTable (ParsingTable.Gen (r)));
         }
+
         public void GetSelectSetList (string address, Action<List<SelectSet>> AfterGetSelectSetList) {
             gdb.SendScript ("getselectsetlist " + address, r => {
                 List<SelectSet> selectsetList = new List<SelectSet> ();
                 string[] ruleStrings = r.Split (new string[] { "~\"|selectsetlist|\"" }, StringSplitOptions.RemoveEmptyEntries);
                 foreach (var s in ruleStrings) {
-                    var set = SelectSet.GenSelectSet (s);
+                    var set = SelectSet.Gen (s);
                     if (set != null) selectsetList.Add (set);
                 }
                 AfterGetSelectSetList (selectsetList);
             });
         }
-
-        
     }
 }

@@ -1,55 +1,95 @@
-﻿using CPP_EP.Execute;
-using CPP_EP.Lab.Data;
-
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text.RegularExpressions;
+using System.Windows;
+using System.Windows.Controls;
 using System.Windows.Documents;
 using System.Windows.Media;
 
+using CPP_EP.Execute;
+using CPP_EP.Lab.Data;
+
 namespace CPP_EP.Lab {
-    class Lab2: Lab1 {
-                
-        public override List<string> LabFiles => new List<string> () { "lab2.c", "src\\rule.c", "src\\voidtable.c", "src\\first.c" };
+
+    internal class Lab2: Lab1 {
+        private readonly List<string> _LabFiles = new List<string> () { "lab2.c", "src\\rule.c", "src\\voidtable.c", "src\\first.c" };
+
+        public override List<string> LabFiles => _LabFiles;
 
         public override int LabNo => 2;
+
         public override void Draw () {
-            DrawRules (1, "ruleHead");
-            DrawVoidTable (2, "voidTable");
-            DrawSetList (3, "firstSetList", "FIRST");
+            WatchValues (() => {
+                DrawRules (1, "ruleHead");
+                DrawVoidTable (2, "voidTable");
+                DrawSetList (3, "firstSetList", "FIRST");
+            }, "rule", "production", "symbol", "desSet", "srcSet");
         }
+
         protected void DrawSetList (int i, string label, string type) {
             GetSetList (label, setList => {
                 if (setList != null && setList.Count > 0) {
-                    if (DataHash.ContainsKey (label) && setList.SequenceEqual (DataHash[label] as List<Set>)) {
+                    if (DataHash.ContainsKey (label) && setList.SequenceEqual (DataHash[label] as List<Set>)
+                        && !CheckWatchedValueChanged ("desSet", "DrawSetList_")
+                        && !CheckWatchedValueChanged ("srcSet", "DrawSetList_")) {
                         return;
                     }
+                    WatchedValue.TryGetValue ("desSet", out string desSet);
+                    WatchedValue.TryGetValue ("srcSet", out string srcSet);
                     DataHash[label] = setList;
-                    UpdateUI (i, (tb) => {
+                    UpdateUI (i, tb => {
                         tb.Inlines.Clear ();
                         tb.Inlines.Add (label + ":");
+                        var desb = new Border () {
+                            Background = Brushes.PaleGreen,
+                            Child = new TextBlock (new Run ("desSet")),
+                            Visibility = Visibility.Collapsed
+                        };
+                        var srcb = new Border () {
+                            Background = Brushes.SandyBrown,
+                            Child = new TextBlock (new Run ("srcSet")),
+                            Visibility = Visibility.Collapsed
+                        };
+                        bool desv = false, srcv = false;
+                        tb.Inlines.Add (desb);
+                        tb.Inlines.Add (srcb);
                         tb.Inlines.Add (new LineBreak ());
-                        foreach(var set in setList) {
-                            tb.Inlines.Add (new Run (type + "( ") { Foreground = Brushes.Gray });
-                            tb.Inlines.Add (set.Name);
-                            tb.Inlines.Add (new Run (" ) = { ") { Foreground = Brushes.Gray });
-                            
-                            for (int i = 0; i < set.Terminal.Count; i ++) {
+                        foreach (var set in setList) {
+                            var sb = new TextBlock ();
+                            sb.Inlines.Add (new Run (type + "( ") { Foreground = Brushes.Gray });
+                            sb.Inlines.Add (set.Name);
+                            sb.Inlines.Add (new Run (" ) = { ") { Foreground = Brushes.Gray });
+                            for (int i = 0; i < set.Terminal.Count; i++) {
                                 if (i == 0) {
-                                    tb.Inlines.Add (set.Terminal[i]);
+                                    sb.Inlines.Add (set.Terminal[i]);
                                 } else {
-                                    tb.Inlines.Add (new Run (" , ") { Foreground = Brushes.Gray });
-                                    tb.Inlines.Add (set.Terminal[i]);
+                                    sb.Inlines.Add (new Run (" , ") { Foreground = Brushes.Gray });
+                                    sb.Inlines.Add (set.Terminal[i]);
                                 }
                             }
-                            tb.Inlines.Add (new Run (" }") { Foreground = Brushes.Gray });
+                            sb.Inlines.Add (new Run (" }") { Foreground = Brushes.Gray });
+                            if (set.Address == srcSet) {
+                                tb.Inlines.Add (Border (sb, true, Brushes.SandyBrown));
+                                srcv = true;
+                            } else if (set.Address == desSet) {
+                                tb.Inlines.Add (Border (sb, true, Brushes.PaleGreen));
+                                desv = true;
+                            } else {
+                                tb.Inlines.Add (sb);
+                            }
+                            if (desv) {
+                                desb.Visibility = Visibility.Visible;
+                            }
+                            if (srcv) {
+                                srcb.Visibility = Visibility.Visible;
+                            }
                             tb.Inlines.Add (new LineBreak ());
                         }
                     });
                 }
             });
         }
+
         public override void Build () {
             Util.ThreadRun (() => {
                 new GCC ()
@@ -60,20 +100,19 @@ namespace CPP_EP.Lab {
                 .Link ("build\\lab2.exe");
             });
         }
+
         public void GetSetList (string address, Action<List<Set>> AfterGetSetList) {
             gdb.SendScript ("getsetlist " + address, r => {
                 List<Set> setList = new List<Set> ();
                 string[] ruleStrings = r.Split (new string[] { "~\"|setlist|\"" }, StringSplitOptions.RemoveEmptyEntries);
                 foreach (var s in ruleStrings) {
-                    var set = Set.GenSet (s);
+                    var set = Set.Gen (s);
                     if (set != null) {
-                        setList.Add (Set.GenSet (s));
+                        setList.Add (Set.Gen (s));
                     }
                 }
                 AfterGetSetList (setList);
             });
         }
-
-        
     }
 }

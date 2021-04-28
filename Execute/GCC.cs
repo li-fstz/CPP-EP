@@ -2,15 +2,15 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
-using System.Text;
 
 namespace CPP_EP.Execute {
-    class GCC {
+
+    internal class GCC {
         private readonly Process ExecuteProcess;
         public static Action<string> PrintLog { private get; set; }
         public static Action<bool> AfterBuild { private get; set; }
         private bool buildOk = true, update = false;
-        private static readonly Dictionary<string, DateTime> lastTimeHash = new Dictionary<string, DateTime>();
+        private static readonly Dictionary<string, DateTime> lastTimeHash = new Dictionary<string, DateTime> ();
         private readonly List<string> objs = new List<string> ();
         /*
          * gcc .\src\rule.c -c -I .\inc\ -o build\obj\rule.o
@@ -18,6 +18,7 @@ namespace CPP_EP.Execute {
          * gcc .\lab1.c -c -I .\inc\ -o build\obj\lab1.o
          * gcc .\build\obj\lab1.o .\build\obj\rule.o .\build\obj\voidtable.o -o build\lab1.exe
          */
+
         public GCC () {
             if (!Directory.Exists ("build")) {
                 Directory.CreateDirectory ("build");
@@ -34,10 +35,11 @@ namespace CPP_EP.Execute {
             ExecuteProcess.StartInfo.RedirectStandardError = true;
             ExecuteProcess.StartInfo.CreateNoWindow = true;
         }
+
         public GCC Compile (string input, string output) {
             FileInfo file = new FileInfo (Properties.Settings.Default.LabsPath + input);
             objs.Add (output);
-            if (!lastTimeHash.ContainsKey(input) || DateTime.Compare(lastTimeHash[input], file.LastWriteTime) != 0 || !File.Exists(Properties.Settings.Default.LabsPath + output)) {
+            if (!lastTimeHash.ContainsKey (input) || DateTime.Compare (lastTimeHash[input], file.LastWriteTime) != 0 || !File.Exists (Properties.Settings.Default.LabsPath + output)) {
                 ExecuteProcess.StartInfo.Arguments = "-g -fexec-charset=GBK -c -I inc " + input + " -o " + output;
                 Run ();
                 if (buildOk) {
@@ -46,13 +48,15 @@ namespace CPP_EP.Execute {
             }
             return this;
         }
+
         public void Link (string output) {
-            if (update || !File.Exists(Properties.Settings.Default.LabsPath + output)) {
+            if (update || !File.Exists (Properties.Settings.Default.LabsPath + output)) {
                 ExecuteProcess.StartInfo.Arguments = "-g " + string.Join (" ", objs) + " -o " + output;
                 Run ();
             }
             AfterBuild (buildOk);
         }
+
         public void Run () {
             if (buildOk) {
                 update = true;
