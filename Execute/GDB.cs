@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
 
@@ -14,13 +15,18 @@ namespace CPP_EP.Execute {
         public static readonly Regex StringValue = new Regex (@"\\""(.+)\\""");
         public static readonly Regex AddressValue = new Regex (@"(0x[0-9a-f]+)");
         private Process ExecuteProcess;
-        private Thread readLineThread;
-        private readonly Queue<string> ExecResult = new Queue<string> ();
+        public static Action<string> AfterRun { private get; set; }
         public static Action<string> PrintLog { private get; set; }
-        public static Action<string, string> AfterRun { private get; set; }
-        private readonly Queue<string> ReadLines = new Queue<string> ();
         private readonly object gdbLock = new object ();
-
+        private readonly Queue<(ActionType, Action<string>)> GDBActions = new Queue<(ActionType, Action<string>)> ();
+        
+        private readonly StringBuilder GDBResult = new StringBuilder ();
+        private bool stopMark, gdbMark;
+        private enum ActionType {
+            Run,
+            Send,
+            Value,
+        }
         public GDB (string filepath) {
             ExecuteProcess = new Process ();
             ExecuteProcess.StartInfo.FileName = Properties.Settings.Default.GDBPath;
@@ -31,36 +37,106 @@ namespace CPP_EP.Execute {
             ExecuteProcess.StartInfo.RedirectStandardInput = true;
             ExecuteProcess.StartInfo.RedirectStandardError = true;
             ExecuteProcess.StartInfo.CreateNoWindow = true;
-            readLineThread = new Thread (ReadLineThreadFunc);
+            ExecuteProcess.OutputDataReceived += ExecuteProcess_OutputDataReceived;
+            //readLineThread = new Thread (ReadLineThreadFunc);
+        }
+        private void ExecuteProcess_OutputDataReceived (object sender, DataReceivedEventArgs e) {
+            if (!String.IsNullOrEmpty (e.Data)) {
+                PrintLog ("gdb -> " + e.Data);
+                if (GDBActions.Count > 0) {
+                    switch (GDBActions.Peek ().Item1) {
+                        case ActionType.Run:
+                            switch (e.Data[0]) {
+                                case '^':
+                                    if (e.Data.IndexOf ("^error") == 0) {
+                                        GDBResult.Clear ();
+                                    } else {
+                                        GDBResult.Append (e.Data);
+                                    }
+                                    break;
+                                case '(':
+                                    if (gdbMark && stopMark) {
+                                        gdbMark = stopMark = false;
+                                        GDBActions.Dequeue ().Item2 (GDBResult.ToString ());
+                                        GDBResult.Clear ();
+                                    } else {
+                                        gdbMark = true;
+                                    }
+                                    break;
+                                case '*':
+                                    if (e.Data.IndexOf ("*stop") == 0) {
+                                        GDBResult.Append (e.Data);
+                                        stopMark = true;
+                                    }
+                                    break;
+                                default:
+                                    GDBResult.Append (e.Data);
+                                    break;
+                            }
+                            break;
+                        case ActionType.Send:
+                            switch (e.Data[0]) {
+                                case '^':
+                                    if (e.Data.IndexOf ("^error") == 0) {
+                                        GDBResult.Clear ();
+                                    } else {
+                                        GDBResult.Append (e.Data);
+                                    }
+                                    break;
+                                case '(':
+                                    GDBActions.Dequeue().Item2 (GDBResult.ToString());
+                                    GDBResult.Clear ();
+                                    break;
+                                default:
+                                    GDBResult.Append (e.Data);
+                                    break;
+                            }
+                            break;
+                        case ActionType.Value:
+                            switch (e.Data[0]) {
+                                case '^':
+                                    if (e.Data.IndexOf ("^error") == 0) {
+                                        GDBResult.Clear ();
+                                    } else {
+                                        GDBResult.Append (e.Data);
+                                    }
+                                    break;
+                                case '(':
+                                    var m = StringValue.Match (GDBResult.ToString ());
+                                    if (m.Success) {
+                                        GDBActions.Dequeue ().Item2 (m.Groups[1].Value);
+                                    } else {
+                                        m = AddressValue.Match (GDBResult.ToString ());
+                                        if (m.Success) {
+                                            GDBActions.Dequeue ().Item2 (m.Groups[1].Value);
+                                        } else {
+                                            GDBActions.Dequeue ().Item2 (null);
+                                        }
+                                    }
+                                    GDBResult.Clear ();
+                                    break;
+                            }
+                            break;
+                    }
+                }
+            }
         }
 
         public void Start () {
             PrintLog (ExecuteProcess.StartInfo.FileName + " " + ExecuteProcess.StartInfo.Arguments);
             ExecuteProcess.Start ();
             ExecuteProcess.StandardInput.AutoFlush = true;
-            readLineThread.Start ();
-            GetExecResult (false);
-            Send ("-exec-arguments > out.txt");
-            Send ("-gdb-set print null-stop on");
-        }
-
-        private void ReadLineThreadFunc () {
-            try {
-                while (true) {
-                    string s = ExecuteProcess.StandardOutput.ReadLine ();
-                    lock (ReadLines) {
-                        ReadLines.Enqueue (s);
-                    }
-                }
-            } catch { };
+            ExecuteProcess.BeginOutputReadLine ();
+            GDBActions.Enqueue ((ActionType.Send, s => { }));
+            //readLineThread.Start ();
+            //GetExecResult (false);
+            Send ("-exec-arguments > out.txt", ActionType.Send, (s) => { });
+            Send ("-gdb-set print null-stop on", ActionType.Send, (s) => { });
         }
 
         private void SomeWayExecute (string cmd) {
             Util.ThreadRun (() => {
-                lock (gdbLock) {
-                    string r = Send (cmd);
-                    AfterRun (r, r.IndexOf ("^error") != -1 ? null : GetExecResult ());
-                }
+                Send (cmd, ActionType.Run, AfterRun);
             });
         }
 
@@ -85,187 +161,63 @@ namespace CPP_EP.Execute {
         }
 
         public void SetBreakpoint (string filename, int line, Action<CodePosition> AfterSetBreakPoint) {
-            Util.ThreadRun (() => AfterSetBreakPoint (SetBreakpoint (string.Format ("{0}:{1}", filename, line))));
+            Util.ThreadRun (() => {
+                Send (
+                    string.Format ("-break-insert {0}:{1}", filename, line),
+                    ActionType.Send,
+                    r => {
+                        AfterSetBreakPoint (BreakPoint.Parse (r));
+                    }
+                );
+            });
         }
 
         public void SetBreakpoints (List<(FileTab tab, string filename, int line)> lines, Action<CodePosition, FileTab, int> AfterSetBreakPoint, Action AfterSetBreakPoints) {
             Util.ThreadRun (() => {
                 foreach (var line in lines) {
-                    AfterSetBreakPoint (SetBreakpoint (string.Format ("{0}:{1}", line.filename, line.line)), line.tab, line.line);
+                    Send (
+                        string.Format ("-break-insert {0}:{1}", line.filename, line.line),
+                        ActionType.Send,
+                        r => {
+                            AfterSetBreakPoint (BreakPoint.Parse (r), line.tab, line.line);
+                        }
+                    );
                 }
                 AfterSetBreakPoints ();
             });
         }
 
-        private CodePosition SetBreakpoint (string parameter) {
-            string r = Send ("-break-insert " + parameter);
-            if (r.IndexOf ("done") != -1) {
-                return BreakPoint.Parse (r);
-            } else {
-                return null;
-            }
+        public void ClearBreakpoint (string filename, int line) {
+            Util.ThreadRun (() => Send (string.Format ("clear {0}:{1}", filename, line), ActionType.Send, (r) => { }));
         }
 
-        private bool ClearBreakpoint (string parameter) {
-            return Send ("clear " + parameter).IndexOf ("done") != -1;
-        }
-
-        public string Print (string parameter) {
-            var r = Send ("-data-evaluate-expression \"" + parameter + "\"");
-            if (r.IndexOf ("done") != -1) {
-                return r;
-            } else {
-                return null;
-            }
-        }
-
-        public void ClearBreakpoint (string filename, int line, Action<bool> AfterClearBreakPoint) {
-            Util.ThreadRun (() => AfterClearBreakPoint (ClearBreakpoint (string.Format ("{0}:{1}", filename, line))));
-        }
-
-        private string Send (string cmd) {
+        private void Send (string cmd, ActionType t, Action<string> AfterSend) {
             PrintLog ("gdb <- " + cmd);
-            ExecuteProcess.StandardInput.WriteLine (cmd);
-            return GetCmdResult ();
+            lock (gdbLock) {
+                ExecuteProcess.StandardInput.WriteLine (cmd);
+                GDBActions.Enqueue ((t, AfterSend));
+            }
         }
 
-        private string ReadLine () {
-            string r = null;
-            int times = 10;
-            while (times != 0) {
-                Monitor.Enter (ReadLines);
-                if (ReadLines.Count > 0) {
-                    r = ReadLines.Dequeue ();
-                    Monitor.Exit (ReadLines);
-                    break;
-                } else {
-                    Monitor.Exit (ReadLines);
-                    Thread.Sleep (100);
-                    times -= 1;
-                }
-            }
-            return r;
-        }
-
-        private string GetCmdResult () {
-            string s, r = null;
-            while ((s = ReadLine ()) != null && s.Length >= 0) {
-                if (s[0] == '^') {
-                    PrintLog ("gdb -> " + s);
-                    //Console.WriteLine ("gdb -> " + s);
-                    r = s;
-                } else if (s[0] == '*') {
-                    PrintLog ("gdb -> " + s);
-                    //Console.WriteLine ("gdb -> " + s);
-                    ExecResult.Enqueue (s);
-                } else if (s[0] == '(') {
-                    return r;
-                }
-            }
-            return null;
-        }
 
         public void SendScript (string script, Action<string> AfterSendScript) {
             Util.ThreadRun (() => {
-                lock (gdbLock) {
-                    string r = "";
-                    string s;
-                    PrintLog ("gdb <- " + script);
-                    //Console.WriteLine ("gdb <- " + script);
-                    try {
-                        ExecuteProcess.StandardInput.WriteLine (script);
-                        while ((s = ReadLine ()) != null) {
-                            PrintLog ("gdb -> " + s);
-                            //Console.WriteLine ("gdb -> " + s);
-                            r += s;
-                            if (s[0] == '^') {
-                                if (s != "^done") {
-                                    r = null;
-                                }
-                            } else if (s[0] == '(') {
-                                break;
-                            }
-                        }
-                        AfterSendScript (r);
-                    } catch (Exception e) {
-                        PrintLog (e.Message);
-                    }
-                };
+                Send (script, ActionType.Send, AfterSendScript);
             });
         }
 
         public void GetValues (string[] names, Action AfterGetValues) {
             Util.ThreadRun (() => {
-                lock (gdbLock) {
-                    Dictionary<string, string> kvs = new Dictionary<string, string> ();
-                    foreach (var name in names) {
-                        string r = "";
-                        string s;
-                        PrintLog ("gdb <- " + name);
-                        //Console.WriteLine ("gdb <- " + script);
-                        try {
-                            ExecuteProcess.StandardInput.WriteLine ("-data-evaluate-expression \"" + name + "\"");
-                        } catch {
-                            break;
-                        }
-                        while ((s = ReadLine ()) != null) {
-                            PrintLog ("gdb -> " + s);
-                            //Console.WriteLine ("gdb -> " + s);
-                            r += s;
-                            if (s[0] == '^') {
-                                if (s.IndexOf ("^done") == -1) {
-                                    r = null;
-                                }
-                            } else if (s[0] == '(') {
-                                break;
-                            }
-                        }
-                        if (r != null) {
-                            var m = StringValue.Match (r);
-                            if (m.Success) {
-                                kvs[name] = m.Groups[1].Value;
-                            } else {
-                                m = AddressValue.Match (r);
-                                if (m.Success) {
-                                    kvs[name] = m.Groups[1].Value;
-                                }
-                            }
-                        }
-                    }
-                    AbstractLab.WatchedValue = kvs;
-                };
+                Dictionary<string, string> kvs = new Dictionary<string, string> ();
+                foreach (var name in names) {
+                    Send ("-data-evaluate-expression \"" + name + "\"", ActionType.Value, v => kvs[name] = v);
+                }
+                AbstractLab.WatchedValue = kvs;
                 AfterGetValues ();
             });
         }
 
-        private string GetExecResult (bool first = true) {
-            string r = null, s;
-            if (ExecResult.Count != 0) {
-                r = ExecResult.Dequeue ();
-            } else {
-                while ((s = ReadLine ()) != null) {
-                    if (s[0] == '*') {
-                        r = s;
-                    } else if (s[0] == '(') {
-                        break;
-                    }
-                }
-            }
-            if (first) {
-                if (r == null || r.IndexOf ("*stop") != -1) {
-                    return r;
-                } else {
-                    return GetExecResult (false);
-                }
-            } else {
-                return r;
-            }
-        }
-
         public void Stop () {
-            if (readLineThread != null) {
-                readLineThread = null;
-            }
             if (ExecuteProcess != null) {
                 ExecuteProcess.Kill ();
                 ExecuteProcess = null;

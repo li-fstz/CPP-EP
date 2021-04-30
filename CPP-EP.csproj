@@ -31,23 +31,33 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Resource Include="Image\debug-continue-disabled.png" />
+    <Resource Include="Image\debug-continue-disabled.png">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </Resource>
     <Resource Include="Image\debug-continue.png">
       <CopyToOutputDirectory>Never</CopyToOutputDirectory>
     </Resource>
-    <Resource Include="Image\debug-step-into-disabled.png" />
+    <Resource Include="Image\debug-step-into-disabled.png">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </Resource>
     <Resource Include="Image\debug-step-into.png">
       <CopyToOutputDirectory>Never</CopyToOutputDirectory>
     </Resource>
-    <Resource Include="Image\debug-step-out-disabled.png" />
+    <Resource Include="Image\debug-step-out-disabled.png">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </Resource>
     <Resource Include="Image\debug-step-out.png">
       <CopyToOutputDirectory>Never</CopyToOutputDirectory>
     </Resource>
-    <Resource Include="Image\debug-step-over-disabled.png" />
+    <Resource Include="Image\debug-step-over-disabled.png">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </Resource>
     <Resource Include="Image\debug-step-over.png">
       <CopyToOutputDirectory>Never</CopyToOutputDirectory>
     </Resource>
-    <Resource Include="Image\debug-stop-disabled.png" />
+    <Resource Include="Image\debug-stop-disabled.png">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </Resource>
     <Resource Include="Image\debug-stop.png">
       <CopyToOutputDirectory>Never</CopyToOutputDirectory>
     </Resource>

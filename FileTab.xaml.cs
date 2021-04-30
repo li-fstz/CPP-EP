@@ -358,8 +358,7 @@ namespace CPP_EP {
         }
 
         public void UpdateFoldings (FoldingManager manager, TextDocument document) {
-            int firstErrorOffset;
-            IEnumerable<NewFolding> newFoldings = CreateNewFoldings (document, out firstErrorOffset);
+            IEnumerable<NewFolding> newFoldings = CreateNewFoldings (document, out int firstErrorOffset);
             manager.UpdateFoldings (newFoldings, firstErrorOffset);
         }
 

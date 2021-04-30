@@ -18,6 +18,7 @@ namespace CPP_EP {
         }
 
         public static void ThreadRun (ThreadStart a) {
+            //a.Invoke ();
             new Thread (a).Start ();
         }
     }

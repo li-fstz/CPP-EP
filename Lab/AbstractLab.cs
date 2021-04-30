@@ -22,9 +22,10 @@ namespace CPP_EP.Lab {
         public abstract void Build ();
 
         public static Dictionary<string, object> DataHash = new Dictionary<string, object> ();
-        public static Dictionary<string, string> WatchedValue;
+        public static Dictionary<string, string> WatchedValue = new Dictionary<string, string>();
 
         protected void WatchValues (Action AfterGetValues, params string[] names) {
+            //AfterGetValues ();
             gdb.GetValues (names, AfterGetValues);
         }
 

@@ -35,8 +35,8 @@ namespace CPP_EP {
             InitializeComponent ();
             System.Text.Encoding.RegisterProvider (System.Text.CodePagesEncodingProvider.Instance);
             GDB.PrintLog = s => Dispatcher.BeginInvoke ((Action<string>)PrintGDBLog, s);
-            GDB.PrintLog = s => { };
-            GDB.AfterRun = (s1, s2) => Dispatcher.BeginInvoke ((Action<string, string>)AfterRun, s1, s2);
+            GDB.PrintLog = s => Debug.WriteLine(s);
+            GDB.AfterRun = (s) => Dispatcher.BeginInvoke ((Action<string>)AfterRun, s);
             GCC.AfterBuild = b => Dispatcher.BeginInvoke ((Action<bool>)AfterBuild, b);
             GCC.PrintLog = s => Dispatcher.BeginInvoke ((Action<string>)PrintMakeLog, s);
             AbstractLab.UpdateUI = UpdateUI;
@@ -71,7 +71,7 @@ namespace CPP_EP {
 
         private void DeleteBreakPoint (CodePosition cp) {
             if (gdb != null) {
-                gdb.ClearBreakpoint (cp.Item1, cp.Item2, r => { });
+                gdb.ClearBreakpoint (cp.Item1, cp.Item2);
             }
         }
 
@@ -93,25 +93,25 @@ namespace CPP_EP {
             }
         }
 
-        private void AfterRun (string state, string res) {
-            if (state != null && state.IndexOf ("^error") != -1) {
+        private void AfterRun (string result) {
+            if (result != null && result.IndexOf ("^error") != -1) {
                 dataContext.BreakPoint ();
                 return;
             }
             if (lastStopTab != null) {
                 lastStopTab.UnRunMarkLine ();
             }
-            if (res == null) {
+            if (result == null) {
                 dataContext.Finish ();
                 run = false;
                 gdb.Stop ();
                 gdb = null;
-                PrintGDBLog (res);
+                PrintGDBLog (result);
                 PrintOutput (File.ReadAllText (Properties.Settings.Default.LabsPath + "out.txt", System.Text.Encoding.GetEncoding ("GB2312")));
             } else {
-                if (res.IndexOf ("breakpoint-hit") != -1
-                    || res.IndexOf ("end-stepping-range") != -1
-                    || res.IndexOf ("function-finished") != -1) {
+                if (result.IndexOf ("breakpoint-hit") != -1
+                    || result.IndexOf ("end-stepping-range") != -1
+                    || result.IndexOf ("function-finished") != -1) {
                     /*
                         List<Lab.Lab.Rule> rules = lab4.GetRules("pHead");
                         Lab1.VoidTable voidTable = lab4.GetVoidTable("&VoidTable");
@@ -122,7 +122,7 @@ namespace CPP_EP {
                         List<Lab.Lab.Symbol> stack = lab8.GetParsingStack("&Stack");
                     */
                     dataContext.BreakPoint ();
-                    var b = BreakPoint.Parse (res);
+                    var b = BreakPoint.Parse (result);
                     if (b.HasValue) {
                         lastStopTab = FileTab.GetInstance (Path.GetFileName (b.Value.Item1));
                         tabControl.SelectedItem = lastStopTab;
@@ -136,7 +136,7 @@ namespace CPP_EP {
                     run = false;
                     gdb.Stop ();
                     gdb = null;
-                    PrintGDBLog (res);
+                    PrintGDBLog (result);
                     PrintOutput (File.ReadAllText (Properties.Settings.Default.LabsPath + "out.txt", System.Text.Encoding.GetEncoding ("GB2312")));
                 }
             }
