@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.IO;
 using System.Windows;
 using System.Windows.Controls;
@@ -7,6 +8,10 @@ using System.Windows.Documents;
 
 using CPP_EP.Execute;
 using CPP_EP.Lab;
+
+using System.Runtime.CompilerServices;
+using System.Windows.Input;
+using System.Diagnostics;
 
 namespace CPP_EP {
 
@@ -19,8 +24,14 @@ namespace CPP_EP {
         private FileTab lastStopTab;
         private int lastStopLine;
         private readonly List<TextBlock> textBlocks = new List<TextBlock> ();
-
+        private readonly MainWindowDataContext dataContext;
         public MainWindow () {
+            dataContext = new MainWindowDataContext () {
+                StartButtonEnable = true,
+                StartButtonContent = "启动",
+                LabSelectEnable = true,
+            };
+            DataContext = dataContext;
             InitializeComponent ();
             System.Text.Encoding.RegisterProvider (System.Text.CodePagesEncodingProvider.Instance);
             GDB.PrintLog = s => Dispatcher.BeginInvoke ((Action<string>)PrintGDBLog, s);
@@ -64,19 +75,6 @@ namespace CPP_EP {
             }
         }
 
-        private void StartButton_Click (object sender, RoutedEventArgs e) {
-            if (run) {
-                SetRunButton (false);
-                gdb.Continue ();
-            } else {
-                textBlocks.Clear ();
-                dataStructureView.Inlines.Clear ();
-                AbstractLab.DataHash.Clear ();
-                startButton.IsEnabled = false;
-                labSelect.IsEnabled = false;
-                lab.Build ();
-            }
-        }
 
         private void AfterBuild (bool buildOk) {
             if (buildOk) {
@@ -85,33 +83,26 @@ namespace CPP_EP {
                 CorrectBreakPoint (() => {
                     Dispatcher.BeginInvoke ((Action)(() => {
                         run = true;
-                        startButton.IsEnabled = true;
-                        startButton.Content = "继续";
-                        stopButton.IsEnabled = true;
+                        dataContext.BeforeRun ();
                     }));
                     gdb.Run ();
                 });
             } else {
-                startButton.IsEnabled = true;
-                labSelect.IsEnabled = true;
+                dataContext.BuildFail ();
                 logControl.SelectedIndex = 0;
             }
         }
 
         private void AfterRun (string state, string res) {
-            SetRunButton (true);
             if (state != null && state.IndexOf ("^error") != -1) {
+                dataContext.BreakPoint ();
                 return;
             }
             if (lastStopTab != null) {
                 lastStopTab.UnRunMarkLine ();
             }
             if (res == null) {
-                restartButton.IsEnabled = false;
-                stepButton.IsEnabled = false;
-                nextButton.IsEnabled = false;
-                finishButton.IsEnabled = false;
-                startButton.Content = "启动";
+                dataContext.Finish ();
                 run = false;
                 gdb.Stop ();
                 gdb = null;
@@ -130,10 +121,7 @@ namespace CPP_EP {
                         Lab4.ParsingTable parsingTable = lab4.GetParsingTable ("&ParsingTable");
                         List<Lab.Lab.Symbol> stack = lab8.GetParsingStack("&Stack");
                     */
-                    restartButton.IsEnabled = true;
-                    stepButton.IsEnabled = true;
-                    nextButton.IsEnabled = true;
-                    finishButton.IsEnabled = true;
+                    dataContext.BreakPoint ();
                     var b = BreakPoint.Parse (res);
                     if (b.HasValue) {
                         lastStopTab = FileTab.GetInstance (Path.GetFileName (b.Value.Item1));
@@ -144,13 +132,7 @@ namespace CPP_EP {
                     }
                     lab.Draw ();
                 } else {
-                    restartButton.IsEnabled = false;
-                    stepButton.IsEnabled = false;
-                    nextButton.IsEnabled = false;
-                    finishButton.IsEnabled = false;
-                    stopButton.IsEnabled = false;
-                    labSelect.IsEnabled = true;
-                    startButton.Content = "启动";
+                    dataContext.Finish ();
                     run = false;
                     gdb.Stop ();
                     gdb = null;
@@ -158,45 +140,6 @@ namespace CPP_EP {
                     PrintOutput (File.ReadAllText (Properties.Settings.Default.LabsPath + "out.txt", System.Text.Encoding.GetEncoding ("GB2312")));
                 }
             }
-        }
-
-        private void StopButton_Click (object sender, RoutedEventArgs e) {
-            if (gdb != null) {
-                gdb.Stop ();
-                gdb = null;
-            }
-            run = false;
-            startButton.Content = "启动";
-            stopButton.IsEnabled = false;
-            labSelect.IsEnabled = true;
-            SetRunButton (false);
-            startButton.IsEnabled = true;
-            restartButton.IsEnabled = false;
-            if (lastStopTab != null) {
-                lastStopTab.UnRunMarkLine ();
-                lastStopTab = null;
-            }
-        }
-
-        private void RestartButton_Click (object sender, RoutedEventArgs e) {
-        }
-
-        private void SettingButton_Click (object sender, RoutedEventArgs e) {
-        }
-
-        private void StepButton_Click (object sender, RoutedEventArgs e) {
-            SetRunButton (false);
-            gdb.Step ();
-        }
-
-        private void NextButton_Click (object sender, RoutedEventArgs e) {
-            SetRunButton (false);
-            gdb.Next ();
-        }
-
-        private void FinishButton_Click (object sender, RoutedEventArgs e) {
-            SetRunButton (false);
-            gdb.Finish ();
         }
 
         private void LabSelect_SelectionChanged (object sender, SelectionChangedEventArgs e) {
@@ -208,9 +151,9 @@ namespace CPP_EP {
                 }
                 tabControl.SelectedIndex = 0;
                 tabControl.Focus ();
-                startButton.IsEnabled = true;
+                dataContext.StartButtonEnable = true;
             } else {
-                startButton.IsEnabled = false;
+                dataContext.StartButtonEnable = false;
             }
         }
 
@@ -235,12 +178,6 @@ namespace CPP_EP {
             gdbText.ScrollToEnd ();
         }
 
-        private void SetRunButton (bool enabled) {
-            startButton.IsEnabled = enabled;
-            stepButton.IsEnabled = enabled;
-            nextButton.IsEnabled = enabled;
-            finishButton.IsEnabled = enabled;
-        }
 
         private void CorrectBreakPoint (Action AfterCorrectBreakPoint) {
             List<(FileTab, string, int)> lines = new List<(FileTab, string, int)> ();
@@ -269,7 +206,244 @@ namespace CPP_EP {
         }
 
         private void Window_Closed (object sender, EventArgs e) {
-            StopButton_Click (sender, null);
+            Stop_Executed (null, null);
+        }
+
+        private void StartOrContinue_CanExecute (object sender, CanExecuteRoutedEventArgs e) {
+            e.CanExecute = dataContext.StartButtonEnable;
+        }
+
+        private void StartOrContinue_Executed (object sender, ExecutedRoutedEventArgs e) {
+            if (run) {
+                dataContext.SetRunButton (false);
+                gdb.Continue ();
+            } else {
+                textBlocks.Clear ();
+                dataStructureView.Inlines.Clear ();
+                AbstractLab.DataHash.Clear ();
+                dataContext.Start ();
+                lab.Build ();
+            }
+        }
+
+        private void Stop_CanExecute (object sender, CanExecuteRoutedEventArgs e) {
+            e.CanExecute = dataContext.StopButtonEnable;
+        }
+
+        private void Stop_Executed (object sender, ExecutedRoutedEventArgs e) {
+            if (gdb != null) {
+                gdb.Stop ();
+                gdb = null;
+            }
+            run = false;
+            dataContext.Finish ();
+            if (lastStopTab != null) {
+                lastStopTab.UnRunMarkLine ();
+                lastStopTab = null;
+            }
+        }
+
+        private void Step_CanExecute (object sender, CanExecuteRoutedEventArgs e) {
+            e.CanExecute = dataContext.StepButtonEnable;
+        }
+
+        private void Step_Executed (object sender, ExecutedRoutedEventArgs e) {
+            dataContext.SetRunButton (false);
+            gdb.Step ();
+        }
+
+        private void Next_CanExecute (object sender, CanExecuteRoutedEventArgs e) {
+            e.CanExecute = dataContext.NextButtonEnable;
+        }
+
+        private void Next_Executed (object sender, ExecutedRoutedEventArgs e) {
+            dataContext.SetRunButton (false);
+            gdb.Next ();
+        }
+
+        private void Finish_CanExecute (object sender, CanExecuteRoutedEventArgs e) {
+            e.CanExecute = dataContext.FinishButtonEnable;
+        }
+
+        private void Finish_Executed (object sender, ExecutedRoutedEventArgs e) {
+            dataContext.SetRunButton (false);
+            gdb.Finish ();
+        }
+
+        private void StartButton_Click (object sender, RoutedEventArgs e) {
+            StartOrContinue_Executed (null, null); 
+        }
+
+        private void StopButton_Click (object sender, RoutedEventArgs e) {
+            Stop_Executed (null, null);
+        }
+
+        private void StepButton_Click (object sender, RoutedEventArgs e) {
+            Step_Executed (null, null);
+        }
+
+        private void NextButton_Click (object sender, RoutedEventArgs e) {
+            Next_Executed (null, null);
+        }
+
+        private void FinishButton_Click (object sender, RoutedEventArgs e) {
+            Finish_Executed (null, null);
+        }
+    }
+    class MainWindowDataContext: INotifyPropertyChanged {
+        public event PropertyChangedEventHandler PropertyChanged;
+        private bool _startButtonEnable;
+        private bool _stopButtonEnable;
+        private bool _stepButtonEnable;
+        private bool _nextButtonEnable;
+        private bool _finishButtonEnable;
+        private string _startButtonContent;
+        private bool _labSelectEnable;
+
+        public bool StartButtonEnable { 
+            get => _startButtonEnable;
+            set { 
+                if (SetProperty (ref _startButtonEnable, value)) {
+                    PropertyChanged?.Invoke (this, new PropertyChangedEventArgs ("StartButtonImage"));
+                }
+            }
+        }
+        public string StartButtonImage { 
+            get { 
+                if (_startButtonEnable) {
+                    return "image/debug-continue.png";
+                } else {
+                    return "image/debug-continue-disabled.png";
+                }
+            }
+        }
+        public bool StopButtonEnable { 
+            get => _stopButtonEnable;
+            set {
+                if (SetProperty (ref _stopButtonEnable, value)) {
+                    PropertyChanged?.Invoke (this, new PropertyChangedEventArgs ("StopButtonImage"));
+                }
+            }
+        }
+        public string StopButtonImage {
+            get {
+                if (_stopButtonEnable) {
+                    return "image/debug-stop.png";
+                } else {
+                    return "image/debug-stop-disabled.png";
+                }
+            }
+        }
+        public bool StepButtonEnable { 
+            get => _stepButtonEnable;
+            set {
+                if (SetProperty (ref _stepButtonEnable, value)) {
+                    PropertyChanged?.Invoke (this, new PropertyChangedEventArgs ("StepButtonImage"));
+                }
+            }
+        }
+        public string StepButtonImage {
+            get {
+                if (_stepButtonEnable) {
+                    return "image/debug-step-into.png";
+                } else {
+                    return "image/debug-step-into-disabled.png";
+                }
+            }
+        }
+        public bool NextButtonEnable { 
+            get => _nextButtonEnable;
+            set {
+                if (SetProperty (ref _nextButtonEnable, value)) {
+                    PropertyChanged?.Invoke (this, new PropertyChangedEventArgs ("NextButtonImage"));
+                }
+            }
+        }
+        public string NextButtonImage {
+            get {
+                if (_nextButtonEnable) {
+                    return "image/debug-step-over.png";
+                } else {
+                    return "image/debug-step-over-disabled.png";
+                }
+            }
+        }
+        public bool FinishButtonEnable { 
+            get => _finishButtonEnable;
+            set {
+                if (SetProperty (ref _finishButtonEnable, value)) {
+                    PropertyChanged?.Invoke (this, new PropertyChangedEventArgs ("FinishButtonImage"));
+                }
+            }
+        }
+        public string FinishButtonImage {
+            get {
+                if (_finishButtonEnable) {
+                    return "image/debug-step-out.png";
+                } else {
+                    return "image/debug-step-out-disabled.png";
+                }
+            }
+        }
+        public string StartButtonContent { 
+            get => _startButtonContent; 
+            set {
+                if (SetProperty (ref _startButtonContent, value)) {
+                    PropertyChanged?.Invoke (this, new PropertyChangedEventArgs ("StartMenuContent"));
+                }
+            }
+        }
+        public string StartMenuContent { get => _startButtonContent == "开始"? "开始(_S)": "继续(_C)"; }
+        public bool LabSelectEnable { get => _labSelectEnable; set => SetProperty (ref _labSelectEnable, value); }
+
+        private bool SetProperty<T> (ref T field, T newValue, [CallerMemberName] string propertyName = null) {
+            if (!Equals (field, newValue)) {
+                field = newValue;
+                PropertyChanged?.Invoke (this, new PropertyChangedEventArgs (propertyName));
+                return true;
+            }
+
+            return false;
+        }
+
+        public void SetRunButton (bool enabled) {
+            StartButtonEnable = enabled;
+            StepButtonEnable = enabled;
+            NextButtonEnable = enabled;
+            FinishButtonEnable = enabled;
+        }
+
+        public void Start () {
+            StartButtonEnable = false;
+            LabSelectEnable = false;
+        }
+
+        public void BeforeRun () {
+            StartButtonEnable = true;
+            StartButtonContent = "继续";
+            StopButtonEnable = true;
+        }
+
+        public void BuildFail () {
+            StartButtonEnable = true;
+            LabSelectEnable = true;
+        }
+
+        public void BreakPoint () {
+            StartButtonEnable = true;
+            StepButtonEnable = true;
+            NextButtonEnable = true;
+            FinishButtonEnable = true;
+        }
+
+        public void Finish () {
+            StartButtonEnable = true;
+            StepButtonEnable = false;
+            NextButtonEnable = false;
+            FinishButtonEnable = false;
+            StopButtonEnable = false;
+            LabSelectEnable = true;
+            StartButtonContent = "启动";
         }
     }
 }

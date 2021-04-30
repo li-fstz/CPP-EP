@@ -13,8 +13,44 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <None Remove="Image\debug-continue-disabled.png" />
+    <None Remove="Image\debug-continue.png" />
+    <None Remove="Image\debug-step-into-disabled.png" />
+    <None Remove="Image\debug-step-into.png" />
+    <None Remove="Image\debug-step-out-disabled.png" />
+    <None Remove="Image\debug-step-out.png" />
+    <None Remove="Image\debug-step-over-disabled.png" />
+    <None Remove="Image\debug-step-over.png" />
+    <None Remove="Image\debug-stop-disabled.png" />
+    <None Remove="Image\debug-stop.png" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="AvalonEdit" Version="6.1.1" />
     <PackageReference Include="System.Text.Encoding.CodePages" Version="5.0.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Resource Include="Image\debug-continue-disabled.png" />
+    <Resource Include="Image\debug-continue.png">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </Resource>
+    <Resource Include="Image\debug-step-into-disabled.png" />
+    <Resource Include="Image\debug-step-into.png">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </Resource>
+    <Resource Include="Image\debug-step-out-disabled.png" />
+    <Resource Include="Image\debug-step-out.png">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </Resource>
+    <Resource Include="Image\debug-step-over-disabled.png" />
+    <Resource Include="Image\debug-step-over.png">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </Resource>
+    <Resource Include="Image\debug-stop-disabled.png" />
+    <Resource Include="Image\debug-stop.png">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </Resource>
   </ItemGroup>
 
   <ItemGroup>
