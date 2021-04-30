@@ -46,7 +46,7 @@ namespace CPP_EP.Lab {
             GetSelectSetList (label, setList => {
                 if (setList != null && setList.Count > 0) {
                     if (DataHash.ContainsKey (label) && setList.SequenceEqual (DataHash[label] as List<SelectSet>)
-                        && !CheckWatchedValueChanged ("selectSet", "DrawSelectSetList_")) {
+                        && !CheckWatchedValueChange ("DrawSelectSetList_", "selectSet")) {
                         return;
                     }
                     WatchedValue.TryGetValue ("selectSet", out string selectSet);
@@ -94,7 +94,7 @@ namespace CPP_EP.Lab {
             GetParsingTable (label, parsingTable => {
                 if (parsingTable != null && parsingTable.TableHead.Count > 0) {
                     if (DataHash.ContainsKey (label) && parsingTable.Equals (DataHash[label] as ParsingTable)
-                        && !CheckWatchedValueChanged ("foundProduction", "DrawParsingTable_")) {
+                        && !CheckWatchedValueChange ("foundProduction", "DrawParsingTable_")) {
                         return;
                     }
                     WatchedValue.TryGetValue ("foundProduction", out string pAddress);

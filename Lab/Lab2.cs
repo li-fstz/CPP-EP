@@ -30,8 +30,7 @@ namespace CPP_EP.Lab {
             GetSetList (label, setList => {
                 if (setList != null && setList.Count > 0) {
                     if (DataHash.ContainsKey (label) && setList.SequenceEqual (DataHash[label] as List<Set>)
-                        && !CheckWatchedValueChanged ("desSet", "DrawSetList_")
-                        && !CheckWatchedValueChanged ("srcSet", "DrawSetList_")) {
+                        && !CheckWatchedValueChange ("DrawSetList_" + label, "desSet", "srcSet")) {
                         return;
                     }
                     WatchedValue.TryGetValue ("desSet", out string desSet);

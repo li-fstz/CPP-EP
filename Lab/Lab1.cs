@@ -31,8 +31,7 @@ namespace CPP_EP.Lab {
             GetVoidTable (label, voidTable => {
                 if (voidTable != null && voidTable.TableHead.Count > 0) {
                     if (DataHash.ContainsKey (label) && voidTable.Equals (DataHash[label] as VoidTable)
-                        && !CheckWatchedValueChanged ("symbol", "DrawVoidTable_")
-                        && !CheckWatchedValueChanged ("rule", "DrawVoidTable_")) {
+                        && !CheckWatchedValueChange ("DrawVoidTable_", "symbol", "rule")) {
                         return;
                     }
                     WatchedValue.TryGetValue ("symbol", out string sAddress);

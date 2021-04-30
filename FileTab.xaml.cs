@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
-using System.Diagnostics;
 using System.Globalization;
 using System.IO;
 using System.Linq;
@@ -35,6 +34,7 @@ namespace CPP_EP {
         private readonly FileTabDataContext dataContext;
         private FoldingManager mFoldingManager;
         private BraceFoldingStrategy mFoldingStrategy = null;
+
         public static FileTab GetInstance (string filepath) {
             if (fileTabHash.ContainsKey (filepath)) {
                 return fileTabHash[filepath];
@@ -209,9 +209,8 @@ namespace CPP_EP {
             DrawAllBreakPoint ();
             textEditor.TextArea.TextView.Redraw ();
         }
-
-        
     }
+
     public class HighlightCurrentLineBackgroundRenderer: IBackgroundRenderer {
         private readonly TextEditor _editor;
         private readonly Canvas _breakPointArea;
@@ -240,11 +239,9 @@ namespace CPP_EP {
                 _breakPointArea.Children.Add (GenArrow (rect.Height, rect.Location.Y));
                 break;
             }
-
         }
 
-
-        private Polygon GenArrow (double h,double y) {
+        private Polygon GenArrow (double h, double y) {
             Polygon p = new Polygon {
                 Fill = new SolidColorBrush (Color.FromRgb (0, 176, 80)),
                 Points = new PointCollection (new Point[] { new Point (3.5, 0), new Point (h, h / 2), new Point (3.5, h) })
@@ -254,8 +251,11 @@ namespace CPP_EP {
             return p;
         }
     }
-    class FileTabDataContext: INotifyPropertyChanged {
+
+    internal class FileTabDataContext: INotifyPropertyChanged {
+
         public event PropertyChangedEventHandler PropertyChanged;
+
         private string _row;
         private string _col;
 
@@ -276,7 +276,9 @@ namespace CPP_EP {
 
     [ValueConversion (typeof (bool), typeof (string))]
     public sealed class BoolToStringPropConverter: IValueConverter {
+
         #region constructor
+
         /// <summary>
         /// Class constructor
         /// </summary>
@@ -285,9 +287,11 @@ namespace CPP_EP {
             TrueValue = "True";
             FalseValue = "False";
         }
+
         #endregion constructor
 
         #region properties
+
         /// <summary>
         /// Gets/sets the <see cref="Visibility"/> value that is associated
         /// (converted into) with the boolean true value.
@@ -299,9 +303,11 @@ namespace CPP_EP {
         /// (converted into) with the boolean false value.
         /// </summary>
         public string FalseValue { get; set; }
+
         #endregion properties
 
         #region methods
+
         /// <summary>
         /// Converts a bool value into <see cref="Visibility"/> as configured in the
         /// <see cref="TrueValue"/> and <see cref="FalseValue"/> properties.
@@ -336,9 +342,12 @@ namespace CPP_EP {
 
             return null;
         }
+
         #endregion methods
     }
+
     public class BraceFoldingStrategy {
+
         /// <summary>
         /// Gets/Sets the opening brace. The default value is '{'.
         /// </summary>

@@ -1,17 +1,16 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Diagnostics;
 using System.IO;
+using System.Runtime.CompilerServices;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Documents;
+using System.Windows.Input;
 
 using CPP_EP.Execute;
 using CPP_EP.Lab;
-
-using System.Runtime.CompilerServices;
-using System.Windows.Input;
-using System.Diagnostics;
 
 namespace CPP_EP {
 
@@ -25,6 +24,7 @@ namespace CPP_EP {
         private int lastStopLine;
         private readonly List<TextBlock> textBlocks = new List<TextBlock> ();
         private readonly MainWindowDataContext dataContext;
+
         public MainWindow () {
             dataContext = new MainWindowDataContext () {
                 StartButtonEnable = true,
@@ -35,7 +35,8 @@ namespace CPP_EP {
             InitializeComponent ();
             System.Text.Encoding.RegisterProvider (System.Text.CodePagesEncodingProvider.Instance);
             GDB.PrintLog = s => Dispatcher.BeginInvoke ((Action<string>)PrintGDBLog, s);
-            GDB.PrintLog = s => Debug.WriteLine(s);
+            GDB.PrintLog = s => Debug.WriteLine (s);
+            GDB.PrintLog = s => { };
             GDB.AfterRun = (s) => Dispatcher.BeginInvoke ((Action<string>)AfterRun, s);
             GCC.AfterBuild = b => Dispatcher.BeginInvoke ((Action<bool>)AfterBuild, b);
             GCC.PrintLog = s => Dispatcher.BeginInvoke ((Action<string>)PrintMakeLog, s);
@@ -50,10 +51,8 @@ namespace CPP_EP {
                 if (c < i) {
                     for (; c <= i; c++) {
                         var tb = new TextBlock ();
-                        var cb = new TextBlock ();
                         textBlocks.Add (tb);
                         dataStructureView.Inlines.Add (tb);
-                        dataStructureView.Inlines.Add (cb);
                         dataStructureView.Inlines.Add (new LineBreak ());
                     }
                 }
@@ -74,7 +73,6 @@ namespace CPP_EP {
                 gdb.ClearBreakpoint (cp.Item1, cp.Item2);
             }
         }
-
 
         private void AfterBuild (bool buildOk) {
             if (buildOk) {
@@ -178,7 +176,6 @@ namespace CPP_EP {
             gdbText.ScrollToEnd ();
         }
 
-
         private void CorrectBreakPoint (Action AfterCorrectBreakPoint) {
             List<(FileTab, string, int)> lines = new List<(FileTab, string, int)> ();
             foreach (FileTab tab in tabControl.Items) {
@@ -271,7 +268,7 @@ namespace CPP_EP {
         }
 
         private void StartButton_Click (object sender, RoutedEventArgs e) {
-            StartOrContinue_Executed (null, null); 
+            StartOrContinue_Executed (null, null);
         }
 
         private void StopButton_Click (object sender, RoutedEventArgs e) {
@@ -289,9 +286,42 @@ namespace CPP_EP {
         private void FinishButton_Click (object sender, RoutedEventArgs e) {
             Finish_Executed (null, null);
         }
+
+        private void Save_CanExecute (object sender, CanExecuteRoutedEventArgs e) {
+        }
+
+        private void Save_Executed (object sender, ExecutedRoutedEventArgs e) {
+        }
+
+        private void SaveAll_CanExecute (object sender, CanExecuteRoutedEventArgs e) {
+        }
+
+        private void SaveAll_Executed (object sender, ExecutedRoutedEventArgs e) {
+        }
+
+        private void Option_CanExecute (object sender, CanExecuteRoutedEventArgs e) {
+        }
+
+        private void Option_Executed (object sender, ExecutedRoutedEventArgs e) {
+        }
+
+        private void Exit_CanExecute (object sender, CanExecuteRoutedEventArgs e) {
+        }
+
+        private void Exit_Executed (object sender, ExecutedRoutedEventArgs e) {
+        }
+
+        private void About_CanExecute (object sender, CanExecuteRoutedEventArgs e) {
+        }
+
+        private void About_Executed (object sender, ExecutedRoutedEventArgs e) {
+        }
     }
-    class MainWindowDataContext: INotifyPropertyChanged {
+
+    internal class MainWindowDataContext: INotifyPropertyChanged {
+
         public event PropertyChangedEventHandler PropertyChanged;
+
         private bool _startButtonEnable;
         private bool _stopButtonEnable;
         private bool _stepButtonEnable;
@@ -300,16 +330,17 @@ namespace CPP_EP {
         private string _startButtonContent;
         private bool _labSelectEnable;
 
-        public bool StartButtonEnable { 
+        public bool StartButtonEnable {
             get => _startButtonEnable;
-            set { 
+            set {
                 if (SetProperty (ref _startButtonEnable, value)) {
                     PropertyChanged?.Invoke (this, new PropertyChangedEventArgs ("StartButtonImage"));
                 }
             }
         }
-        public string StartButtonImage { 
-            get { 
+
+        public string StartButtonImage {
+            get {
                 if (_startButtonEnable) {
                     return "image/debug-continue.png";
                 } else {
@@ -317,7 +348,8 @@ namespace CPP_EP {
                 }
             }
         }
-        public bool StopButtonEnable { 
+
+        public bool StopButtonEnable {
             get => _stopButtonEnable;
             set {
                 if (SetProperty (ref _stopButtonEnable, value)) {
@@ -325,6 +357,7 @@ namespace CPP_EP {
                 }
             }
         }
+
         public string StopButtonImage {
             get {
                 if (_stopButtonEnable) {
@@ -334,7 +367,8 @@ namespace CPP_EP {
                 }
             }
         }
-        public bool StepButtonEnable { 
+
+        public bool StepButtonEnable {
             get => _stepButtonEnable;
             set {
                 if (SetProperty (ref _stepButtonEnable, value)) {
@@ -342,6 +376,7 @@ namespace CPP_EP {
                 }
             }
         }
+
         public string StepButtonImage {
             get {
                 if (_stepButtonEnable) {
@@ -351,7 +386,8 @@ namespace CPP_EP {
                 }
             }
         }
-        public bool NextButtonEnable { 
+
+        public bool NextButtonEnable {
             get => _nextButtonEnable;
             set {
                 if (SetProperty (ref _nextButtonEnable, value)) {
@@ -359,6 +395,7 @@ namespace CPP_EP {
                 }
             }
         }
+
         public string NextButtonImage {
             get {
                 if (_nextButtonEnable) {
@@ -368,7 +405,8 @@ namespace CPP_EP {
                 }
             }
         }
-        public bool FinishButtonEnable { 
+
+        public bool FinishButtonEnable {
             get => _finishButtonEnable;
             set {
                 if (SetProperty (ref _finishButtonEnable, value)) {
@@ -376,6 +414,7 @@ namespace CPP_EP {
                 }
             }
         }
+
         public string FinishButtonImage {
             get {
                 if (_finishButtonEnable) {
@@ -385,15 +424,17 @@ namespace CPP_EP {
                 }
             }
         }
-        public string StartButtonContent { 
-            get => _startButtonContent; 
+
+        public string StartButtonContent {
+            get => _startButtonContent;
             set {
                 if (SetProperty (ref _startButtonContent, value)) {
                     PropertyChanged?.Invoke (this, new PropertyChangedEventArgs ("StartMenuContent"));
                 }
             }
         }
-        public string StartMenuContent { get => _startButtonContent == "开始"? "开始(_S)": "继续(_C)"; }
+
+        public string StartMenuContent { get => _startButtonContent == "启动" ? "启动(_S)" : "继续(_C)"; }
         public bool LabSelectEnable { get => _labSelectEnable; set => SetProperty (ref _labSelectEnable, value); }
 
         private bool SetProperty<T> (ref T field, T newValue, [CallerMemberName] string propertyName = null) {

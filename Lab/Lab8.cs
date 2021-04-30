@@ -44,42 +44,13 @@ namespace CPP_EP.Lab {
             gdb.SendScript ("getparsingstack " + address, r => AfterParsingStack (Stack.Gen (r)));
         }
 
-        protected void DrawValue (int i, string label, string path = null) {
-            if (path == null) {
-                path = label;
-            }
-            /*
-            gdb.GetValue (path, (value) => {
-                if (value == null) {
-                    return;
-                }
-                Match m = StringValue.Match (value);
-                if (!m.Success) {
-                    return;
-                }
-                if (DataHash.ContainsKey (label) && m.Groups[1].Value == DataHash[label] as string) {
-                    return;
-                }
-                DataHash[label] = m.Groups[1].Value;
-                UpdateUI (i, (tb, cb) => {
-                    tb.Inlines.Clear ();
-                    tb.Inlines.Add (label);
-                    tb.Inlines.Add (new Run (" = ") { Foreground = Brushes.Gray });
-                    tb.Inlines.Add (m.Groups[1].Value);
-                    tb.Inlines.Add (new LineBreak ());
-                });
-            });
-            */
-        }
-
         protected void DrawParsingStack (int i, string label) {
             GetParsingStack (label, stack => {
                 if (stack == null || stack.Symbols.Count == 0) {
                     return;
                 }
                 if (DataHash.ContainsKey (label) && stack.Equals (DataHash[label] as List<string>)
-                    && !CheckWatchedValueChanged ("((struct Symbol *)topSymbol->value)->symbolName", "DrawParsingStack_")
-                    && !CheckWatchedValueChanged ("string", "DrawParsingStack_")) {
+                    && !CheckWatchedValueChange ("DrawParsingStack_", "((struct Symbol *)topSymbol->value)->symbolName", "string")) {
                     return;
                 }
                 WatchedValue.TryGetValue ("((struct Symbol *)topSymbol->value)->symbolName", out string topSymbol);

@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Text;
 using System.Text.RegularExpressions;
-using System.Threading;
 
 using CPP_EP.Lab;
 
@@ -19,14 +18,16 @@ namespace CPP_EP.Execute {
         public static Action<string> PrintLog { private get; set; }
         private readonly object gdbLock = new object ();
         private readonly Queue<(ActionType, Action<string>)> GDBActions = new Queue<(ActionType, Action<string>)> ();
-        
+
         private readonly StringBuilder GDBResult = new StringBuilder ();
         private bool stopMark, gdbMark;
+
         private enum ActionType {
             Run,
             Send,
             Value,
         }
+
         public GDB (string filepath) {
             ExecuteProcess = new Process ();
             ExecuteProcess.StartInfo.FileName = Properties.Settings.Default.GDBPath;
@@ -40,6 +41,7 @@ namespace CPP_EP.Execute {
             ExecuteProcess.OutputDataReceived += ExecuteProcess_OutputDataReceived;
             //readLineThread = new Thread (ReadLineThreadFunc);
         }
+
         private void ExecuteProcess_OutputDataReceived (object sender, DataReceivedEventArgs e) {
             if (!String.IsNullOrEmpty (e.Data)) {
                 PrintLog ("gdb -> " + e.Data);
@@ -54,6 +56,7 @@ namespace CPP_EP.Execute {
                                         GDBResult.Append (e.Data);
                                     }
                                     break;
+
                                 case '(':
                                     if (gdbMark && stopMark) {
                                         gdbMark = stopMark = false;
@@ -63,17 +66,20 @@ namespace CPP_EP.Execute {
                                         gdbMark = true;
                                     }
                                     break;
+
                                 case '*':
                                     if (e.Data.IndexOf ("*stop") == 0) {
                                         GDBResult.Append (e.Data);
                                         stopMark = true;
                                     }
                                     break;
+
                                 default:
                                     GDBResult.Append (e.Data);
                                     break;
                             }
                             break;
+
                         case ActionType.Send:
                             switch (e.Data[0]) {
                                 case '^':
@@ -83,15 +89,18 @@ namespace CPP_EP.Execute {
                                         GDBResult.Append (e.Data);
                                     }
                                     break;
+
                                 case '(':
-                                    GDBActions.Dequeue().Item2 (GDBResult.ToString());
+                                    GDBActions.Dequeue ().Item2 (GDBResult.ToString ());
                                     GDBResult.Clear ();
                                     break;
+
                                 default:
                                     GDBResult.Append (e.Data);
                                     break;
                             }
                             break;
+
                         case ActionType.Value:
                             switch (e.Data[0]) {
                                 case '^':
@@ -101,6 +110,7 @@ namespace CPP_EP.Execute {
                                         GDBResult.Append (e.Data);
                                     }
                                     break;
+
                                 case '(':
                                     var m = StringValue.Match (GDBResult.ToString ());
                                     if (m.Success) {
@@ -198,7 +208,6 @@ namespace CPP_EP.Execute {
                 GDBActions.Enqueue ((t, AfterSend));
             }
         }
-
 
         public void SendScript (string script, Action<string> AfterSendScript) {
             Util.ThreadRun (() => {

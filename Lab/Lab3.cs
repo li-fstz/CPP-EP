@@ -36,12 +36,12 @@ namespace CPP_EP.Lab {
                 DrawRules (1, "ruleHead");
                 DrawVoidTable (2, "voidTable");
                 DrawSetList (3, "firstSetList", "FIRST");
-                DrawSet (4, "&tmpSet", "FOLLOW");
+                DrawSet (4, "&tmpSet");
                 DrawSetList (5, "followSetList", "FOLLOW");
             }, "rule", "production", "symbol", "desSet", "srcSet");
         }
 
-        protected void DrawSet (int i, string label, string type) {
+        protected void DrawSet (int i, string label) {
             GetSet (label, set => {
                 if (set != null && set.Terminal.Count > 0) {
                     if (DataHash.ContainsKey (label) && set.Equals (DataHash[label] as Set)) {

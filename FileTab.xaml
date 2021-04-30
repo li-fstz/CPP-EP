@@ -15,20 +15,20 @@
             <RowDefinition Height="*" />
             <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
-        <Canvas 
-            Grid.Row="0" 
-            Grid.Column="0" 
-            Name="breakPointArea" 
-            MouseDown="BreakPointArea_MouseUp" 
+        <Canvas
+            Grid.Row="0"
+            Grid.Column="0"
+            Name="breakPointArea"
+            MouseDown="BreakPointArea_MouseUp"
             Width="15px">
             <Canvas.Background>
-                <SolidColorBrush 
-                    Color="White" 
+                <SolidColorBrush
+                    Color="White"
                     Opacity="0" />
             </Canvas.Background>
         </Canvas>
         <avalonEdit:TextEditor
-            Grid.Row="0" 
+            Grid.Row="0"
             xmlns:avalonEdit="http://icsharpcode.net/sharpdevelop/avalonedit"
             xmlns:editing="clr-namespace:ICSharpCode.AvalonEdit.Editing;assembly=ICSharpCode.AvalonEdit"
             xmlns:rendering="clr-namespace:ICSharpCode.AvalonEdit.Rendering;assembly=ICSharpCode.AvalonEdit"
@@ -38,16 +38,16 @@
             FontSize="10pt"
             ShowLineNumbers="True"
             Grid.Column="1">
-            
+
             <avalonEdit:TextEditor.ContextMenu>
                 <ContextMenu>
-                    <MenuItem Command="Cut" Header="剪切(_T)"/>
-                    <MenuItem Command="Copy" Header="复制(_C)"/>
-                    <MenuItem Command="Paste" Header="粘贴(_P)"/>
-                    <MenuItem Command="Delete" Header="删除(_D)"/>
+                    <MenuItem Command="Cut" Header="剪切(_T)" />
+                    <MenuItem Command="Copy" Header="复制(_C)" />
+                    <MenuItem Command="Paste" Header="粘贴(_P)" />
+                    <MenuItem Command="Delete" Header="删除(_D)" />
                     <Separator />
-                    <MenuItem Command="Undo" Header="撤销(_U)"/>
-                    <MenuItem Command="Redo" Header="重做(_R)"/>
+                    <MenuItem Command="Undo" Header="撤销(_U)" />
+                    <MenuItem Command="Redo" Header="重做(_R)" />
                 </ContextMenu>
             </avalonEdit:TextEditor.ContextMenu>
             <avalonEdit:TextEditor.Template>
@@ -84,27 +84,27 @@
                             FalseValue="插入模式" />
                     </Grid.Resources>
                     <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="Auto"/>
-                        <ColumnDefinition Width="Auto"/>
-                        <ColumnDefinition Width="Auto"/>
-                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="Auto" />
                     </Grid.ColumnDefinitions>
                     <TextBlock Grid.Column="0"
                         Text="{Binding Row, Mode=OneWay}"
                         ToolTip="Current Line"
                         MinWidth="36"
-                        Margin="3,0,3,0"/>
+                        Margin="3,0,3,0" />
 
                     <TextBlock  Grid.Column="1"
                         Text="{Binding Col, Mode=OneWay}"
                         ToolTip="Current Column"
                         MinWidth="36"
-                        Margin="0,0,3,0"/>
+                        Margin="0,0,3,0" />
                     <TextBlock
                         Grid.Column="2"
                         Text="{Binding ElementName=textEditor,Path=TextArea.OverstrikeMode,Converter={StaticResource OverStrikeModeConverter}, Mode=OneWay, UpdateSourceTrigger=PropertyChanged}"
                         ToolTip="Determines whether the next typed character is overwritten or inserted"
-                        Margin="0,0,3,0"/>
+                        Margin="0,0,3,0" />
                 </Grid>
             </StatusBarItem>
         </StatusBar>

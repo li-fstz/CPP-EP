@@ -22,27 +22,29 @@ namespace CPP_EP.Lab {
         public abstract void Build ();
 
         public static Dictionary<string, object> DataHash = new Dictionary<string, object> ();
-        public static Dictionary<string, string> WatchedValue = new Dictionary<string, string>();
+        public static Dictionary<string, string> WatchedValue = new Dictionary<string, string> ();
 
         protected void WatchValues (Action AfterGetValues, params string[] names) {
             //AfterGetValues ();
             gdb.GetValues (names, AfterGetValues);
         }
 
-        protected bool CheckWatchedValueChanged (string name, string prefix) {
-            string a = null, b = null;
-            if (WatchedValue.ContainsKey (name)) {
-                a = WatchedValue[name];
+        protected bool CheckWatchedValueChange (string prefix, params string[] names) {
+            bool r = false;
+            foreach (var name in names) {
+                string a = null, b = null;
+                if (WatchedValue.ContainsKey (name)) {
+                    a = WatchedValue[name];
+                }
+                if (DataHash.ContainsKey (prefix + name)) {
+                    b = DataHash[prefix + name] as string;
+                }
+                if (a != b) {
+                    DataHash[prefix + name] = a;
+                    r = true;
+                }
             }
-            if (DataHash.ContainsKey (prefix + name)) {
-                b = DataHash[prefix + name] as string;
-            }
-            if (a == b) {
-                return false;
-            } else {
-                DataHash[prefix + name] = a;
-                return true;
-            }
+            return r;
         }
 
         protected static UIElement Border (UIElement u, bool b, Brush c) => b ? new Border () {
@@ -58,9 +60,7 @@ namespace CPP_EP.Lab {
                 }
                 if (key == null) key = label;
                 if (DataHash.ContainsKey (key) && rules.SequenceEqual (DataHash[key] as List<Rule>)
-                    && !CheckWatchedValueChanged ("rule", "DrawRules_")
-                    && !CheckWatchedValueChanged ("production", "DrawRules_")
-                    && !CheckWatchedValueChanged ("symbol", "DrawRules_")
+                    && !CheckWatchedValueChange ("DrawRules_" + key, "rule", "production", "symbol")
                 ) {
                     return;
                 }
