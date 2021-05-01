@@ -26,6 +26,7 @@ namespace CPP_EP {
         private readonly MainWindowDataContext dataContext;
 
         public MainWindow () {
+            Debug.WriteLine (System.AppDomain.CurrentDomain.BaseDirectory);
             dataContext = new MainWindowDataContext () {
                 StartButtonEnable = true,
                 StartButtonContent = "启动",
@@ -133,7 +134,7 @@ namespace CPP_EP {
                 gdb.Stop ();
                 gdb = null;
                 PrintGDBLog (result);
-                PrintOutput (File.ReadAllText (Properties.Settings.Default.LabsPath + "out.txt", System.Text.Encoding.GetEncoding ("GB2312")));
+                PrintOutput (File.ReadAllText ("out.txt", System.Text.Encoding.GetEncoding ("GB2312")));
             }
         }
 
@@ -150,7 +151,7 @@ namespace CPP_EP {
             if (labSelect.SelectedIndex != 0) {
                 tabControl.Items.Clear ();
                 foreach (var file in lab.LabFiles) {
-                    tabControl.Items.Add (FileTab.GetInstance (Properties.Settings.Default.LabsPath + file));
+                    tabControl.Items.Add (FileTab.GetInstance (System.AppDomain.CurrentDomain.BaseDirectory + "labs\\" + file));
                 }
                 tabControl.SelectedIndex = 0;
                 tabControl.Focus ();

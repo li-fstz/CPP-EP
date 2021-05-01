@@ -338,3 +338,6 @@ ASALocalRun/
 
 # BeatPulse healthcheck temp database
 healthchecksdb
+/.VSCodeCounter/2021-05-01_19-04-24
+/labs
+/MinGW

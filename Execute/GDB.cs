@@ -30,9 +30,9 @@ namespace CPP_EP.Execute {
 
         public GDB (string filepath) {
             ExecuteProcess = new Process ();
-            ExecuteProcess.StartInfo.FileName = Properties.Settings.Default.GDBPath;
-            ExecuteProcess.StartInfo.WorkingDirectory = Properties.Settings.Default.LabsPath;
-            ExecuteProcess.StartInfo.Arguments = "-x " + Properties.Settings.Default.ScriptPath + " -silent --interpreter mi " + filepath;
+            ExecuteProcess.StartInfo.FileName = System.AppDomain.CurrentDomain.BaseDirectory + "MinGW\\bin\\gdb.exe";
+            ExecuteProcess.StartInfo.WorkingDirectory = System.AppDomain.CurrentDomain.BaseDirectory;
+            ExecuteProcess.StartInfo.Arguments = string.Format("-x \"{0}\" -silent --interpreter mi {1}", System.AppDomain.CurrentDomain.BaseDirectory + "script\\struct.gdb", filepath);
             ExecuteProcess.StartInfo.UseShellExecute = false;
             ExecuteProcess.StartInfo.RedirectStandardOutput = true;
             ExecuteProcess.StartInfo.RedirectStandardInput = true;

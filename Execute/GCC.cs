@@ -27,8 +27,8 @@ namespace CPP_EP.Execute {
                 Directory.CreateDirectory ("build\\obj");
             }
             ExecuteProcess = new Process ();
-            ExecuteProcess.StartInfo.WorkingDirectory = Properties.Settings.Default.LabsPath;
-            ExecuteProcess.StartInfo.FileName = Properties.Settings.Default.GCCPath;
+            ExecuteProcess.StartInfo.WorkingDirectory = System.AppDomain.CurrentDomain.BaseDirectory + "labs\\";
+            ExecuteProcess.StartInfo.FileName = System.AppDomain.CurrentDomain.BaseDirectory + "MinGW\\bin\\gcc.exe";
             ExecuteProcess.StartInfo.UseShellExecute = false;
             ExecuteProcess.StartInfo.RedirectStandardOutput = true;
             ExecuteProcess.StartInfo.RedirectStandardInput = true;
@@ -37,10 +37,10 @@ namespace CPP_EP.Execute {
         }
 
         public GCC Compile (string input, string output) {
-            FileInfo file = new FileInfo (Properties.Settings.Default.LabsPath + input);
-            objs.Add (output);
-            if (!lastTimeHash.ContainsKey (input) || DateTime.Compare (lastTimeHash[input], file.LastWriteTime) != 0 || !File.Exists (Properties.Settings.Default.LabsPath + output)) {
-                ExecuteProcess.StartInfo.Arguments = "-g -fexec-charset=GBK -c -I inc " + input + " -o " + output;
+            FileInfo file = new FileInfo ("labs\\" + input);
+            objs.Add (System.AppDomain.CurrentDomain.BaseDirectory + output);
+            if (!lastTimeHash.ContainsKey (input) || DateTime.Compare (lastTimeHash[input], file.LastWriteTime) != 0 || !File.Exists (output)) {
+                ExecuteProcess.StartInfo.Arguments = string.Format ("-g -fexec-charset=GBK -c -I inc {0} -o \"{1}\"", input, System.AppDomain.CurrentDomain.BaseDirectory + output);
                 Run ();
                 if (buildOk) {
                     lastTimeHash[input] = file.LastWriteTime;
@@ -50,8 +50,8 @@ namespace CPP_EP.Execute {
         }
 
         public void Link (string output) {
-            if (update || !File.Exists (Properties.Settings.Default.LabsPath + output)) {
-                ExecuteProcess.StartInfo.Arguments = "-g " + string.Join (" ", objs) + " -o " + output;
+            if (update || !File.Exists (output)) {
+                ExecuteProcess.StartInfo.Arguments = string.Format ("-g \"{0}\" -o \"{1}\"", string.Join ("\" \"", objs), System.AppDomain.CurrentDomain.BaseDirectory + output);
                 Run ();
             }
             AfterBuild (buildOk);
