@@ -4,11 +4,15 @@
          xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
          xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
          xmlns:local="clr-namespace:CPP_EP"
+         xmlns:conv="clr-namespace:CPP_EP.Converter"
          d:DataContext="{d:DesignInstance Type=local:FileTabDataContext}"
-         mc:Ignorable="d">
+         mc:Ignorable="d"
+         Header="{Binding Header, Mode=OneWay}"
+         DockPanel.Dock="{Binding Alignment, Mode=OneWay}"
+         HorizontalAlignment="{Binding Alignment, Mode=OneWay}" >
     <Grid>
         <Grid.ColumnDefinitions>
-            <ColumnDefinition Name="breakPointGrid" />
+            <ColumnDefinition Width="{Binding Width, Mode=OneWay}"/>
             <ColumnDefinition />
         </Grid.ColumnDefinitions>
         <Grid.RowDefinitions>
@@ -20,7 +24,7 @@
             Grid.Column="0"
             Name="breakPointArea"
             MouseDown="BreakPointArea_MouseUp"
-            Width="15px">
+            Width="{Binding Width, Mode=OneWay}">
             <Canvas.Background>
                 <SolidColorBrush
                     Color="White"
@@ -37,7 +41,9 @@
             SyntaxHighlighting="C++"
             FontSize="10pt"
             ShowLineNumbers="True"
-            Grid.Column="1">
+            Grid.Column="1"
+            PreviewMouseWheel="TextEditor_PreviewMouseWheel"
+            IsReadOnly="{Binding ReadOnly, Mode=OneWay}">
 
             <avalonEdit:TextEditor.ContextMenu>
                 <ContextMenu>
@@ -79,9 +85,12 @@
             <StatusBarItem HorizontalAlignment="Right">
                 <Grid>
                     <Grid.Resources>
-                        <local:BoolToStringPropConverter x:Key="OverStrikeModeConverter"
+                        <conv:BoolToStringPropConverter x:Key="OverStrikeModeConverter"
                             TrueValue="覆盖模式"
                             FalseValue="插入模式" />
+                        <conv:BoolToStringPropConverter x:Key="ReadOnlyModeConverter"
+                            TrueValue="Visible"
+                            FalseValue="Collapsed" />
                     </Grid.Resources>
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="Auto" />
@@ -91,19 +100,24 @@
                     </Grid.ColumnDefinitions>
                     <TextBlock Grid.Column="0"
                         Text="{Binding Row, Mode=OneWay}"
-                        ToolTip="Current Line"
                         MinWidth="36"
                         Margin="3,0,3,0" />
 
                     <TextBlock  Grid.Column="1"
                         Text="{Binding Col, Mode=OneWay}"
-                        ToolTip="Current Column"
                         MinWidth="36"
                         Margin="0,0,3,0" />
+
                     <TextBlock
+                        Visibility="{Binding NotReadOnly, Converter={StaticResource ReadOnlyModeConverter}, Mode=OneWay}"
                         Grid.Column="2"
                         Text="{Binding ElementName=textEditor,Path=TextArea.OverstrikeMode,Converter={StaticResource OverStrikeModeConverter}, Mode=OneWay, UpdateSourceTrigger=PropertyChanged}"
-                        ToolTip="Determines whether the next typed character is overwritten or inserted"
+                        Margin="0,0,3,0" />
+
+                    <TextBlock
+                        Visibility="{Binding ReadOnly, Converter={StaticResource ReadOnlyModeConverter}, Mode=OneWay}"
+                        Grid.Column="2"
+                        Text="只读模式"
                         Margin="0,0,3,0" />
                 </Grid>
             </StatusBarItem>

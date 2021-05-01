@@ -12,7 +12,15 @@ using CPP_EP.Lab.Data;
 namespace CPP_EP.Lab {
 
     internal class Lab2: Lab1 {
-        private readonly List<string> _LabFiles = new List<string> () { "lab2.c", "src\\rule.c", "src\\voidtable.c", "src\\first.c" };
+        private readonly List<string> _LabFiles = new List<string> () { 
+            "lab2.c", 
+            "src\\rule.c", 
+            "src\\voidtable.c", 
+            "src\\first.c", 
+            "inc\\first.h", 
+            "inc\\voidtable.h", 
+            "inc\\rule.h" 
+        };
 
         public override List<string> LabFiles => _LabFiles;
 

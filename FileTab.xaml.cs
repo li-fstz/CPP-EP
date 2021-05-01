@@ -5,6 +5,7 @@ using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Runtime.CompilerServices;
+using System.Text;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
@@ -28,10 +29,9 @@ namespace CPP_EP {
         public Dictionary<int, CodePosition> breakPoints = new Dictionary<int, CodePosition> ();
         public static Action<CodePosition, Action<CodePosition?>> SetBreakPoint { private get; set; }
         public static Action<CodePosition> DeleteBreakPoint { private get; set; }
-        public double breakPointAreaWidth;
         private int runMarkLine = -1;
         private readonly HighlightCurrentLineBackgroundRenderer backgroundRenderer;
-        private readonly FileTabDataContext dataContext;
+        public readonly FileTabDataContext dataContext;
         private FoldingManager mFoldingManager;
         private BraceFoldingStrategy mFoldingStrategy = null;
 
@@ -55,20 +55,17 @@ namespace CPP_EP {
             DataContext = dataContext;
             InitializeComponent ();
             FilePath = filepath;
-            Header = System.IO.Path.GetFileName (filepath);
-            ReloadFile ();
+            dataContext.Header = System.IO.Path.GetFileName (filepath);
+            LoadFile ();
             textEditor.TextArea.TextView.VisualLinesChanged += TextView_VisualLinesChanged;
-            textEditor.PreviewMouseWheel += TextEditor_PreviewMouseWheel;
             textEditor.TextArea.Caret.PositionChanged += Caret_PositionChanged;
-            breakPointAreaWidth = textEditor.TextArea.TextView.DefaultLineHeight;
-            breakPointGrid.Width = new GridLength (breakPointAreaWidth);
+            textEditor.TextChanged += TextEditor_TextChanged;
+            dataContext.Width = textEditor.TextArea.TextView.DefaultLineHeight;
             backgroundRenderer = new HighlightCurrentLineBackgroundRenderer (textEditor, breakPointArea);
             textEditor.TextArea.TextView.BackgroundRenderers.Add (backgroundRenderer);
             textEditor.Options.AllowToggleOverstrikeMode = true;
             textEditor.Options.ShowSpaces = true;
             textEditor.Options.ShowTabs = true;
-
-            //textEditor.TextArea.IndentationStrategy = new ICSharpCode.AvalonEdit.Indentation.CSharp.CSharpIndentationStrategy ();
         }
 
         private void Caret_PositionChanged (object sender, EventArgs e) {
@@ -80,7 +77,7 @@ namespace CPP_EP {
 
         private void TextEditor_PreviewMouseWheel (object sender, MouseWheelEventArgs e) {
             if (Keyboard.Modifiers == ModifierKeys.Control) {
-                double fontSize = textEditor.FontSize + e.Delta / 25.0;
+                double fontSize = textEditor.FontSize + (e.Delta > 0? 2: -2);
 
                 if (fontSize < 6) {
                     textEditor.FontSize = 6;
@@ -91,7 +88,7 @@ namespace CPP_EP {
                         textEditor.FontSize = fontSize;
                     }
                 }
-
+                dataContext.Width = textEditor.TextArea.TextView.DefaultLineHeight;
                 e.Handled = true;
             }
         }
@@ -100,11 +97,18 @@ namespace CPP_EP {
             DrawAllBreakPoint ();
         }
 
-        private void ReloadFile () {
+        private void LoadFile () {
             textEditor.Text = File.ReadAllText (FilePath);
             mFoldingManager = FoldingManager.Install (textEditor.TextArea);
             mFoldingStrategy = new BraceFoldingStrategy ();
             mFoldingStrategy.UpdateFoldings (mFoldingManager, textEditor.Document);
+            
+        }
+        public void SaveFile() {
+            if (dataContext.Change) {
+                File.WriteAllText (FilePath, textEditor.Text);
+                dataContext.Change = false;
+            }
         }
 
         private void BreakPointArea_MouseUp (object sender, MouseButtonEventArgs e) {
@@ -166,8 +170,8 @@ namespace CPP_EP {
         private Ellipse GenCircle (VisualLine visualLine) {
             Ellipse el = new Ellipse {
                 Fill = new SolidColorBrush (Color.FromRgb (255, 80, 65)),
-                Width = breakPointAreaWidth - 2,
-                Height = breakPointAreaWidth - 2
+                Width = dataContext.Width - 2,
+                Height = dataContext.Width - 2
             };
             el.SetValue (Canvas.LeftProperty, 1.0);
             el.SetValue (Canvas.TopProperty, visualLine.GetTextLineVisualYPosition (visualLine.TextLines[0], VisualYPosition.LineTop) - textEditor.TextArea.TextView.VerticalOffset + 1);
@@ -178,8 +182,8 @@ namespace CPP_EP {
         private Rectangle GenRectangle (VisualLine visualLine) {
             Rectangle r = new Rectangle {
                 Fill = new SolidColorBrush (Colors.Green),
-                Width = breakPointAreaWidth,
-                Height = breakPointAreaWidth
+                Width = dataContext.Width,
+                Height = dataContext.Width
             };
             r.SetValue (Canvas.ZIndexProperty, 1);
             r.SetValue (Canvas.TopProperty, visualLine.GetTextLineVisualYPosition (visualLine.TextLines[0], VisualYPosition.LineTop) - textEditor.TextArea.TextView.VerticalOffset);
@@ -189,7 +193,7 @@ namespace CPP_EP {
         private Polygon GenArrow (VisualLine visualLine) {
             Polygon p = new Polygon {
                 Fill = new SolidColorBrush (Color.FromRgb (0, 176, 80)),
-                Points = new PointCollection (new Point[] { new Point (3.5, 0), new Point (breakPointAreaWidth, breakPointAreaWidth / 2), new Point (3.5, breakPointAreaWidth) })
+                Points = new PointCollection (new Point[] { new Point (3.5, 0), new Point (dataContext.Width, dataContext.Width / 2), new Point (3.5, dataContext.Width) })
             };
             p.SetValue (Canvas.ZIndexProperty, 3);
             p.SetValue (Canvas.TopProperty, visualLine.GetTextLineVisualYPosition (visualLine.TextLines[0], VisualYPosition.LineTop) - textEditor.TextArea.TextView.VerticalOffset);
@@ -209,8 +213,12 @@ namespace CPP_EP {
             DrawAllBreakPoint ();
             textEditor.TextArea.TextView.Redraw ();
         }
-    }
 
+
+        private void TextEditor_TextChanged (object sender, EventArgs e) {
+            dataContext.Change = true;
+        }
+    }
     public class HighlightCurrentLineBackgroundRenderer: IBackgroundRenderer {
         private readonly TextEditor _editor;
         private readonly Canvas _breakPointArea;
@@ -252,17 +260,48 @@ namespace CPP_EP {
         }
     }
 
-    internal class FileTabDataContext: INotifyPropertyChanged {
-
+    public class FileTabDataContext: INotifyPropertyChanged {
         public event PropertyChangedEventHandler PropertyChanged;
 
         private string _row;
         private string _col;
-
+        private bool _change;
+        private string _header;
+        private bool _readOnly;
+        private double _width;
         public string Row { get => "行: " + _row; set => SetProperty (ref _row, value); }
+        public double Width { get => _width; set => SetProperty (ref _width, value); }
 
         public string Col { get => "列: " + _col; set => SetProperty (ref _col, value); }
-
+        public bool Change { 
+            get => _change; 
+            set {
+                if (SetProperty (ref _change, value)) {
+                    PropertyChanged?.Invoke (this, new PropertyChangedEventArgs ("Header"));
+                }
+            }
+        }
+        public bool ReadOnly {
+            get => _header is string s && s.EndsWith (".h") || _readOnly;
+            set { 
+                if (SetProperty (ref _readOnly, value)) {
+                    PropertyChanged?.Invoke (this, new PropertyChangedEventArgs ("Mode"));
+                    PropertyChanged?.Invoke (this, new PropertyChangedEventArgs ("NotReadOnly"));
+                }
+            }
+        }
+        public bool NotReadOnly {
+            get => !ReadOnly;
+        }
+        public string Header { 
+            get => _change? _header + "*": _header; 
+            set {
+                if (SetProperty (ref _header, value)) {
+                    PropertyChanged?.Invoke (this, new PropertyChangedEventArgs ("Alignment"));
+                    PropertyChanged?.Invoke (this, new PropertyChangedEventArgs ("ReadOnly"));
+                }
+            }
+        }
         private bool SetProperty<T> (ref T field, T newValue, [CallerMemberName] string propertyName = null) {
             if (!Equals (field, newValue)) {
                 field = newValue;
@@ -272,79 +311,11 @@ namespace CPP_EP {
 
             return false;
         }
+
+        public string Alignment { get => _header is string s && s.EndsWith (".h") ? "Right" : "Left"; }
     }
 
-    [ValueConversion (typeof (bool), typeof (string))]
-    public sealed class BoolToStringPropConverter: IValueConverter {
-
-        #region constructor
-
-        /// <summary>
-        /// Class constructor
-        /// </summary>
-        public BoolToStringPropConverter () {
-            // set defaults
-            TrueValue = "True";
-            FalseValue = "False";
-        }
-
-        #endregion constructor
-
-        #region properties
-
-        /// <summary>
-        /// Gets/sets the <see cref="Visibility"/> value that is associated
-        /// (converted into) with the boolean true value.
-        /// </summary>
-        public string TrueValue { get; set; }
-
-        /// <summary>
-        /// Gets/sets the <see cref="Visibility"/> value that is associated
-        /// (converted into) with the boolean false value.
-        /// </summary>
-        public string FalseValue { get; set; }
-
-        #endregion properties
-
-        #region methods
-
-        /// <summary>
-        /// Converts a bool value into <see cref="Visibility"/> as configured in the
-        /// <see cref="TrueValue"/> and <see cref="FalseValue"/> properties.
-        /// </summary>
-        /// <param name="value"></param>
-        /// <param name="targetType"></param>
-        /// <param name="parameter"></param>
-        /// <param name="culture"></param>
-        /// <returns></returns>
-        public object Convert (object value, Type targetType, object parameter, CultureInfo culture) {
-            if (!(value is bool))
-                return null;
-
-            return (bool)value ? TrueValue : FalseValue;
-        }
-
-        /// <summary>
-        /// Converts a <see cref="Visibility"/> value into bool as configured in the
-        /// <see cref="TrueValue"/> and <see cref="FalseValue"/> properties.
-        /// </summary>
-        /// <param name="value"></param>
-        /// <param name="targetType"></param>
-        /// <param name="parameter"></param>
-        /// <param name="culture"></param>
-        /// <returns></returns>
-        public object ConvertBack (object value, Type targetType, object parameter, CultureInfo culture) {
-            if (Equals (value, TrueValue))
-                return true;
-
-            if (Equals (value, FalseValue))
-                return false;
-
-            return null;
-        }
-
-        #endregion methods
-    }
+    
 
     public class BraceFoldingStrategy {
 

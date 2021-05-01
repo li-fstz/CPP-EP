@@ -12,7 +12,21 @@ using CPP_EP.Lab.Data;
 namespace CPP_EP.Lab {
 
     internal class Lab8: Lab4 {
-        private readonly List<string> _LabFiles = new List<string> () { "lab8.c", "src\\rule.c", "src\\voidtable.c", "src\\first.c", "src\\follow.c", "src\\parsingtable.c", "src\\parser.c" };
+        private readonly List<string> _LabFiles = new List<string> () { 
+            "lab8.c", 
+            "src\\rule.c", 
+            "src\\voidtable.c", 
+            "src\\first.c", 
+            "src\\follow.c", 
+            "src\\parsingtable.c", 
+            "src\\parser.c" ,
+            "inc\\parser.h",
+            "inc\\parsingtable.h",
+            "inc\\follow.h",
+            "inc\\first.h",
+            "inc\\voidtable.h",
+            "inc\\rule.h"
+        };
         public override List<string> LabFiles => _LabFiles;
         public override int LabNo => 8;
 

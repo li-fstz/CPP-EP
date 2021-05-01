@@ -4,9 +4,10 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:cpp_ep="clr-namespace:CPP_EP"
+        xmlns:conv="clr-namespace:CPP_EP.Converter"
         d:DataContext="{d:DesignInstance Type=cpp_ep:MainWindowDataContext}"
         mc:Ignorable="d"
-        Title="MainWindow" Height="720" Width="1280"
+        Title="《编译原理 语法分析》实验平台" Height="720" Width="1280"
         Closed="Window_Closed">
     <Window.Resources>
         <RoutedUICommand x:Key="StartOrContinue" />
@@ -52,26 +53,19 @@
             Executed="Finish_Executed" />
         <CommandBinding
             Command="{StaticResource SaveAll}"
-            CanExecute="Finish_CanExecute"
-            Executed="Finish_Executed" />
-        <CommandBinding
-            Command="{StaticResource Option}"
-            CanExecute="Finish_CanExecute"
-            Executed="Finish_Executed" />
-        <CommandBinding
-            Command="{StaticResource Exit}"
-            CanExecute="Finish_CanExecute"
-            Executed="Finish_Executed" />
+            CanExecute="SaveAll_CanExecute"
+            Executed="SaveAll_Executed" />
         <CommandBinding
             Command="{StaticResource Save}"
             CanExecute="Save_CanExecute"
             Executed="Save_Executed" />
-        <CommandBinding
-            Command="{StaticResource About}"
-            CanExecute="About_CanExecute"
-            Executed="About_Executed" />
     </Window.CommandBindings>
     <Grid>
+        <Grid.Resources>
+            <conv:BoolToStringPropConverter x:Key="VisibilityConverter"
+                TrueValue="Visible"
+                FalseValue="Collapsed" />
+        </Grid.Resources>
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="3*" />
             <ColumnDefinition Width="3" />
@@ -84,12 +78,19 @@
             <RowDefinition Height="3" />
             <RowDefinition Height="*" />
         </Grid.RowDefinitions>
-        <ScrollViewer Grid.Row="0" Grid.Column="2" Grid.RowSpan="5" HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto">
+        <ScrollViewer 
+            Grid.Row="0" 
+            Grid.Column="2" 
+            Grid.RowSpan="5" 
+            HorizontalScrollBarVisibility="Auto" 
+            VerticalScrollBarVisibility="Auto" 
+            Visibility="{Binding DataVisible, Mode=OneWay, Converter={StaticResource VisibilityConverter}}">
             <TextBlock
                 Name="dataStructureView"
                 FontFamily="Consolas"
                 FontSize="10pt"
-                Margin="10,10,0,0">
+                Margin="10,10,0,0"
+                PreviewMouseWheel="DataStructureView_PreviewMouseWheel">
                 ruleHead:<LineBreak /><LineBreak />
                 <Border BorderThickness="0" Background="PaleGreen">
                     <TextBlock>
@@ -121,18 +122,27 @@
                 <TextBlock>123</TextBlock>
             </TextBlock>
         </ScrollViewer>
-        <GridSplitter Grid.Row="0" Grid.Column="1" Grid.RowSpan="5" Width="3" HorizontalAlignment="Stretch" />
-        <Menu Grid.Row="0" Grid.Column="0">
+        <GridSplitter 
+            Grid.Row="0" 
+            Grid.Column="1" 
+            Grid.RowSpan="5" 
+            Width="3" 
+            HorizontalAlignment="Stretch" 
+            Visibility="{Binding DataVisible, Mode=OneWay, Converter={StaticResource VisibilityConverter}}"/>
+        <Menu 
+            Grid.Row="0" 
+            Grid.Column="0"
+            Grid.ColumnSpan="{Binding ColSpan, Mode=OneWay}">
             <MenuItem Header="文件(_F)">
-                <MenuItem Header="打开实验(_O)" IsEnabled="{Binding LabSelectEnable, Mode=OneWay}">
-                    <MenuItem Header="空表" />
-                    <MenuItem Header="FIRST 集" />
-                    <MenuItem Header="FOLLOW 集" />
-                    <MenuItem Header="预测分析表" />
-                    <MenuItem Header="提取左因子" />
-                    <MenuItem Header="消除左递归（无替换）" />
-                    <MenuItem Header="消除左递归（有替换）" />
-                    <MenuItem Header="预测分析方法" />
+                <MenuItem Header="打开实验(_O)" Name="openMenus" IsEnabled="{Binding LabSelectEnable, Mode=OneWay}">
+                    <MenuItem Header="空表" Click="OpenMenu_Click"/>
+                    <MenuItem Header="FIRST 集" Click="OpenMenu_Click"/>
+                    <MenuItem Header="FOLLOW 集" Click="OpenMenu_Click"/>
+                    <MenuItem Header="预测分析表" Click="OpenMenu_Click"/>
+                    <MenuItem Header="提取左因子" Click="OpenMenu_Click"/>
+                    <MenuItem Header="消除左递归（无替换）" Click="OpenMenu_Click"/>
+                    <MenuItem Header="消除左递归（有替换）" Click="OpenMenu_Click"/>
+                    <MenuItem Header="预测分析方法" Click="OpenMenu_Click"/>
                 </MenuItem>
                 <MenuItem
                     Command="{StaticResource Save}"
@@ -143,12 +153,14 @@
                     Header="全部保存(_S)"
                     InputGestureText="Ctrl+Shift+S" />
                 <Separator />
+                <!--
                 <MenuItem
-                    Command="{StaticResource Option}"
+                    Click="Option_Click"
                     Header="选项(_O)" />
                 <Separator />
+                -->
                 <MenuItem
-                    Command="{StaticResource Exit}"
+                    Click="Exit_Click"
                     Header="退出(_X)"
                     InputGestureText="Alt+F4" />
             </MenuItem>
@@ -208,9 +220,20 @@
                     </MenuItem.Icon>
                 </MenuItem>
             </MenuItem>
-            <MenuItem Header="关于(_A)" Command="{StaticResource About}" />
+            <MenuItem Header="视图(_V)">
+                <MenuItem Header="编译(_C)" IsCheckable="True" IsChecked="{Binding BuildVisible}"/>
+                <MenuItem Header="输出(_O)" IsCheckable="True" IsChecked="{Binding PrintVisible}"/>
+                <MenuItem Header="GDB(_G)" IsCheckable="True" IsChecked="{Binding GDBVisible}"/>
+                <Separator/>
+                <MenuItem Header="可视化(_V)" IsCheckable="True" IsChecked="{Binding DataVisible}"/>
+            </MenuItem>
+            <MenuItem Header="关于(_A)" Click="About_Click" />
         </Menu>
-        <ToolBar Grid.Row="1" Grid.Column="0" ToolBarTray.IsLocked="True" Name="toolBar">
+        <ToolBar 
+            Grid.Row="1" 
+            Grid.Column="0" 
+            Grid.ColumnSpan="{Binding ColSpan, Mode=OneWay}"
+            ToolBarTray.IsLocked="True" Name="toolBar">
             <Button
                 IsEnabled="{Binding StartButtonEnable, Mode=OneWay}"
                 Click="StartButton_Click"
@@ -299,18 +322,96 @@
                 <ComboBoxItem Content="8.预测分析方法" />
             </ComboBox>
         </ToolBar>
-        <TabControl Name="tabControl" Grid.Row="2" Grid.Column="0" TabStripPlacement="Top">
+        <TabControl 
+            Name="tabControl" 
+            Grid.Row="2" 
+            Grid.Column="0" 
+            TabStripPlacement="Top" 
+            Grid.RowSpan="{Binding RowSpan, Mode=OneWay}"
+            Grid.ColumnSpan="{Binding ColSpan, Mode=OneWay}">
+            <TabControl.Template>
+                <ControlTemplate TargetType="{x:Type TabControl}">
+                    <Grid ClipToBounds="True" KeyboardNavigation.TabNavigation="Local" SnapsToDevicePixels="True">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Name="ColumnDefinition0" Width="*"/>
+                            <ColumnDefinition Name="ColumnDefinition2" Width="0"/>
+                        </Grid.ColumnDefinitions>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Name="RowDefinition0" Height="Auto"/>
+                            <RowDefinition Name="RowDefinition1" Height="*"/>
+                        </Grid.RowDefinitions>
+                        <DockPanel
+                            Name="HeaderPanel"
+                            Grid.Column="0"
+                            Grid.Row="0"
+                            Margin="2,2,2,0"
+                            Panel.ZIndex="1"
+                            IsItemsHost="True"
+                            KeyboardNavigation.TabIndex="1"/>
+                        <Border
+                            Name="ContentPanel"
+                            Grid.Column="0"
+                            Grid.Row="1"
+                            Background="{TemplateBinding Panel.Background}"
+                            BorderBrush="{TemplateBinding Border.BorderBrush}"
+                            BorderThickness="{TemplateBinding Border.BorderThickness}"
+                            KeyboardNavigation.DirectionalNavigation="Contained"
+                            KeyboardNavigation.TabIndex="2"
+                            KeyboardNavigation.TabNavigation="Local">
+                            <ContentPresenter
+                                Name="PART_SelectedContentHost"
+                                Margin="{TemplateBinding Control.Padding}"
+                                Content="{TemplateBinding TabControl.SelectedContent}"
+                                ContentSource="SelectedContent"
+                                ContentStringFormat="{TemplateBinding TabControl.SelectedContentStringFormat}"
+                                ContentTemplate="{TemplateBinding TabControl.SelectedContentTemplate}"
+                                SnapsToDevicePixels="{TemplateBinding UIElement.SnapsToDevicePixels}"/>
+                        </Border>
+                    </Grid>
+                </ControlTemplate>
+            </TabControl.Template>
         </TabControl>
-        <GridSplitter Grid.Row="3" Grid.Column="0" Height="3" HorizontalAlignment="Stretch" ResizeDirection="Rows" />
-        <TabControl Name="logControl" Grid.Row="4" Grid.Column="0">
-            <TabItem Header="编译">
-                <TextBox AcceptsReturn="True" Name="buildText" IsReadOnly="true" VerticalScrollBarVisibility="Auto" />
+        <GridSplitter 
+            Grid.Row="3" 
+            Grid.Column="0" 
+            Height="3" 
+            HorizontalAlignment="Stretch" 
+            ResizeDirection="Rows"  
+            Grid.ColumnSpan="{Binding ColSpan, Mode=OneWay}"
+            Visibility="{Binding OutVisible, Mode=OneWay, Converter={StaticResource VisibilityConverter}}"/>
+        <TabControl 
+            Name="logControl" 
+            Grid.Row="4" 
+            Grid.Column="0"  
+            Grid.ColumnSpan="{Binding ColSpan, Mode=OneWay}"
+            Visibility="{Binding OutVisible, Mode=OneWay, Converter={StaticResource VisibilityConverter}}">
+            <TabItem 
+                Header="编译" 
+                IsSelected="True" 
+                Visibility="{Binding BuildVisible, Mode=OneWay, Converter={StaticResource VisibilityConverter}}">
+                <TextBox 
+                    AcceptsReturn="True" 
+                    Name="buildText" 
+                    IsReadOnly="true" 
+                    VerticalScrollBarVisibility="Auto" />
             </TabItem>
-            <TabItem Header="输出">
-                <TextBox AcceptsReturn="True" Name="outputText" IsReadOnly="true" VerticalScrollBarVisibility="Auto" />
+            <TabItem 
+                Header="输出" 
+                Visibility="{Binding PrintVisible, Mode=OneWay, Converter={StaticResource VisibilityConverter}}">
+                <TextBox 
+                    AcceptsReturn="True" 
+                    Name="outputText" 
+                    IsReadOnly="true" 
+                    VerticalScrollBarVisibility="Auto" />
             </TabItem>
-            <TabItem Header="GDB" IsSelected="True">
-                <TextBox AcceptsReturn="True" Name="gdbText" IsReadOnly="true" VerticalScrollBarVisibility="Auto" />
+            <TabItem
+                Header="GDB" 
+                Visibility="{Binding GDBVisible, Mode=OneWay, Converter={StaticResource VisibilityConverter}}">
+                <TextBox 
+                    AcceptsReturn="True" 
+                    Name="gdbText" 
+                    IsReadOnly="true" 
+                    VerticalScrollBarVisibility="Auto" />
             </TabItem>
         </TabControl>
     </Grid>

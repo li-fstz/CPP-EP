@@ -11,7 +11,13 @@ using CPP_EP.Lab.Data;
 namespace CPP_EP.Lab {
 
     internal class Lab1: AbstractLab {
-        private readonly List<string> _LabFiles = new List<string> () { "lab1.c", "src\\rule.c", "src\\voidtable.c" };
+        private readonly List<string> _LabFiles = new List<string> () { 
+            "lab1.c", 
+            "src\\rule.c", 
+            "src\\voidtable.c", 
+            "inc\\voidtable.h", 
+            "inc\\rule.h" 
+        };
 
         public override List<string> LabFiles => _LabFiles;
 

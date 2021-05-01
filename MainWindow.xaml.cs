@@ -30,13 +30,15 @@ namespace CPP_EP {
                 StartButtonEnable = true,
                 StartButtonContent = "启动",
                 LabSelectEnable = true,
+                BuildVisible = true,
+                PrintVisible = true,
             };
             DataContext = dataContext;
             InitializeComponent ();
             System.Text.Encoding.RegisterProvider (System.Text.CodePagesEncodingProvider.Instance);
             GDB.PrintLog = s => Dispatcher.BeginInvoke ((Action<string>)PrintGDBLog, s);
-            GDB.PrintLog = s => Debug.WriteLine (s);
-            GDB.PrintLog = s => { };
+            //GDB.PrintLog = s => Debug.WriteLine (s);
+            //GDB.PrintLog = s => { };
             GDB.AfterRun = (s) => Dispatcher.BeginInvoke ((Action<string>)AfterRun, s);
             GCC.AfterBuild = b => Dispatcher.BeginInvoke ((Action<bool>)AfterBuild, b);
             GCC.PrintLog = s => Dispatcher.BeginInvoke ((Action<string>)PrintMakeLog, s);
@@ -99,49 +101,52 @@ namespace CPP_EP {
             if (lastStopTab != null) {
                 lastStopTab.UnRunMarkLine ();
             }
-            if (result == null) {
+            if (result.IndexOf ("breakpoint-hit") != -1
+                || result.IndexOf ("end-stepping-range") != -1
+                || result.IndexOf ("function-finished") != -1) {
+                /*
+                    List<Lab.Lab.Rule> rules = lab4.GetRules("pHead");
+                    Lab1.VoidTable voidTable = lab4.GetVoidTable("&VoidTable");
+                    List<Lab2.Set> firstSet = lab4.GetSetList ("&FirstSetList");
+                    List<Lab2.Set> followSet = lab4.GetSetList ("&FollowSetList");
+                    List<Lab4.SelectSet> selectSet = lab4.GetSelectSetList ("&SelectSetList");
+                    Lab4.ParsingTable parsingTable = lab4.GetParsingTable ("&ParsingTable");
+                    List<Lab.Lab.Symbol> stack = lab8.GetParsingStack("&Stack");
+                */
+                dataContext.BreakPoint ();
+                var b = BreakPoint.Parse (result);
+                if (b.HasValue) {
+                    lastStopTab = FileTab.GetInstance (Path.GetFileName (b.Value.Item1));
+                    tabControl.SelectedItem = lastStopTab;
+                    lastStopLine = b.Value.Item2;
+                    lastStopTab.GotoLine (lastStopLine);
+                    lastStopTab.RunMarkLine (lastStopLine);
+                }
+                lab.Draw ();
+            } else {
+                dataContext.DataVisible = false;
                 dataContext.Finish ();
+                foreach(FileTab t in tabControl.Items) {
+                    t.dataContext.ReadOnly = false;
+                }
                 run = false;
                 gdb.Stop ();
                 gdb = null;
                 PrintGDBLog (result);
                 PrintOutput (File.ReadAllText (Properties.Settings.Default.LabsPath + "out.txt", System.Text.Encoding.GetEncoding ("GB2312")));
-            } else {
-                if (result.IndexOf ("breakpoint-hit") != -1
-                    || result.IndexOf ("end-stepping-range") != -1
-                    || result.IndexOf ("function-finished") != -1) {
-                    /*
-                        List<Lab.Lab.Rule> rules = lab4.GetRules("pHead");
-                        Lab1.VoidTable voidTable = lab4.GetVoidTable("&VoidTable");
-                        List<Lab2.Set> firstSet = lab4.GetSetList ("&FirstSetList");
-                        List<Lab2.Set> followSet = lab4.GetSetList ("&FollowSetList");
-                        List<Lab4.SelectSet> selectSet = lab4.GetSelectSetList ("&SelectSetList");
-                        Lab4.ParsingTable parsingTable = lab4.GetParsingTable ("&ParsingTable");
-                        List<Lab.Lab.Symbol> stack = lab8.GetParsingStack("&Stack");
-                    */
-                    dataContext.BreakPoint ();
-                    var b = BreakPoint.Parse (result);
-                    if (b.HasValue) {
-                        lastStopTab = FileTab.GetInstance (Path.GetFileName (b.Value.Item1));
-                        tabControl.SelectedItem = lastStopTab;
-                        lastStopLine = b.Value.Item2;
-                        lastStopTab.GotoLine (lastStopLine);
-                        lastStopTab.RunMarkLine (lastStopLine);
-                    }
-                    lab.Draw ();
-                } else {
-                    dataContext.Finish ();
-                    run = false;
-                    gdb.Stop ();
-                    gdb = null;
-                    PrintGDBLog (result);
-                    PrintOutput (File.ReadAllText (Properties.Settings.Default.LabsPath + "out.txt", System.Text.Encoding.GetEncoding ("GB2312")));
-                }
             }
         }
 
         private void LabSelect_SelectionChanged (object sender, SelectionChangedEventArgs e) {
             lab = AbstractLab.GetLab (labSelect.SelectedIndex);
+            for (int i = 0; i < 8; i ++) {
+                var m = openMenus.Items[i] as MenuItem;
+                if (i == labSelect.SelectedIndex - 1) {
+                    m.IsChecked = true;
+                } else {
+                    m.IsChecked = false;
+                }
+            }
             if (labSelect.SelectedIndex != 0) {
                 tabControl.Items.Clear ();
                 foreach (var file in lab.LabFiles) {
@@ -156,6 +161,7 @@ namespace CPP_EP {
         }
 
         private void PrintMakeLog (string s) {
+            if (!dataContext.BuildVisible) return;
             logControl.SelectedIndex = 0;
             buildText.AppendText (s);
             buildText.AppendText ("\n");
@@ -163,12 +169,14 @@ namespace CPP_EP {
         }
 
         private void PrintOutput (string s) {
+            if (!dataContext.PrintVisible) return;
             logControl.SelectedIndex = 1;
             outputText.Text = s;
             outputText.ScrollToEnd ();
         }
 
         private void PrintGDBLog (string s) {
+            if (!dataContext.GDBVisible) return;
             if (s == null || s.IndexOf ("~") != -1) return;
             logControl.SelectedIndex = 2;
             gdbText.AppendText (s);
@@ -219,7 +227,12 @@ namespace CPP_EP {
                 dataStructureView.Inlines.Clear ();
                 AbstractLab.DataHash.Clear ();
                 dataContext.Start ();
+                foreach (FileTab t in tabControl.Items) {
+                    t.dataContext.ReadOnly = true;
+                }
+                SaveAll_Executed (null, null);
                 lab.Build ();
+                dataContext.DataVisible = true;
             }
         }
 
@@ -237,6 +250,9 @@ namespace CPP_EP {
             if (lastStopTab != null) {
                 lastStopTab.UnRunMarkLine ();
                 lastStopTab = null;
+            }
+            foreach (FileTab t in tabControl.Items) {
+                t.dataContext.ReadOnly = false;
             }
         }
 
@@ -288,33 +304,72 @@ namespace CPP_EP {
         }
 
         private void Save_CanExecute (object sender, CanExecuteRoutedEventArgs e) {
+            if (tabControl.SelectedItem is FileTab t) {
+                e.CanExecute = t.dataContext.Change;
+            }
         }
 
         private void Save_Executed (object sender, ExecutedRoutedEventArgs e) {
+            if (tabControl.SelectedItem is FileTab t) {
+                t.SaveFile();
+            }
         }
 
         private void SaveAll_CanExecute (object sender, CanExecuteRoutedEventArgs e) {
+            foreach (FileTab t in tabControl.Items) {
+                if (t.dataContext.Change) {
+                    e.CanExecute = true;
+                    break;
+                }
+            }
         }
 
         private void SaveAll_Executed (object sender, ExecutedRoutedEventArgs e) {
+            foreach (FileTab t in tabControl.Items) {
+                t.SaveFile ();
+            }
         }
 
-        private void Option_CanExecute (object sender, CanExecuteRoutedEventArgs e) {
+        private void OpenMenu_Click (object sender, RoutedEventArgs e) {
+            for (int i = 0; i < 8; i ++) {
+                var m = openMenus.Items[i] as MenuItem;
+                if (openMenus.Items[i] == sender) {
+                    labSelect.SelectedIndex = i + 1;
+                    m.IsChecked = true;
+                } else {
+                    m.IsChecked = false;
+                }
+            }
         }
 
-        private void Option_Executed (object sender, ExecutedRoutedEventArgs e) {
+        private void About_Click (object sender, RoutedEventArgs e) {
+
         }
 
-        private void Exit_CanExecute (object sender, CanExecuteRoutedEventArgs e) {
+        private void Exit_Click (object sender, RoutedEventArgs e) {
+            Close ();
         }
 
-        private void Exit_Executed (object sender, ExecutedRoutedEventArgs e) {
+        private void Option_Click (object sender, RoutedEventArgs e) {
+
         }
 
-        private void About_CanExecute (object sender, CanExecuteRoutedEventArgs e) {
-        }
+        private void DataStructureView_PreviewMouseWheel (object sender, MouseWheelEventArgs e) {
+            if (Keyboard.Modifiers == ModifierKeys.Control) {
+                double fontSize = dataStructureView.FontSize + (e.Delta > 0 ? 2 : -2);
 
-        private void About_Executed (object sender, ExecutedRoutedEventArgs e) {
+                if (fontSize < 6) {
+                    dataStructureView.FontSize = 6;
+                } else {
+                    if (fontSize > 200) {
+                        dataStructureView.FontSize = 200;
+                    } else {
+                        dataStructureView.FontSize = fontSize;
+                    }
+                }
+
+                e.Handled = true;
+            }
         }
     }
 
@@ -329,6 +384,56 @@ namespace CPP_EP {
         private bool _finishButtonEnable;
         private string _startButtonContent;
         private bool _labSelectEnable;
+        private bool _buildVisible;
+        private bool _printVisible;
+        private bool _gdbVisible;
+        private bool _outVisible;
+        private bool _dataVisible;
+
+        public int RowSpan {
+            get => _outVisible? 1: 3;
+        }
+        public int ColSpan {
+            get => _dataVisible ? 1 : 3;
+        }
+        public bool DataVisible {
+            get => _dataVisible;
+            set {
+                if (SetProperty (ref _dataVisible, value)) {
+                    PropertyChanged?.Invoke (this, new PropertyChangedEventArgs ("ColSpan"));
+                }
+            }
+        }
+        public bool BuildVisible {
+            get => _buildVisible;
+            set {
+                SetProperty (ref _buildVisible, value);
+                OutVisible = _buildVisible || _printVisible || _gdbVisible;
+            }
+        }
+        public bool PrintVisible {
+            get => _printVisible;
+            set {
+                SetProperty (ref _printVisible, value);
+                OutVisible = _buildVisible || _printVisible || _gdbVisible;
+            }
+        }
+        public bool GDBVisible {
+            get => _gdbVisible;
+            set {
+                SetProperty (ref _gdbVisible, value);
+                OutVisible = _buildVisible || _printVisible || _gdbVisible;
+            }
+        }
+        public bool OutVisible {
+            get => _outVisible;
+            set {
+                if (SetProperty (ref _outVisible, value)) {
+                    PropertyChanged?.Invoke (this, new PropertyChangedEventArgs ("RowSpan"));
+                }
+            }
+        }
+
 
         public bool StartButtonEnable {
             get => _startButtonEnable;

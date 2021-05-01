@@ -12,7 +12,19 @@ using CPP_EP.Lab.Data;
 namespace CPP_EP.Lab {
 
     internal class Lab4: Lab3 {
-        private readonly List<string> _LabFiles = new List<string> () { "lab4.c", "src\\rule.c", "src\\voidtable.c", "src\\first.c", "src\\follow.c", "src\\parsingtable.c" };
+        private readonly List<string> _LabFiles = new List<string> () { 
+            "lab4.c", 
+            "src\\rule.c", 
+            "src\\voidtable.c", 
+            "src\\first.c", 
+            "src\\follow.c",
+            "src\\parsingtable.c",
+            "inc\\parsingtable.h",
+            "inc\\follow.h",
+            "inc\\first.h",
+            "inc\\voidtable.h",
+            "inc\\rule.h"
+        };
 
         public override List<string> LabFiles => _LabFiles;
 
@@ -94,7 +106,7 @@ namespace CPP_EP.Lab {
             GetParsingTable (label, parsingTable => {
                 if (parsingTable != null && parsingTable.TableHead.Count > 0) {
                     if (DataHash.ContainsKey (label) && parsingTable.Equals (DataHash[label] as ParsingTable)
-                        && !CheckWatchedValueChange ("foundProduction", "DrawParsingTable_")) {
+                        && !CheckWatchedValueChange ("DrawParsingTable_", "foundProduction")) {
                         return;
                     }
                     WatchedValue.TryGetValue ("foundProduction", out string pAddress);

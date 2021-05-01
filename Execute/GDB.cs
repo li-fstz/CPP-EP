@@ -52,6 +52,7 @@ namespace CPP_EP.Execute {
                                 case '^':
                                     if (e.Data.IndexOf ("^error") == 0) {
                                         GDBResult.Clear ();
+                                        GDBActions.Dequeue ().Item2 (e.Data);
                                     } else {
                                         GDBResult.Append (e.Data);
                                     }

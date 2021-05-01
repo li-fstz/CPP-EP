@@ -5,7 +5,13 @@ using CPP_EP.Execute;
 namespace CPP_EP.Lab {
 
     internal class Lab5: AbstractLab {
-        private readonly List<string> _LabFiles = new List<string> () { "lab5.c", "src\\rule.c", "src\\pickupleftfactor.c" };
+        private readonly List<string> _LabFiles = new List<string> () { 
+            "lab5.c", 
+            "src\\rule.c", 
+            "src\\pickupleftfactor.c",
+            "inc\\pickupleftfactor.h",
+            "inc\\rule.h"
+        };
         public override List<string> LabFiles => _LabFiles;
         public override int LabNo => 5;
 
