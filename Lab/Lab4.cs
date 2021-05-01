@@ -12,11 +12,11 @@ using CPP_EP.Lab.Data;
 namespace CPP_EP.Lab {
 
     internal class Lab4: Lab3 {
-        private readonly List<string> _LabFiles = new List<string> () { 
-            "lab4.c", 
-            "src\\rule.c", 
-            "src\\voidtable.c", 
-            "src\\first.c", 
+        private readonly List<string> _LabFiles = new List<string> () {
+            "lab4.c",
+            "src\\rule.c",
+            "src\\voidtable.c",
+            "src\\first.c",
             "src\\follow.c",
             "src\\parsingtable.c",
             "inc\\parsingtable.h",
@@ -66,20 +66,20 @@ namespace CPP_EP.Lab {
                     UpdateUI (i, tb => {
                         tb.Inlines.Clear ();
                         tb.Inlines.Add (label + ":");
-                        var selectb = new Border () {
+                        Border selectb = new Border () {
                             Background = Brushes.PaleGreen,
                             Child = new TextBlock (new Run ("selectSet")),
                             Visibility = Visibility.Collapsed
                         };
                         bool selectv = false;
                         tb.Inlines.Add (new LineBreak ());
-                        foreach (var set in setList) {
-                            var sb = new TextBlock ();
+                        foreach (SelectSet set in setList) {
+                            TextBlock sb = new TextBlock ();
                             sb.Inlines.Add (new Run ("SELECT( ") { Foreground = Brushes.Gray });
                             sb.Inlines.Add (set.Rule.Name);
                             sb.Inlines.Add (new Run (" -> ") { Foreground = Brushes.Gray });
                             if (set.Production != null) {
-                                foreach (var s in set.Production.Symbols) {
+                                foreach (Symbol s in set.Production.Symbols) {
                                     sb.Inlines.Add (s.Name);
                                 }
                             }
@@ -116,16 +116,16 @@ namespace CPP_EP.Lab {
                         tb.Inlines.Add (label + ":");
                         tb.Inlines.Add (new LineBreak ());
                         tb.Inlines.Add (NewBorder (new TextBlock (), 1, 1, 1, 1));
-                        foreach (var h in parsingTable.TableHead) {
+                        foreach (string h in parsingTable.TableHead) {
                             tb.Inlines.Add (NewBorder (new TextBlock (new Run (h)), 0, 1, 1, 1));
                         }
                         tb.Inlines.Add (new LineBreak ());
-                        foreach (var r in parsingTable.TableRows) {
+                        foreach (ParsingTable.Row r in parsingTable.TableRows) {
                             tb.Inlines.Add (NewBorder (new TextBlock (new Run (r.Rule == null ? "" : r.Rule.Name)), 1, 0, 1, 1));
-                            foreach (var c in r.Productions) {
-                                var t = new TextBlock ();
+                            foreach ((string, Production) c in r.Productions) {
+                                TextBlock t = new TextBlock ();
                                 if (c.Item2 != null) {
-                                    foreach (var s in c.Item2.Symbols) {
+                                    foreach (Symbol s in c.Item2.Symbols) {
                                         t.Inlines.Add (s.Name);
                                     }
                                 }
@@ -146,9 +146,11 @@ namespace CPP_EP.Lab {
             gdb.SendScript ("getselectsetlist " + address, r => {
                 List<SelectSet> selectsetList = new List<SelectSet> ();
                 string[] ruleStrings = r.Split (new string[] { "~\"|selectsetlist|\"" }, StringSplitOptions.RemoveEmptyEntries);
-                foreach (var s in ruleStrings) {
-                    var set = SelectSet.Gen (s);
-                    if (set != null) selectsetList.Add (set);
+                foreach (string s in ruleStrings) {
+                    SelectSet set = SelectSet.Gen (s);
+                    if (set != null) {
+                        selectsetList.Add (set);
+                    }
                 }
                 AfterGetSelectSetList (selectsetList);
             });

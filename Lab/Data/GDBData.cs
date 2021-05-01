@@ -6,7 +6,7 @@ namespace CPP_EP.Lab.Data {
     public abstract class GDBData {
         private readonly int HashCode;
         public readonly string Address;
-        public static Dictionary<string, GDBData> MemeryHash = new Dictionary<string, GDBData> ();
+        private static readonly Dictionary<string, GDBData> MemeryHash = new Dictionary<string, GDBData> ();
 
         //protected static readonly Regex Int = new Regex(@"value=""(-?\d+)""");
         //protected static readonly Regex Address = new Regex(@"value=""(0x[0-9a-f]+)""");

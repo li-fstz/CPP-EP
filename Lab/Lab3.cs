@@ -9,10 +9,10 @@ using CPP_EP.Lab.Data;
 namespace CPP_EP.Lab {
 
     internal class Lab3: Lab2 {
-        private readonly List<string> _LabFiles = new List<string> () { 
-            "lab3.c", 
-            "src\\rule.c", 
-            "src\\voidtable.c", 
+        private readonly List<string> _LabFiles = new List<string> () {
+            "lab3.c",
+            "src\\rule.c",
+            "src\\voidtable.c",
             "src\\first.c",
             "src\\follow.c",
             "inc\\follow.h",

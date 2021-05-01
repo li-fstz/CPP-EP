@@ -13,14 +13,17 @@ namespace CPP_EP.Lab.Data {
         }
 
         public static VoidTable Gen (string s) {
-            if (s == null) return null;
+            if (s == null) {
+                return null;
+            }
+
             VoidTable v = null;
             string[] structs = s.Split (new string[] { "~\"|voidtable|\"" }, StringSplitOptions.RemoveEmptyEntries);
             if (structs.Length > 0) {
-                var ms = Text.Matches (structs[0]);
+                MatchCollection ms = Text.Matches (structs[0]);
                 if (ms.Count > 1 && ms.First ().Success) {
-                    var address = ms.First ().Groups[1].Value;
-                    var h = Get<VoidTable> (address);
+                    string address = ms.First ().Groups[1].Value;
+                    VoidTable h = Get<VoidTable> (address);
                     if (h != null && h.GetHashCode () == s.GetHashCode ()) {
                         v = h;
                     } else {

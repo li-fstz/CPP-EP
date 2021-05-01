@@ -5,9 +5,9 @@ using CPP_EP.Execute;
 namespace CPP_EP.Lab {
 
     internal class Lab6: AbstractLab {
-        private readonly List<string> _LabFiles = new List<string> () { 
-            "lab6.c", 
-            "src\\rule.c", 
+        private readonly List<string> _LabFiles = new List<string> () {
+            "lab6.c",
+            "src\\rule.c",
             "src\\removeleftrecursion1.c",
             "inc\\removeleftrecursion1.h",
             "inc\\rule.h"

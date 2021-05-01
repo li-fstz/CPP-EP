@@ -50,10 +50,10 @@ namespace CPP_EP {
 
         private void UpdateUI (int i, Action<TextBlock> a) {
             Dispatcher.BeginInvoke ((Action)(() => {
-                var c = textBlocks.Count;
+                int c = textBlocks.Count;
                 if (c < i) {
                     for (; c <= i; c++) {
-                        var tb = new TextBlock ();
+                        TextBlock tb = new TextBlock ();
                         textBlocks.Add (tb);
                         dataStructureView.Inlines.Add (tb);
                         dataStructureView.Inlines.Add (new LineBreak ());
@@ -115,7 +115,7 @@ namespace CPP_EP {
                     List<Lab.Lab.Symbol> stack = lab8.GetParsingStack("&Stack");
                 */
                 dataContext.BreakPoint ();
-                var b = BreakPoint.Parse (result);
+                (string, int)? b = BreakPoint.Parse (result);
                 if (b.HasValue) {
                     lastStopTab = FileTab.GetInstance (Path.GetFileName (b.Value.Item1));
                     tabControl.SelectedItem = lastStopTab;
@@ -127,7 +127,7 @@ namespace CPP_EP {
             } else {
                 dataContext.DataVisible = false;
                 dataContext.Finish ();
-                foreach(FileTab t in tabControl.Items) {
+                foreach (FileTab t in tabControl.Items) {
                     t.dataContext.ReadOnly = false;
                 }
                 run = false;
@@ -140,8 +140,8 @@ namespace CPP_EP {
 
         private void LabSelect_SelectionChanged (object sender, SelectionChangedEventArgs e) {
             lab = AbstractLab.GetLab (labSelect.SelectedIndex);
-            for (int i = 0; i < 8; i ++) {
-                var m = openMenus.Items[i] as MenuItem;
+            for (int i = 0; i < 8; i++) {
+                MenuItem m = openMenus.Items[i] as MenuItem;
                 if (i == labSelect.SelectedIndex - 1) {
                     m.IsChecked = true;
                 } else {
@@ -150,7 +150,7 @@ namespace CPP_EP {
             }
             if (labSelect.SelectedIndex != 0) {
                 tabControl.Items.Clear ();
-                foreach (var file in lab.LabFiles) {
+                foreach (string file in lab.LabFiles) {
                     tabControl.Items.Add (FileTab.GetInstance (System.AppDomain.CurrentDomain.BaseDirectory + "labs\\" + file));
                 }
                 tabControl.SelectedIndex = 0;
@@ -162,7 +162,10 @@ namespace CPP_EP {
         }
 
         private void PrintMakeLog (string s) {
-            if (!dataContext.BuildVisible) return;
+            if (!dataContext.BuildVisible) {
+                return;
+            }
+
             logControl.SelectedIndex = 0;
             buildText.AppendText (s);
             buildText.AppendText ("\n");
@@ -170,15 +173,24 @@ namespace CPP_EP {
         }
 
         private void PrintOutput (string s) {
-            if (!dataContext.PrintVisible) return;
+            if (!dataContext.PrintVisible) {
+                return;
+            }
+
             logControl.SelectedIndex = 1;
             outputText.Text = s;
             outputText.ScrollToEnd ();
         }
 
         private void PrintGDBLog (string s) {
-            if (!dataContext.GDBVisible) return;
-            if (s == null || s.IndexOf ("~") != -1) return;
+            if (!dataContext.GDBVisible) {
+                return;
+            }
+
+            if (s == null || s.IndexOf ("~") != -1) {
+                return;
+            }
+
             logControl.SelectedIndex = 2;
             gdbText.AppendText (s);
             gdbText.AppendText ("\n");
@@ -312,7 +324,7 @@ namespace CPP_EP {
 
         private void Save_Executed (object sender, ExecutedRoutedEventArgs e) {
             if (tabControl.SelectedItem is FileTab t) {
-                t.SaveFile();
+                t.SaveFile ();
             }
         }
 
@@ -332,8 +344,8 @@ namespace CPP_EP {
         }
 
         private void OpenMenu_Click (object sender, RoutedEventArgs e) {
-            for (int i = 0; i < 8; i ++) {
-                var m = openMenus.Items[i] as MenuItem;
+            for (int i = 0; i < 8; i++) {
+                MenuItem m = openMenus.Items[i] as MenuItem;
                 if (openMenus.Items[i] == sender) {
                     labSelect.SelectedIndex = i + 1;
                     m.IsChecked = true;
@@ -391,17 +403,13 @@ namespace CPP_EP {
         private bool _outVisible;
         private bool _dataVisible;
 
-        public int RowSpan {
-            get => _outVisible? 1: 3;
-        }
-        public int ColSpan {
-            get => _dataVisible ? 1 : 3;
-        }
+        public int RowSpan => _outVisible ? 1 : 3;
+        public int ColSpan => _dataVisible ? 1 : 3;
         public bool DataVisible {
             get => _dataVisible;
             set {
                 if (SetProperty (ref _dataVisible, value)) {
-                    PropertyChanged?.Invoke (this, new PropertyChangedEventArgs ("ColSpan"));
+                    PropertyChanged?.Invoke (this, new PropertyChangedEventArgs (nameof (ColSpan)));
                 }
             }
         }
@@ -430,7 +438,7 @@ namespace CPP_EP {
             get => _outVisible;
             set {
                 if (SetProperty (ref _outVisible, value)) {
-                    PropertyChanged?.Invoke (this, new PropertyChangedEventArgs ("RowSpan"));
+                    PropertyChanged?.Invoke (this, new PropertyChangedEventArgs (nameof (RowSpan)));
                 }
             }
         }
@@ -440,7 +448,7 @@ namespace CPP_EP {
             get => _startButtonEnable;
             set {
                 if (SetProperty (ref _startButtonEnable, value)) {
-                    PropertyChanged?.Invoke (this, new PropertyChangedEventArgs ("StartButtonImage"));
+                    PropertyChanged?.Invoke (this, new PropertyChangedEventArgs (nameof (StartButtonImage)));
                 }
             }
         }
@@ -459,7 +467,7 @@ namespace CPP_EP {
             get => _stopButtonEnable;
             set {
                 if (SetProperty (ref _stopButtonEnable, value)) {
-                    PropertyChanged?.Invoke (this, new PropertyChangedEventArgs ("StopButtonImage"));
+                    PropertyChanged?.Invoke (this, new PropertyChangedEventArgs (nameof (StopButtonImage)));
                 }
             }
         }
@@ -478,7 +486,7 @@ namespace CPP_EP {
             get => _stepButtonEnable;
             set {
                 if (SetProperty (ref _stepButtonEnable, value)) {
-                    PropertyChanged?.Invoke (this, new PropertyChangedEventArgs ("StepButtonImage"));
+                    PropertyChanged?.Invoke (this, new PropertyChangedEventArgs (nameof (StepButtonImage)));
                 }
             }
         }
@@ -497,7 +505,7 @@ namespace CPP_EP {
             get => _nextButtonEnable;
             set {
                 if (SetProperty (ref _nextButtonEnable, value)) {
-                    PropertyChanged?.Invoke (this, new PropertyChangedEventArgs ("NextButtonImage"));
+                    PropertyChanged?.Invoke (this, new PropertyChangedEventArgs (nameof (NextButtonImage)));
                 }
             }
         }
@@ -516,7 +524,7 @@ namespace CPP_EP {
             get => _finishButtonEnable;
             set {
                 if (SetProperty (ref _finishButtonEnable, value)) {
-                    PropertyChanged?.Invoke (this, new PropertyChangedEventArgs ("FinishButtonImage"));
+                    PropertyChanged?.Invoke (this, new PropertyChangedEventArgs (nameof (FinishButtonImage)));
                 }
             }
         }
@@ -535,12 +543,12 @@ namespace CPP_EP {
             get => _startButtonContent;
             set {
                 if (SetProperty (ref _startButtonContent, value)) {
-                    PropertyChanged?.Invoke (this, new PropertyChangedEventArgs ("StartMenuContent"));
+                    PropertyChanged?.Invoke (this, new PropertyChangedEventArgs (nameof (StartMenuContent)));
                 }
             }
         }
 
-        public string StartMenuContent { get => _startButtonContent == "启动" ? "启动(_S)" : "继续(_C)"; }
+        public string StartMenuContent => _startButtonContent == "启动" ? "启动(_S)" : "继续(_C)";
         public bool LabSelectEnable { get => _labSelectEnable; set => SetProperty (ref _labSelectEnable, value); }
 
         private bool SetProperty<T> (ref T field, T newValue, [CallerMemberName] string propertyName = null) {

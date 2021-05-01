@@ -12,14 +12,14 @@ using CPP_EP.Lab.Data;
 namespace CPP_EP.Lab {
 
     internal class Lab2: Lab1 {
-        private readonly List<string> _LabFiles = new List<string> () { 
-            "lab2.c", 
-            "src\\rule.c", 
-            "src\\voidtable.c", 
-            "src\\first.c", 
-            "inc\\first.h", 
-            "inc\\voidtable.h", 
-            "inc\\rule.h" 
+        private readonly List<string> _LabFiles = new List<string> () {
+            "lab2.c",
+            "src\\rule.c",
+            "src\\voidtable.c",
+            "src\\first.c",
+            "inc\\first.h",
+            "inc\\voidtable.h",
+            "inc\\rule.h"
         };
 
         public override List<string> LabFiles => _LabFiles;
@@ -47,12 +47,12 @@ namespace CPP_EP.Lab {
                     UpdateUI (i, tb => {
                         tb.Inlines.Clear ();
                         tb.Inlines.Add (label + ":");
-                        var desb = new Border () {
+                        Border desb = new Border () {
                             Background = Brushes.PaleGreen,
                             Child = new TextBlock (new Run ("desSet")),
                             Visibility = Visibility.Collapsed
                         };
-                        var srcb = new Border () {
+                        Border srcb = new Border () {
                             Background = Brushes.SandyBrown,
                             Child = new TextBlock (new Run ("srcSet")),
                             Visibility = Visibility.Collapsed
@@ -61,8 +61,8 @@ namespace CPP_EP.Lab {
                         tb.Inlines.Add (desb);
                         tb.Inlines.Add (srcb);
                         tb.Inlines.Add (new LineBreak ());
-                        foreach (var set in setList) {
-                            var sb = new TextBlock ();
+                        foreach (Set set in setList) {
+                            TextBlock sb = new TextBlock ();
                             sb.Inlines.Add (new Run (type + "( ") { Foreground = Brushes.Gray });
                             sb.Inlines.Add (set.Name);
                             sb.Inlines.Add (new Run (" ) = { ") { Foreground = Brushes.Gray });
@@ -112,8 +112,8 @@ namespace CPP_EP.Lab {
             gdb.SendScript ("getsetlist " + address, r => {
                 List<Set> setList = new List<Set> ();
                 string[] ruleStrings = r.Split (new string[] { "~\"|setlist|\"" }, StringSplitOptions.RemoveEmptyEntries);
-                foreach (var s in ruleStrings) {
-                    var set = Set.Gen (s);
+                foreach (string s in ruleStrings) {
+                    Set set = Set.Gen (s);
                     if (set != null) {
                         setList.Add (Set.Gen (s));
                     }

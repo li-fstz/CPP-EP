@@ -29,9 +29,9 @@ namespace CPP_EP.Lab {
             gdb.GetValues (names, AfterGetValues);
         }
 
-        protected bool CheckWatchedValueChange (string prefix, params string[] names) {
+        protected static bool CheckWatchedValueChange (string prefix, params string[] names) {
             bool r = false;
-            foreach (var name in names) {
+            foreach (string name in names) {
                 string a = null, b = null;
                 if (WatchedValue.ContainsKey (name)) {
                     a = WatchedValue[name];
@@ -47,18 +47,23 @@ namespace CPP_EP.Lab {
             return r;
         }
 
-        protected static UIElement Border (UIElement u, bool b, Brush c) => b ? new Border () {
-            BorderThickness = new Thickness (0),
-            Child = u,
-            Background = c
-        } : u;
+        protected static UIElement Border (UIElement u, bool b, Brush c) {
+            return b ? new Border () {
+                BorderThickness = new Thickness (0),
+                Child = u,
+                Background = c
+            } : u;
+        }
 
         protected void DrawRules (int i, string label, string key = null) {
             GetRules (label, rules => {
                 if (rules == null || rules.Count == 0) {
                     return;
                 }
-                if (key == null) key = label;
+                if (key == null) {
+                    key = label;
+                }
+
                 if (DataHash.ContainsKey (key) && rules.SequenceEqual (DataHash[key] as List<Rule>)
                     && !CheckWatchedValueChange ("DrawRules_" + key, "rule", "production", "symbol")
                 ) {
@@ -71,17 +76,17 @@ namespace CPP_EP.Lab {
                 UpdateUI (i, tb => {
                     tb.Inlines.Clear ();
                     tb.Inlines.Add (label + ":");
-                    var rb = new Border () {
+                    Border rb = new Border () {
                         Background = Brushes.PaleGreen,
                         Child = new TextBlock (new Run ("rule")),
                         Visibility = Visibility.Collapsed
                     };
-                    var pb = new Border () {
+                    Border pb = new Border () {
                         Background = Brushes.Khaki,
                         Child = new TextBlock (new Run ("production")),
                         Visibility = Visibility.Collapsed
                     };
-                    var sb = new Border () {
+                    Border sb = new Border () {
                         Background = Brushes.SandyBrown,
                         Child = new TextBlock (new Run ("symbol")),
                         Visibility = Visibility.Collapsed
@@ -91,19 +96,19 @@ namespace CPP_EP.Lab {
                     tb.Inlines.Add (sb);
                     tb.Inlines.Add (new LineBreak ());
                     bool rbv = false, pbv = false, sbv = false;
-                    foreach (var rule in rules) {
-                        var rt = new TextBlock ();
+                    foreach (Rule rule in rules) {
+                        TextBlock rt = new TextBlock ();
                         tb.Inlines.Add (Border (rt, rule.Address == rAddress, Brushes.PaleGreen));
                         rbv |= rule.Address == rAddress;
                         rt.Inlines.Add (rule.Name);
                         rt.Inlines.Add (new Run (" -> ") { Foreground = Brushes.Gray });
-                        foreach (var production in rule.Productions) {
-                            var pt = new TextBlock ();
+                        foreach (Production production in rule.Productions) {
+                            TextBlock pt = new TextBlock ();
                             pbv |= production.Address == pAddress;
                             if (production != rule.Productions[0]) {
                                 rt.Inlines.Add (new Run (" | ") { Foreground = Brushes.Gray });
                             }
-                            foreach (var symbol in production.Symbols) {
+                            foreach (Symbol symbol in production.Symbols) {
                                 pt.Inlines.Add (Border (new TextBlock (new Run (symbol.Name)), symbol.Address == sAddress, Brushes.SandyBrown));
                                 sbv |= symbol.Address == sAddress;
                             }

@@ -12,10 +12,10 @@ namespace CPP_EP.Lab.Data {
 
         public static Stack Gen (string s) {
             Stack stack = null;
-            var ms = Text.Matches (s);
+            MatchCollection ms = Text.Matches (s);
             if (ms.Count > 0 && ms.First ().Success) {
-                var address = ms.First ().Groups[1].Value;
-                var h = Get<Stack> (address);
+                string address = ms.First ().Groups[1].Value;
+                Stack h = Get<Stack> (address);
                 if (h != null && h.GetHashCode () == s.GetHashCode ()) {
                     stack = h;
                 } else {

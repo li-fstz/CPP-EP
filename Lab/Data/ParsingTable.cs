@@ -24,10 +24,10 @@ namespace CPP_EP.Lab.Data {
             ParsingTable p = null;
             string[] structs = s.Split (new string[] { "~\"|parsingtable|\"" }, StringSplitOptions.RemoveEmptyEntries);
             if (structs.Length > 0) {
-                var ms = Text.Matches (structs[0]);
+                MatchCollection ms = Text.Matches (structs[0]);
                 if (ms.Count > 0 && ms.First ().Success) {
-                    var address = ms.First ().Groups[1].Value;
-                    var h = Get<ParsingTable> (address);
+                    string address = ms.First ().Groups[1].Value;
+                    ParsingTable h = Get<ParsingTable> (address);
                     if (h != null && h.GetHashCode () == s.GetHashCode ()) {
                         p = h;
                     } else {
@@ -42,7 +42,7 @@ namespace CPP_EP.Lab.Data {
                         }
                         for (int i = 1; i < structs.Length; i++) {
                             List<(string, Production)> Productions = new List<(string, Production)> ();
-                            var m = Text.Match (structs[i]);
+                            Match m = Text.Match (structs[i]);
                             if (m.Success) {
                                 p.TableRows.Add (new Row () { Rule = Get<Rule> (m.Groups[1].Value), Productions = Productions });
                                 ms = AddressToAddress.Matches (structs[i]);

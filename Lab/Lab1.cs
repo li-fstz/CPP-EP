@@ -11,12 +11,12 @@ using CPP_EP.Lab.Data;
 namespace CPP_EP.Lab {
 
     internal class Lab1: AbstractLab {
-        private readonly List<string> _LabFiles = new List<string> () { 
-            "lab1.c", 
-            "src\\rule.c", 
-            "src\\voidtable.c", 
-            "inc\\voidtable.h", 
-            "inc\\rule.h" 
+        private readonly List<string> _LabFiles = new List<string> () {
+            "lab1.c",
+            "src\\rule.c",
+            "src\\voidtable.c",
+            "inc\\voidtable.h",
+            "inc\\rule.h"
         };
 
         public override List<string> LabFiles => _LabFiles;
@@ -46,12 +46,12 @@ namespace CPP_EP.Lab {
                     UpdateUI (i, tb => {
                         tb.Inlines.Clear ();
                         tb.Inlines.Add (label + ":");
-                        var rb = new Border () {
+                        Border rb = new Border () {
                             Background = Brushes.PaleGreen,
                             Child = new TextBlock (new Run ("rule")),
                             Visibility = Visibility.Collapsed
                         };
-                        var sb = new Border () {
+                        Border sb = new Border () {
                             Background = Brushes.SandyBrown,
                             Child = new TextBlock (new Run ("symbol")),
                             Visibility = Visibility.Collapsed
@@ -59,9 +59,9 @@ namespace CPP_EP.Lab {
                         tb.Inlines.Add (rb);
                         tb.Inlines.Add (sb);
                         tb.Inlines.Add (new LineBreak ());
-                        foreach (var h in voidTable.TableHead) {
-                            var symbol = GDBData.Get<Symbol> (sAddress);
-                            var rule = GDBData.Get<Rule> (rAddress);
+                        foreach (string h in voidTable.TableHead) {
+                            Symbol symbol = GDBData.Get<Symbol> (sAddress);
+                            Rule rule = GDBData.Get<Rule> (rAddress);
                             Brush b = null;
                             if (symbol != null && symbol.Name == h) {
                                 b = Brushes.SandyBrown;
@@ -91,14 +91,16 @@ namespace CPP_EP.Lab {
             });
         }
 
-        protected static Border NewBorder (UIElement u, int a, int b, int c, int d, Brush brush = null) => new Border () {
-            BorderThickness = new Thickness (a, b, c, d),
-            BorderBrush = Brushes.Gray,
-            Padding = new Thickness (1, 1, 1, 1),
-            Width = 52,
-            Child = u,
-            Background = brush is Brush ? brush : Brushes.White
-        };
+        protected static Border NewBorder (UIElement u, int a, int b, int c, int d, Brush brush = null) {
+            return new Border () {
+                BorderThickness = new Thickness (a, b, c, d),
+                BorderBrush = Brushes.Gray,
+                Padding = new Thickness (1, 1, 1, 1),
+                Width = 52,
+                Child = u,
+                Background = brush is Brush ? brush : Brushes.White
+            };
+        }
 
         public override void Draw () {
             WatchValues (() => {

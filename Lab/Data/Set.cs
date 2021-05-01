@@ -14,8 +14,8 @@ namespace CPP_EP.Lab.Data {
             Set set = null;
             Match m = AddressToSymbolInQuot.Match (s);
             if (m.Success) {
-                var address = m.Groups[1].Value;
-                var h = Get<Set> (address);
+                string address = m.Groups[1].Value;
+                Set h = Get<Set> (address);
                 if (h != null && h.GetHashCode () == s.GetHashCode ()) {
                     set = h;
                 } else {
@@ -23,7 +23,7 @@ namespace CPP_EP.Lab.Data {
                         Name = m.Groups[2].Value,
                         Terminal = new List<string> ()
                     };
-                    var ms = Text.Matches (s);
+                    MatchCollection ms = Text.Matches (s);
                     for (int i = 1; i < ms.Count; i++) {
                         if (ms[i].Success) {
                             set.Terminal.Add (ms[i].Groups[1].Value);

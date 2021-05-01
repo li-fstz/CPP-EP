@@ -32,7 +32,7 @@ namespace CPP_EP.Execute {
             ExecuteProcess = new Process ();
             ExecuteProcess.StartInfo.FileName = System.AppDomain.CurrentDomain.BaseDirectory + "MinGW\\bin\\gdb.exe";
             ExecuteProcess.StartInfo.WorkingDirectory = System.AppDomain.CurrentDomain.BaseDirectory;
-            ExecuteProcess.StartInfo.Arguments = string.Format("-x \"{0}\" -silent --interpreter mi {1}", System.AppDomain.CurrentDomain.BaseDirectory + "script\\struct.gdb", filepath);
+            ExecuteProcess.StartInfo.Arguments = string.Format ("-x \"{0}\" -silent --interpreter mi {1}", System.AppDomain.CurrentDomain.BaseDirectory + "script\\struct.gdb", filepath);
             ExecuteProcess.StartInfo.UseShellExecute = false;
             ExecuteProcess.StartInfo.RedirectStandardOutput = true;
             ExecuteProcess.StartInfo.RedirectStandardInput = true;
@@ -43,7 +43,7 @@ namespace CPP_EP.Execute {
         }
 
         private void ExecuteProcess_OutputDataReceived (object sender, DataReceivedEventArgs e) {
-            if (!String.IsNullOrEmpty (e.Data)) {
+            if (!string.IsNullOrEmpty (e.Data)) {
                 PrintLog ("gdb -> " + e.Data);
                 if (GDBActions.Count > 0) {
                     switch (GDBActions.Peek ().Item1) {
@@ -113,7 +113,7 @@ namespace CPP_EP.Execute {
                                     break;
 
                                 case '(':
-                                    var m = StringValue.Match (GDBResult.ToString ());
+                                    Match m = StringValue.Match (GDBResult.ToString ());
                                     if (m.Success) {
                                         GDBActions.Dequeue ().Item2 (m.Groups[1].Value);
                                     } else {
@@ -185,7 +185,7 @@ namespace CPP_EP.Execute {
 
         public void SetBreakpoints (List<(FileTab tab, string filename, int line)> lines, Action<CodePosition, FileTab, int> AfterSetBreakPoint, Action AfterSetBreakPoints) {
             Util.ThreadRun (() => {
-                foreach (var line in lines) {
+                foreach ((FileTab tab, string filename, int line) line in lines) {
                     Send (
                         string.Format ("-break-insert {0}:{1}", line.filename, line.line),
                         ActionType.Send,
@@ -219,7 +219,7 @@ namespace CPP_EP.Execute {
         public void GetValues (string[] names, Action AfterGetValues) {
             Util.ThreadRun (() => {
                 Dictionary<string, string> kvs = new Dictionary<string, string> ();
-                foreach (var name in names) {
+                foreach (string name in names) {
                     Send ("-data-evaluate-expression \"" + name + "\"", ActionType.Value, v => kvs[name] = v);
                 }
                 AbstractLab.WatchedValue = kvs;

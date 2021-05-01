@@ -12,10 +12,10 @@ namespace CPP_EP.Lab.Data {
 
         public static Production Gen (string s) {
             Production p = null;
-            var ms = Text.Matches (s);
+            MatchCollection ms = Text.Matches (s);
             if (ms.Count > 0 && ms.First ().Success) {
-                var address = ms.First ().Groups[1].Value;
-                var h = Get<Production> (address);
+                string address = ms.First ().Groups[1].Value;
+                Production h = Get<Production> (address);
                 if (h != null && h.GetHashCode () == s.GetHashCode ()) {
                     p = h;
                 } else {

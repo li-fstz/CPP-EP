@@ -12,8 +12,8 @@ namespace CPP_EP.Lab.Data {
             Symbol syb = null;
             Match m = AddressToSymbol.Match (s);
             if (m.Success) {
-                var address = m.Groups[1].Value;
-                var h = Get<Symbol> (address);
+                string address = m.Groups[1].Value;
+                Symbol h = Get<Symbol> (address);
                 if (h != null && h.GetHashCode () == s.GetHashCode ()) {
                     syb = h;
                 } else {

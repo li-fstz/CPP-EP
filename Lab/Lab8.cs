@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Documents;
@@ -12,13 +11,13 @@ using CPP_EP.Lab.Data;
 namespace CPP_EP.Lab {
 
     internal class Lab8: Lab4 {
-        private readonly List<string> _LabFiles = new List<string> () { 
-            "lab8.c", 
-            "src\\rule.c", 
-            "src\\voidtable.c", 
-            "src\\first.c", 
-            "src\\follow.c", 
-            "src\\parsingtable.c", 
+        private readonly List<string> _LabFiles = new List<string> () {
+            "lab8.c",
+            "src\\rule.c",
+            "src\\voidtable.c",
+            "src\\first.c",
+            "src\\follow.c",
+            "src\\parsingtable.c",
             "src\\parser.c" ,
             "inc\\parser.h",
             "inc\\parsingtable.h",
@@ -75,20 +74,20 @@ namespace CPP_EP.Lab {
                     tb.Inlines.Add ("string: " + str);
                     tb.Inlines.Add (new LineBreak ());
                     tb.Inlines.Add (label + ":");
-                    var tsb = new Border () {
+                    Border tsb = new Border () {
                         Background = Brushes.PaleGreen,
                         Child = new TextBlock (new Run ("topSymbol")),
                         Visibility = Visibility.Collapsed
                     };
                     tb.Inlines.Add (tsb);
                     tb.Inlines.Add (new LineBreak ());
-                    if (topSymbol != null && topSymbol.IndexOf ("0x") == -1) {
+                    if (topSymbol != null && !topSymbol.Contains ("0x", StringComparison.CurrentCulture)) {
                         tsb.Visibility = Visibility.Visible;
                         tb.Inlines.Add (NewBorder (new TextBlock (new Run (topSymbol)), 1, 1, 1, 1, Brushes.PaleGreen));
                         tb.Inlines.Add (new LineBreak ());
                         tb.Inlines.Add (new LineBreak ());
                     }
-                    for (int i = stack.Symbols.Count () - 1; i >= 0; i--) {
+                    for (int i = stack.Symbols.Count - 1; i >= 0; i--) {
                         tb.Inlines.Add (NewBorder (new TextBlock (new Run (stack.Symbols[i])), 1, 0, 1, 1));
                         tb.Inlines.Add (new LineBreak ());
                     }

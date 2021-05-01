@@ -1,14 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
-using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Runtime.CompilerServices;
-using System.Text;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Data;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Shapes;
@@ -39,12 +36,12 @@ namespace CPP_EP {
             if (fileTabHash.ContainsKey (filepath)) {
                 return fileTabHash[filepath];
             } else {
-                foreach (var key in fileTabHash.Keys) {
+                foreach (string key in fileTabHash.Keys) {
                     if (key.EndsWith (filepath)) {
                         return fileTabHash[key];
                     }
                 }
-                var tab = new FileTab (filepath);
+                FileTab tab = new FileTab (filepath);
                 fileTabHash[filepath] = tab;
                 return tab;
             }
@@ -77,7 +74,7 @@ namespace CPP_EP {
 
         private void TextEditor_PreviewMouseWheel (object sender, MouseWheelEventArgs e) {
             if (Keyboard.Modifiers == ModifierKeys.Control) {
-                double fontSize = textEditor.FontSize + (e.Delta > 0? 2: -2);
+                double fontSize = textEditor.FontSize + (e.Delta > 0 ? 2 : -2);
 
                 if (fontSize < 6) {
                     textEditor.FontSize = 6;
@@ -102,9 +99,9 @@ namespace CPP_EP {
             mFoldingManager = FoldingManager.Install (textEditor.TextArea);
             mFoldingStrategy = new BraceFoldingStrategy ();
             mFoldingStrategy.UpdateFoldings (mFoldingManager, textEditor.Document);
-            
+
         }
-        public void SaveFile() {
+        public void SaveFile () {
             if (dataContext.Change) {
                 File.WriteAllText (FilePath, textEditor.Text);
                 dataContext.Change = false;
@@ -113,12 +110,12 @@ namespace CPP_EP {
 
         private void BreakPointArea_MouseUp (object sender, MouseButtonEventArgs e) {
             //textEditor.Text += e.GetPosition (breakPointArea).Y;
-            var y = e.GetPosition (breakPointArea).Y;
-            var visualLine = textEditor.TextArea.TextView.VisualLines.FirstOrDefault (vl => vl.GetTextLineVisualYPosition (vl.TextLines[0], VisualYPosition.LineBottom) - textEditor.TextArea.TextView.VerticalOffset > y);
+            double y = e.GetPosition (breakPointArea).Y;
+            VisualLine visualLine = textEditor.TextArea.TextView.VisualLines.FirstOrDefault (vl => vl.GetTextLineVisualYPosition (vl.TextLines[0], VisualYPosition.LineBottom) - textEditor.TextArea.TextView.VerticalOffset > y);
             if (visualLine == null) {
                 return;
             }
-            var lineNumber = visualLine.FirstDocumentLine.LineNumber;
+            int lineNumber = visualLine.FirstDocumentLine.LineNumber;
             if (breakPoints.ContainsKey (lineNumber)) {
                 breakPoints.Remove (lineNumber);
                 DeleteBreakPoint (new CodePosition ((string)Header, lineNumber));
@@ -136,7 +133,7 @@ namespace CPP_EP {
         private void DrawAllBreakPoint () {
             if (textEditor.TextArea.TextView.VisualLinesValid && textEditor.TextArea.TextView.VisualLines.Count > 0) {
                 breakPointArea.Children.Clear ();
-                foreach (var vl in textEditor.TextArea.TextView.VisualLines) {
+                foreach (VisualLine vl in textEditor.TextArea.TextView.VisualLines) {
                     if (breakPoints.ContainsKey (vl.FirstDocumentLine.LineNumber)) {
                         breakPointArea.Children.Add (GenCircle (vl));
                         if (vl.FirstDocumentLine.LineNumber == runMarkLine) {
@@ -229,19 +226,18 @@ namespace CPP_EP {
             _breakPointArea = breakPointArea;
         }
 
-        public KnownLayer Layer {
-            get { return KnownLayer.Background; }
-        }
+        public KnownLayer Layer => KnownLayer.Background;
 
         public void Draw (TextView textView, DrawingContext drawingContext) {
-            if (_editor.Document == null || LineNumber == 0)
+            if (_editor.Document == null || LineNumber == 0) {
                 return;
+            }
 
             textView.EnsureVisualLines ();
-            var highlight = new SolidColorBrush (Color.FromArgb (100, 0, 176, 80));
-            var currentLine = _editor.Document.GetLineByNumber (LineNumber);
+            SolidColorBrush highlight = new SolidColorBrush (Color.FromArgb (100, 0, 176, 80));
+            DocumentLine currentLine = _editor.Document.GetLineByNumber (LineNumber);
 
-            foreach (var rect in BackgroundGeometryBuilder.GetRectsForSegment (textView, currentLine)) {
+            foreach (Rect rect in BackgroundGeometryBuilder.GetRectsForSegment (textView, currentLine)) {
                 drawingContext.DrawRectangle (highlight, null, new Rect (new Point (0, rect.Location.Y), new Size (9999, rect.Height)));
                 //Debug.WriteLine (rect);
                 _breakPointArea.Children.Add (GenArrow (rect.Height, rect.Location.Y));
@@ -249,7 +245,7 @@ namespace CPP_EP {
             }
         }
 
-        private Polygon GenArrow (double h, double y) {
+        private static Polygon GenArrow (double h, double y) {
             Polygon p = new Polygon {
                 Fill = new SolidColorBrush (Color.FromRgb (0, 176, 80)),
                 Points = new PointCollection (new Point[] { new Point (3.5, 0), new Point (h, h / 2), new Point (3.5, h) })
@@ -273,32 +269,30 @@ namespace CPP_EP {
         public double Width { get => _width; set => SetProperty (ref _width, value); }
 
         public string Col { get => "列: " + _col; set => SetProperty (ref _col, value); }
-        public bool Change { 
-            get => _change; 
+        public bool Change {
+            get => _change;
             set {
                 if (SetProperty (ref _change, value)) {
-                    PropertyChanged?.Invoke (this, new PropertyChangedEventArgs ("Header"));
+                    PropertyChanged?.Invoke (this, new PropertyChangedEventArgs (nameof (Header)));
                 }
             }
         }
         public bool ReadOnly {
             get => _header is string s && s.EndsWith (".h") || _readOnly;
-            set { 
+            set {
                 if (SetProperty (ref _readOnly, value)) {
                     PropertyChanged?.Invoke (this, new PropertyChangedEventArgs ("Mode"));
-                    PropertyChanged?.Invoke (this, new PropertyChangedEventArgs ("NotReadOnly"));
+                    PropertyChanged?.Invoke (this, new PropertyChangedEventArgs (nameof (NotReadOnly)));
                 }
             }
         }
-        public bool NotReadOnly {
-            get => !ReadOnly;
-        }
-        public string Header { 
-            get => _change? _header + "*": _header; 
+        public bool NotReadOnly => !ReadOnly;
+        public string Header {
+            get => _change ? _header + "*" : _header;
             set {
                 if (SetProperty (ref _header, value)) {
-                    PropertyChanged?.Invoke (this, new PropertyChangedEventArgs ("Alignment"));
-                    PropertyChanged?.Invoke (this, new PropertyChangedEventArgs ("ReadOnly"));
+                    PropertyChanged?.Invoke (this, new PropertyChangedEventArgs (nameof (Alignment)));
+                    PropertyChanged?.Invoke (this, new PropertyChangedEventArgs (nameof (ReadOnly)));
                 }
             }
         }
@@ -312,10 +306,10 @@ namespace CPP_EP {
             return false;
         }
 
-        public string Alignment { get => _header is string s && s.EndsWith (".h") ? "Right" : "Left"; }
+        public string Alignment => _header is string s && s.EndsWith (".h") ? "Right" : "Left";
     }
 
-    
+
 
     public class BraceFoldingStrategy {
 
@@ -333,8 +327,8 @@ namespace CPP_EP {
         /// Creates a new BraceFoldingStrategy.
         /// </summary>
         public BraceFoldingStrategy () {
-            this.OpeningBrace = '{';
-            this.ClosingBrace = '}';
+            OpeningBrace = '{';
+            ClosingBrace = '}';
         }
 
         public void UpdateFoldings (FoldingManager manager, TextDocument document) {
@@ -358,8 +352,8 @@ namespace CPP_EP {
 
             Stack<int> startOffsets = new Stack<int> ();
             int lastNewLineOffset = 0;
-            char openingBrace = this.OpeningBrace;
-            char closingBrace = this.ClosingBrace;
+            char openingBrace = OpeningBrace;
+            char closingBrace = ClosingBrace;
             for (int i = 0; i < document.TextLength; i++) {
                 char c = document.GetCharAt (i);
                 if (c == openingBrace) {

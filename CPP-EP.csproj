@@ -6,9 +6,16 @@
     <RootNamespace>CPP_EP</RootNamespace>
     <UseWPF>true</UseWPF>
     <StartupObject>CPP_EP.App</StartupObject>
+    <Platforms>AnyCPU;x64</Platforms>
+    <EnableNETAnalyzers>true</EnableNETAnalyzers>
+    <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
+    <DefineConstants>TRACE</DefineConstants>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <DefineConstants>TRACE</DefineConstants>
   </PropertyGroup>
 
@@ -148,7 +155,13 @@
     <None Update="MinGW\bin\gdb.exe">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
+    <None Update="MinGW\libexec\gcc\as.exe">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
     <None Update="MinGW\libexec\gcc\cc1.exe">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="MinGW\libexec\gcc\ld.exe">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
     <None Update="MinGW\libexec\gcc\liblto_plugin-0.dll">
