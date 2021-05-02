@@ -17,7 +17,7 @@ namespace CPP_EP.Execute {
         public static Action<string> AfterRun { private get; set; }
         public static Action<string> PrintLog { private get; set; }
         private readonly object gdbLock = new object ();
-        private readonly Queue<(ActionType, Action<string>)> GDBActions = new Queue<(ActionType, Action<string>)> ();
+        private readonly Queue<(string, ActionType, Action<string>)> GDBActions = new Queue<(string, ActionType, Action<string>)> ();
 
         private readonly StringBuilder GDBResult = new StringBuilder ();
         private bool stopMark, gdbMark;
@@ -44,15 +44,17 @@ namespace CPP_EP.Execute {
 
         private void ExecuteProcess_OutputDataReceived (object sender, DataReceivedEventArgs e) {
             if (!string.IsNullOrEmpty (e.Data)) {
-                PrintLog ("gdb -> " + e.Data);
                 if (GDBActions.Count > 0) {
-                    switch (GDBActions.Peek ().Item1) {
+                    string dequereString = null;
+                    bool dequeue = false;
+                    switch (GDBActions.Peek ().Item2) {
                         case ActionType.Run:
                             switch (e.Data[0]) {
                                 case '^':
                                     if (e.Data.IndexOf ("^error") == 0) {
+                                        dequeue = true;
+                                        dequereString = e.Data;
                                         GDBResult.Clear ();
-                                        GDBActions.Dequeue ().Item2 (e.Data);
                                     } else {
                                         GDBResult.Append (e.Data);
                                     }
@@ -61,7 +63,8 @@ namespace CPP_EP.Execute {
                                 case '(':
                                     if (gdbMark && stopMark) {
                                         gdbMark = stopMark = false;
-                                        GDBActions.Dequeue ().Item2 (GDBResult.ToString ());
+                                        dequeue = true;
+                                        dequereString = GDBResult.ToString ();
                                         GDBResult.Clear ();
                                     } else {
                                         gdbMark = true;
@@ -92,7 +95,8 @@ namespace CPP_EP.Execute {
                                     break;
 
                                 case '(':
-                                    GDBActions.Dequeue ().Item2 (GDBResult.ToString ());
+                                    dequeue = true;
+                                    dequereString = GDBResult.ToString ();
                                     GDBResult.Clear ();
                                     break;
 
@@ -114,20 +118,26 @@ namespace CPP_EP.Execute {
 
                                 case '(':
                                     Match m = StringValue.Match (GDBResult.ToString ());
+                                    dequeue = true;
                                     if (m.Success) {
-                                        GDBActions.Dequeue ().Item2 (m.Groups[1].Value);
+                                        dequereString = m.Groups[1].Value;
                                     } else {
                                         m = AddressValue.Match (GDBResult.ToString ());
                                         if (m.Success) {
-                                            GDBActions.Dequeue ().Item2 (m.Groups[1].Value);
+                                            dequereString = m.Groups[1].Value;
                                         } else {
-                                            GDBActions.Dequeue ().Item2 (null);
+                                            dequereString = null;
                                         }
                                     }
                                     GDBResult.Clear ();
                                     break;
                             }
                             break;
+                    }
+                    if (dequeue) {
+                        //Debug.WriteLine ("{0} => {1}", GDBActions.Peek ().Item1, GDBActions.Peek ().Item2, dequereString);
+                        PrintLog ("gdb -> " + GDBActions.Peek ().Item1);
+                        GDBActions.Dequeue ().Item3 (dequereString);
                     }
                 }
             }
@@ -138,7 +148,7 @@ namespace CPP_EP.Execute {
             ExecuteProcess.Start ();
             ExecuteProcess.StandardInput.AutoFlush = true;
             ExecuteProcess.BeginOutputReadLine ();
-            GDBActions.Enqueue ((ActionType.Send, s => { }));
+            GDBActions.Enqueue (("start", ActionType.Send, s => { }));
             //readLineThread.Start ();
             //GetExecResult (false);
             Send ("-exec-arguments > out.txt", ActionType.Send, (s) => { });
@@ -203,10 +213,11 @@ namespace CPP_EP.Execute {
         }
 
         private void Send (string cmd, ActionType t, Action<string> AfterSend) {
+            //Debug.WriteLine (cmd);
             PrintLog ("gdb <- " + cmd);
             lock (gdbLock) {
+                GDBActions.Enqueue ((cmd, t, AfterSend));
                 ExecuteProcess.StandardInput.WriteLine (cmd);
-                GDBActions.Enqueue ((t, AfterSend));
             }
         }
 

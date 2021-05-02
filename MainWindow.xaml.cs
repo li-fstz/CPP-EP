@@ -26,7 +26,6 @@ namespace CPP_EP {
         private readonly MainWindowDataContext dataContext;
 
         public MainWindow () {
-            Debug.WriteLine (System.AppDomain.CurrentDomain.BaseDirectory);
             dataContext = new MainWindowDataContext () {
                 StartButtonEnable = true,
                 StartButtonContent = "启动",
@@ -133,7 +132,7 @@ namespace CPP_EP {
                 run = false;
                 gdb.Stop ();
                 gdb = null;
-                PrintGDBLog (result);
+                //PrintGDBLog (result);
                 PrintOutput (File.ReadAllText ("out.txt", System.Text.Encoding.GetEncoding ("GB2312")));
             }
         }
@@ -192,9 +191,12 @@ namespace CPP_EP {
             }
 
             logControl.SelectedIndex = 2;
-            gdbText.AppendText (s);
-            gdbText.AppendText ("\n");
-            gdbText.ScrollToEnd ();
+            if (gdbText.Inlines.Count > 100) {
+                gdbText.Inlines.Clear ();
+            }
+            gdbText.Inlines.Add (s);
+            Debug.WriteLine (s);
+            gdbText.Inlines.Add (new LineBreak ());
         }
 
         private void CorrectBreakPoint (Action AfterCorrectBreakPoint) {

@@ -407,11 +407,12 @@
             <TabItem
                 Header="GDB" 
                 Visibility="{Binding GDBVisible, Mode=OneWay, Converter={StaticResource VisibilityConverter}}">
-                <TextBox 
-                    AcceptsReturn="True" 
-                    Name="gdbText" 
-                    IsReadOnly="true" 
-                    VerticalScrollBarVisibility="Auto" />
+                <ScrollViewer
+                    VerticalScrollBarVisibility="Visible"
+                    HorizontalScrollBarVisibility="Auto">
+                    <TextBlock 
+                        Name="gdbText" />
+                </ScrollViewer>
             </TabItem>
         </TabControl>
     </Grid>
