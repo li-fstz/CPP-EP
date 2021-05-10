@@ -4,7 +4,7 @@ using System.Windows.Data;
 
 namespace CPP_EP.Converter {
     [ValueConversion (typeof (bool), typeof (string))]
-    public sealed class BoolToStringPropConverter: IValueConverter {
+    public class BoolToStringPropConverter: IValueConverter {
 
         #region constructor
 

@@ -1,8 +1,8 @@
-﻿<Project Sdk="Microsoft.NET.Sdk.WindowsDesktop">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
-    <TargetFramework>netcoreapp3.1</TargetFramework>
+    <TargetFramework>net5.0-windows</TargetFramework>
     <RootNamespace>CPP_EP</RootNamespace>
     <UseWPF>true</UseWPF>
     <StartupObject>CPP_EP.App</StartupObject>
@@ -13,10 +13,15 @@
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
     <DefineConstants>TRACE</DefineConstants>
+    <PlatformTarget>x64</PlatformTarget>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <DefineConstants>TRACE</DefineConstants>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+    <PlatformTarget>x64</PlatformTarget>
   </PropertyGroup>
 
   <ItemGroup>
@@ -149,121 +154,121 @@
     <None Update="labs\src\voidtable.c">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
-    <None Update="MinGW\bin\gcc.exe">
+    <None Update="mingw\bin\gcc.exe">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
-    <None Update="MinGW\bin\gdb.exe">
+    <None Update="mingw\bin\gdb.exe">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
-    <None Update="MinGW\libexec\gcc\as.exe">
+    <None Update="mingw\libexec\gcc\as.exe">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
-    <None Update="MinGW\libexec\gcc\cc1.exe">
+    <None Update="mingw\libexec\gcc\cc1.exe">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
-    <None Update="MinGW\libexec\gcc\ld.exe">
+    <None Update="mingw\libexec\gcc\ld.exe">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
-    <None Update="MinGW\libexec\gcc\liblto_plugin-0.dll">
+    <None Update="mingw\libexec\gcc\liblto_plugin-0.dll">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
-    <None Update="MinGW\x86_64-w64-mingw32\include\assert.h">
+    <None Update="mingw\x86_64-w64-mingw32\include\assert.h">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
-    <None Update="MinGW\x86_64-w64-mingw32\include\corecrt.h">
+    <None Update="mingw\x86_64-w64-mingw32\include\corecrt.h">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
-    <None Update="MinGW\x86_64-w64-mingw32\include\corecrt_wstdlib.h">
+    <None Update="mingw\x86_64-w64-mingw32\include\corecrt_wstdlib.h">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
-    <None Update="MinGW\x86_64-w64-mingw32\include\crtdefs.h">
+    <None Update="mingw\x86_64-w64-mingw32\include\crtdefs.h">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
-    <None Update="MinGW\x86_64-w64-mingw32\include\limits.h">
+    <None Update="mingw\x86_64-w64-mingw32\include\limits.h">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
-    <None Update="MinGW\x86_64-w64-mingw32\include\malloc.h">
+    <None Update="mingw\x86_64-w64-mingw32\include\malloc.h">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
-    <None Update="MinGW\x86_64-w64-mingw32\include\sdks\_mingw_ddk.h">
+    <None Update="mingw\x86_64-w64-mingw32\include\sdks\_mingw_ddk.h">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
-    <None Update="MinGW\x86_64-w64-mingw32\include\sdks\_mingw_directx.h">
+    <None Update="mingw\x86_64-w64-mingw32\include\sdks\_mingw_directx.h">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
-    <None Update="MinGW\x86_64-w64-mingw32\include\sec_api\stdio_s.h">
+    <None Update="mingw\x86_64-w64-mingw32\include\sec_api\stdio_s.h">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
-    <None Update="MinGW\x86_64-w64-mingw32\include\sec_api\stdlib_s.h">
+    <None Update="mingw\x86_64-w64-mingw32\include\sec_api\stdlib_s.h">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
-    <None Update="MinGW\x86_64-w64-mingw32\include\sec_api\string_s.h">
+    <None Update="mingw\x86_64-w64-mingw32\include\sec_api\string_s.h">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
-    <None Update="MinGW\x86_64-w64-mingw32\include\stdio.h">
+    <None Update="mingw\x86_64-w64-mingw32\include\stdio.h">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
-    <None Update="MinGW\x86_64-w64-mingw32\include\stdlib.h">
+    <None Update="mingw\x86_64-w64-mingw32\include\stdlib.h">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
-    <None Update="MinGW\x86_64-w64-mingw32\include\string.h">
+    <None Update="mingw\x86_64-w64-mingw32\include\string.h">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
-    <None Update="MinGW\x86_64-w64-mingw32\include\swprintf.inl">
+    <None Update="mingw\x86_64-w64-mingw32\include\swprintf.inl">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
-    <None Update="MinGW\x86_64-w64-mingw32\include\vadefs.h">
+    <None Update="mingw\x86_64-w64-mingw32\include\vadefs.h">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
-    <None Update="MinGW\x86_64-w64-mingw32\include\_mingw.h">
+    <None Update="mingw\x86_64-w64-mingw32\include\_mingw.h">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
-    <None Update="MinGW\x86_64-w64-mingw32\include\_mingw_mac.h">
+    <None Update="mingw\x86_64-w64-mingw32\include\_mingw_mac.h">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
-    <None Update="MinGW\x86_64-w64-mingw32\include\_mingw_off_t.h">
+    <None Update="mingw\x86_64-w64-mingw32\include\_mingw_off_t.h">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
-    <None Update="MinGW\x86_64-w64-mingw32\include\_mingw_secapi.h">
+    <None Update="mingw\x86_64-w64-mingw32\include\_mingw_secapi.h">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
-    <None Update="MinGW\x86_64-w64-mingw32\lib\crt2.o">
+    <None Update="mingw\x86_64-w64-mingw32\lib\crt2.o">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
-    <None Update="MinGW\x86_64-w64-mingw32\lib\crtbegin.o">
+    <None Update="mingw\x86_64-w64-mingw32\lib\crtbegin.o">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
-    <None Update="MinGW\x86_64-w64-mingw32\lib\crtend.o">
+    <None Update="mingw\x86_64-w64-mingw32\lib\crtend.o">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
-    <None Update="MinGW\x86_64-w64-mingw32\lib\libadvapi32.a">
+    <None Update="mingw\x86_64-w64-mingw32\lib\libadvapi32.a">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
-    <None Update="MinGW\x86_64-w64-mingw32\lib\libgcc.a">
+    <None Update="mingw\x86_64-w64-mingw32\lib\libgcc.a">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
-    <None Update="MinGW\x86_64-w64-mingw32\lib\libkernel32.a">
+    <None Update="mingw\x86_64-w64-mingw32\lib\libkernel32.a">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
-    <None Update="MinGW\x86_64-w64-mingw32\lib\libmingw32.a">
+    <None Update="mingw\x86_64-w64-mingw32\lib\libmingw32.a">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
-    <None Update="MinGW\x86_64-w64-mingw32\lib\libmingwex.a">
+    <None Update="mingw\x86_64-w64-mingw32\lib\libmingwex.a">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
-    <None Update="MinGW\x86_64-w64-mingw32\lib\libmoldname.a">
+    <None Update="mingw\x86_64-w64-mingw32\lib\libmoldname.a">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
-    <None Update="MinGW\x86_64-w64-mingw32\lib\libmsvcrt.a">
+    <None Update="mingw\x86_64-w64-mingw32\lib\libmsvcrt.a">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
-    <None Update="MinGW\x86_64-w64-mingw32\lib\libpthread.a">
+    <None Update="mingw\x86_64-w64-mingw32\lib\libpthread.a">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
-    <None Update="MinGW\x86_64-w64-mingw32\lib\libshell32.a">
+    <None Update="mingw\x86_64-w64-mingw32\lib\libshell32.a">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
-    <None Update="MinGW\x86_64-w64-mingw32\lib\libuser32.a">
+    <None Update="mingw\x86_64-w64-mingw32\lib\libuser32.a">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
     <None Update="Script\struct.gdb">

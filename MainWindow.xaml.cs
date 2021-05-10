@@ -22,7 +22,7 @@ namespace CPP_EP {
         private bool run;
         private FileTab lastStopTab;
         private int lastStopLine;
-        private readonly List<TextBlock> textBlocks = new List<TextBlock> ();
+        private readonly List<TextBlock> textBlocks = new();
         private readonly MainWindowDataContext dataContext;
 
         public MainWindow () {
@@ -52,7 +52,7 @@ namespace CPP_EP {
                 int c = textBlocks.Count;
                 if (c < i) {
                     for (; c <= i; c++) {
-                        TextBlock tb = new TextBlock ();
+                        TextBlock tb = new();
                         textBlocks.Add (tb);
                         dataStructureView.Inlines.Add (tb);
                         dataStructureView.Inlines.Add (new LineBreak ());
@@ -88,6 +88,9 @@ namespace CPP_EP {
                     gdb.Run ();
                 });
             } else {
+                foreach (FileTab t in tabControl.Items) {
+                    t.dataContext.ReadOnly = false;
+                }
                 dataContext.BuildFail ();
                 logControl.SelectedIndex = 0;
             }
@@ -101,9 +104,9 @@ namespace CPP_EP {
             if (lastStopTab != null) {
                 lastStopTab.UnRunMarkLine ();
             }
-            if (result.IndexOf ("breakpoint-hit") != -1
-                || result.IndexOf ("end-stepping-range") != -1
-                || result.IndexOf ("function-finished") != -1) {
+            if (result.Contains ("breakpoint-hit")
+                || result.Contains ("end-stepping-range")
+                || result.Contains ("function-finished")) {
                 /*
                     List<Lab.Lab.Rule> rules = lab4.GetRules("pHead");
                     Lab1.VoidTable voidTable = lab4.GetVoidTable("&VoidTable");
@@ -120,9 +123,20 @@ namespace CPP_EP {
                     tabControl.SelectedItem = lastStopTab;
                     lastStopLine = b.Value.Item2;
                     lastStopTab.GotoLine (lastStopLine);
-                    lastStopTab.RunMarkLine (lastStopLine);
+                    lastStopTab.RunMarkLine (lastStopLine, true);
                 }
+                dataContext.DataVisible = true;
                 lab.Draw ();
+            } else if (result.Contains ("signal-received")) {
+                dataContext.SegmentationFault ();
+                (string, int)? b = BreakPoint.Parse (result);
+                if (b.HasValue) {
+                    lastStopTab = FileTab.GetInstance (Path.GetFileName (b.Value.Item1));
+                    tabControl.SelectedItem = lastStopTab;
+                    lastStopLine = b.Value.Item2;
+                    lastStopTab.GotoLine (lastStopLine);
+                    lastStopTab.RunMarkLine (lastStopLine, false);
+                }
             } else {
                 dataContext.DataVisible = false;
                 dataContext.Finish ();
@@ -133,7 +147,9 @@ namespace CPP_EP {
                 gdb.Stop ();
                 gdb = null;
                 //PrintGDBLog (result);
-                PrintOutput (File.ReadAllText ("out.txt", System.Text.Encoding.GetEncoding ("GB2312")));
+                try {
+                    PrintOutput (File.ReadAllText ("out.txt", System.Text.Encoding.GetEncoding ("GB2312")));
+                } catch { }
             }
         }
 
@@ -200,7 +216,7 @@ namespace CPP_EP {
         }
 
         private void CorrectBreakPoint (Action AfterCorrectBreakPoint) {
-            List<(FileTab, string, int)> lines = new List<(FileTab, string, int)> ();
+            List<(FileTab, string, int)> lines = new();
             foreach (FileTab tab in tabControl.Items) {
                 foreach (int line in tab.breakPoints.Keys) {
                     lines.Add ((tab, tab.Header as string, line));
@@ -247,7 +263,6 @@ namespace CPP_EP {
                 }
                 SaveAll_Executed (null, null);
                 lab.Build ();
-                dataContext.DataVisible = true;
             }
         }
 
@@ -388,7 +403,7 @@ namespace CPP_EP {
         }
     }
 
-    internal class MainWindowDataContext: INotifyPropertyChanged {
+    public class MainWindowDataContext: INotifyPropertyChanged {
 
         public event PropertyChangedEventHandler PropertyChanged;
 
@@ -592,7 +607,6 @@ namespace CPP_EP {
             NextButtonEnable = true;
             FinishButtonEnable = true;
         }
-
         public void Finish () {
             StartButtonEnable = true;
             StepButtonEnable = false;
@@ -601,6 +615,10 @@ namespace CPP_EP {
             StopButtonEnable = false;
             LabSelectEnable = true;
             StartButtonContent = "启动";
+        }
+
+        internal void SegmentationFault () {
+            StartButtonEnable = false;
         }
     }
 }

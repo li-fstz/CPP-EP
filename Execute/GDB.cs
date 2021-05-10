@@ -11,15 +11,15 @@ namespace CPP_EP.Execute {
     using CodePosition = Nullable<ValueTuple<string, int>>;
 
     internal class GDB {
-        public static readonly Regex StringValue = new Regex (@"\\""(.+)\\""");
-        public static readonly Regex AddressValue = new Regex (@"(0x[0-9a-f]+)");
+        public static readonly Regex StringValue = new(@"\\""(.+)\\""");
+        public static readonly Regex AddressValue = new(@"(0x[0-9a-f]+)");
         private Process ExecuteProcess;
         public static Action<string> AfterRun { private get; set; }
         public static Action<string> PrintLog { private get; set; }
-        private readonly object gdbLock = new object ();
-        private readonly Queue<(string, ActionType, Action<string>)> GDBActions = new Queue<(string, ActionType, Action<string>)> ();
+        private readonly object gdbLock = new();
+        private readonly Queue<(string, ActionType, Action<string>)> GDBActions = new();
 
-        private readonly StringBuilder GDBResult = new StringBuilder ();
+        private readonly StringBuilder GDBResult = new();
         private bool stopMark, gdbMark;
 
         private enum ActionType {
@@ -43,6 +43,7 @@ namespace CPP_EP.Execute {
         }
 
         private void ExecuteProcess_OutputDataReceived (object sender, DataReceivedEventArgs e) {
+            //Debug.Write (e.Data);
             if (!string.IsNullOrEmpty (e.Data)) {
                 if (GDBActions.Count > 0) {
                     string dequereString = null;
@@ -151,7 +152,7 @@ namespace CPP_EP.Execute {
             GDBActions.Enqueue (("start", ActionType.Send, s => { }));
             //readLineThread.Start ();
             //GetExecResult (false);
-            Send ("-exec-arguments > out.txt", ActionType.Send, (s) => { });
+            Send ("-exec-arguments > out.txt 2>&1", ActionType.Send, (s) => { });
             Send ("-gdb-set print null-stop on", ActionType.Send, (s) => { });
         }
 
@@ -229,7 +230,7 @@ namespace CPP_EP.Execute {
 
         public void GetValues (string[] names, Action AfterGetValues) {
             Util.ThreadRun (() => {
-                Dictionary<string, string> kvs = new Dictionary<string, string> ();
+                Dictionary<string, string> kvs = new();
                 foreach (string name in names) {
                     Send ("-data-evaluate-expression \"" + name + "\"", ActionType.Value, v => kvs[name] = v);
                 }
@@ -247,8 +248,8 @@ namespace CPP_EP.Execute {
     }
 
     internal static class BreakPoint {
-        private static readonly Regex BreakpointFile = new Regex (@"fullname=""(.+?)""");
-        private static readonly Regex BreakpointLine = new Regex (@"line=""(\d+)""");
+        private static readonly Regex BreakpointFile = new(@"fullname=""(.+?)""");
+        private static readonly Regex BreakpointLine = new(@"line=""(\d+)""");
 
         public static CodePosition Parse (string str) {
             try {

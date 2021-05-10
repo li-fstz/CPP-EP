@@ -20,13 +20,14 @@ namespace CPP_EP {
     using CodePosition = ValueTuple<string, int>;
 
     public partial class FileTab: TabItem {
-        private static readonly Dictionary<string, FileTab> fileTabHash = new Dictionary<string, FileTab> ();
+        private static readonly Dictionary<string, FileTab> fileTabHash = new();
 
         private readonly string FilePath;
-        public Dictionary<int, CodePosition> breakPoints = new Dictionary<int, CodePosition> ();
+        public Dictionary<int, CodePosition> breakPoints = new();
         public static Action<CodePosition, Action<CodePosition?>> SetBreakPoint { private get; set; }
         public static Action<CodePosition> DeleteBreakPoint { private get; set; }
-        private int runMarkLine = -1;
+        private int runMarkLine = 0;
+        private bool green = true;
         private readonly HighlightCurrentLineBackgroundRenderer backgroundRenderer;
         public readonly FileTabDataContext dataContext;
         private FoldingManager mFoldingManager;
@@ -41,7 +42,7 @@ namespace CPP_EP {
                         return fileTabHash[key];
                     }
                 }
-                FileTab tab = new FileTab (filepath);
+                FileTab tab = new(filepath);
                 fileTabHash[filepath] = tab;
                 return tab;
             }
@@ -165,7 +166,7 @@ namespace CPP_EP {
         }
 
         private Ellipse GenCircle (VisualLine visualLine) {
-            Ellipse el = new Ellipse {
+            Ellipse el = new () {
                 Fill = new SolidColorBrush (Color.FromRgb (255, 80, 65)),
                 Width = dataContext.Width - 2,
                 Height = dataContext.Width - 2
@@ -177,8 +178,8 @@ namespace CPP_EP {
         }
 
         private Rectangle GenRectangle (VisualLine visualLine) {
-            Rectangle r = new Rectangle {
-                Fill = new SolidColorBrush (Colors.Green),
+            Rectangle r = new () {
+                Fill = new SolidColorBrush (green ? Colors.Green : Color.FromRgb (255, 80, 65)),
                 Width = dataContext.Width,
                 Height = dataContext.Width
             };
@@ -188,8 +189,8 @@ namespace CPP_EP {
         }
 
         private Polygon GenArrow (VisualLine visualLine) {
-            Polygon p = new Polygon {
-                Fill = new SolidColorBrush (Color.FromRgb (0, 176, 80)),
+            Polygon p = new () {
+                Fill = new SolidColorBrush (green ? Color.FromRgb (0, 176, 80) : Color.FromRgb (255, 80, 65)),
                 Points = new PointCollection (new Point[] { new Point (3.5, 0), new Point (dataContext.Width, dataContext.Width / 2), new Point (3.5, dataContext.Width) })
             };
             p.SetValue (Canvas.ZIndexProperty, 3);
@@ -197,9 +198,11 @@ namespace CPP_EP {
             return p;
         }
 
-        public void RunMarkLine (int line) {
+        public void RunMarkLine (int line, bool green) {
             runMarkLine = line;
+            this.green = green;
             backgroundRenderer.LineNumber = line;
+            backgroundRenderer.Green = green;
             DrawAllBreakPoint ();
             textEditor.TextArea.TextView.Redraw ();
         }
@@ -220,6 +223,7 @@ namespace CPP_EP {
         private readonly TextEditor _editor;
         private readonly Canvas _breakPointArea;
         public int LineNumber { get; set; } /* DiffPlex model's lines */
+        public bool Green { get; set; } /* DiffPlex model's lines */
 
         public HighlightCurrentLineBackgroundRenderer (TextEditor editor, Canvas breakPointArea) {
             _editor = editor;
@@ -234,7 +238,8 @@ namespace CPP_EP {
             }
 
             textView.EnsureVisualLines ();
-            SolidColorBrush highlight = new SolidColorBrush (Color.FromArgb (100, 0, 176, 80));
+            SolidColorBrush highlight = new(Green ? Color.FromArgb (100, 0, 176, 80) : Color.FromArgb (100, 255, 0, 0));
+
             DocumentLine currentLine = _editor.Document.GetLineByNumber (LineNumber);
 
             foreach (Rect rect in BackgroundGeometryBuilder.GetRectsForSegment (textView, currentLine)) {
@@ -245,9 +250,9 @@ namespace CPP_EP {
             }
         }
 
-        private static Polygon GenArrow (double h, double y) {
-            Polygon p = new Polygon {
-                Fill = new SolidColorBrush (Color.FromRgb (0, 176, 80)),
+        private Polygon GenArrow (double h, double y) {
+            Polygon p = new () {
+                Fill = new SolidColorBrush (Green ? Color.FromRgb (0, 176, 80) : Color.FromRgb (255, 80, 65)),
                 Points = new PointCollection (new Point[] { new Point (3.5, 0), new Point (h, h / 2), new Point (3.5, h) })
             };
             p.SetValue (Canvas.ZIndexProperty, 3);
@@ -348,9 +353,9 @@ namespace CPP_EP {
         /// Create <see cref="NewFolding"/>s for the specified document.
         /// </summary>
         public IEnumerable<NewFolding> CreateNewFoldings (ITextSource document) {
-            List<NewFolding> newFoldings = new List<NewFolding> ();
+            List<NewFolding> newFoldings = new();
 
-            Stack<int> startOffsets = new Stack<int> ();
+            Stack<int> startOffsets = new();
             int lastNewLineOffset = 0;
             char openingBrace = OpeningBrace;
             char closingBrace = ClosingBrace;
