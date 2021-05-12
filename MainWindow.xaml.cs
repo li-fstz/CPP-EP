@@ -4,6 +4,7 @@ using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
 using System.Runtime.CompilerServices;
+using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Documents;
@@ -45,6 +46,17 @@ namespace CPP_EP {
             AbstractLab.UpdateUI = UpdateUI;
             FileTab.SetBreakPoint = SetBreakPoint;
             FileTab.DeleteBreakPoint = DeleteBreakPoint;
+            /*
+            testButton.Click += async (o, e) => {
+                GCC g = new ();
+                List<Task<bool>> os = new () {
+                    g.CompileAsync ("src\\rule.c", "build\\obj\\rule.o"),
+                    g.CompileAsync ("src\\voidtable.c", "build\\obj\\voidtable.o"),
+                    g.CompileAsync ("lab1.c", "build\\obj\\lab1.o"),
+                };
+                await Task.WhenAll (os);
+            };
+            */
         }
 
         private void UpdateUI (int i, Action<TextBlock> a) {

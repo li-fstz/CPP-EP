@@ -21,8 +21,8 @@ namespace CPP_EP.Lab {
 
         public abstract void Build ();
 
-        public static Dictionary<string, object> DataHash = new Dictionary<string, object> ();
-        public static Dictionary<string, string> WatchedValue = new Dictionary<string, string> ();
+        public static Dictionary<string, object> DataHash = new();
+        public static Dictionary<string, string> WatchedValue = new();
 
         protected void WatchValues (Action AfterGetValues, params string[] names) {
             //AfterGetValues ();
@@ -76,17 +76,17 @@ namespace CPP_EP.Lab {
                 UpdateUI (i, tb => {
                     tb.Inlines.Clear ();
                     tb.Inlines.Add (label + ":");
-                    Border rb = new Border () {
+                    Border rb = new() {
                         Background = Brushes.PaleGreen,
                         Child = new TextBlock (new Run ("rule")),
                         Visibility = Visibility.Collapsed
                     };
-                    Border pb = new Border () {
+                    Border pb = new() {
                         Background = Brushes.Khaki,
                         Child = new TextBlock (new Run ("production")),
                         Visibility = Visibility.Collapsed
                     };
-                    Border sb = new Border () {
+                    Border sb = new() {
                         Background = Brushes.SandyBrown,
                         Child = new TextBlock (new Run ("symbol")),
                         Visibility = Visibility.Collapsed
@@ -97,13 +97,13 @@ namespace CPP_EP.Lab {
                     tb.Inlines.Add (new LineBreak ());
                     bool rbv = false, pbv = false, sbv = false;
                     foreach (Rule rule in rules) {
-                        TextBlock rt = new TextBlock ();
+                        TextBlock rt = new();
                         tb.Inlines.Add (Border (rt, rule.Address == rAddress, Brushes.PaleGreen));
                         rbv |= rule.Address == rAddress;
                         rt.Inlines.Add (rule.Name);
                         rt.Inlines.Add (new Run (" -> ") { Foreground = Brushes.Gray });
                         foreach (Production production in rule.Productions) {
-                            TextBlock pt = new TextBlock ();
+                            TextBlock pt = new();
                             pbv |= production.Address == pAddress;
                             if (production != rule.Productions[0]) {
                                 rt.Inlines.Add (new Run (" | ") { Foreground = Brushes.Gray });

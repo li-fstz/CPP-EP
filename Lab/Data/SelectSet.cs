@@ -7,7 +7,7 @@ namespace CPP_EP.Lab.Data {
         public Rule Rule;
         public Production Production;
         public List<string> Terminal;
-        public static readonly Regex AddressToAddressToAddress = new Regex (@"(0x[0-9a-f]+)=>(0x[0-9a-f]+)=>(0x[0-9a-f]+)");
+        public static readonly Regex AddressToAddressToAddress = new(@"(0x[0-9a-f]+)=>(0x[0-9a-f]+)=>(0x[0-9a-f]+)");
 
         private SelectSet (string a, string s) : base (a, s) {
         }

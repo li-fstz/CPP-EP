@@ -5,7 +5,7 @@ using CPP_EP.Execute;
 namespace CPP_EP.Lab {
 
     internal class Lab5: AbstractLab {
-        private readonly List<string> _LabFiles = new List<string> () {
+        private readonly List<string> _LabFiles = new() {
             "lab5.c",
             "src\\rule.c",
             "src\\pickupleftfactor.c",

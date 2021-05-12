@@ -6,16 +6,16 @@ namespace CPP_EP.Lab.Data {
     public abstract class GDBData {
         private readonly int HashCode;
         public readonly string Address;
-        private static readonly Dictionary<string, GDBData> MemeryHash = new Dictionary<string, GDBData> ();
+        private static readonly Dictionary<string, GDBData> MemeryHash = new();
 
         //protected static readonly Regex Int = new Regex(@"value=""(-?\d+)""");
         //protected static readonly Regex Address = new Regex(@"value=""(0x[0-9a-f]+)""");
-        public static readonly Regex Text = new Regex (@"~""(.*?)""");
+        public static readonly Regex Text = new(@"~""(.*?)""");
 
         //protected static readonly Regex Int = new Regex(@"~""(-?\d*)""");
-        public static readonly Regex AddressToSymbolInQuot = new Regex (@"""(0x[0-9a-f]+)=>(.+?)""");
+        public static readonly Regex AddressToSymbolInQuot = new(@"""(0x[0-9a-f]+)=>(.+?)""");
 
-        public static readonly Regex AddressToSymbol = new Regex (@"(0x[0-9a-f]+)=>(.+)");
+        public static readonly Regex AddressToSymbol = new(@"(0x[0-9a-f]+)=>(.+)");
 
         protected GDBData (string address, string baseString) {
             Address = address;

@@ -12,7 +12,7 @@ using CPP_EP.Lab.Data;
 namespace CPP_EP.Lab {
 
     internal class Lab4: Lab3 {
-        private readonly List<string> _LabFiles = new List<string> () {
+        private readonly List<string> _LabFiles = new() {
             "lab4.c",
             "src\\rule.c",
             "src\\voidtable.c",
@@ -66,7 +66,7 @@ namespace CPP_EP.Lab {
                     UpdateUI (i, tb => {
                         tb.Inlines.Clear ();
                         tb.Inlines.Add (label + ":");
-                        Border selectb = new Border () {
+                        Border selectb = new() {
                             Background = Brushes.PaleGreen,
                             Child = new TextBlock (new Run ("selectSet")),
                             Visibility = Visibility.Collapsed
@@ -74,7 +74,7 @@ namespace CPP_EP.Lab {
                         bool selectv = false;
                         tb.Inlines.Add (new LineBreak ());
                         foreach (SelectSet set in setList) {
-                            TextBlock sb = new TextBlock ();
+                            TextBlock sb = new();
                             sb.Inlines.Add (new Run ("SELECT( ") { Foreground = Brushes.Gray });
                             sb.Inlines.Add (set.Rule.Name);
                             sb.Inlines.Add (new Run (" -> ") { Foreground = Brushes.Gray });
@@ -123,7 +123,7 @@ namespace CPP_EP.Lab {
                         foreach (ParsingTable.Row r in parsingTable.TableRows) {
                             tb.Inlines.Add (NewBorder (new TextBlock (new Run (r.Rule == null ? "" : r.Rule.Name)), 1, 0, 1, 1));
                             foreach ((string, Production) c in r.Productions) {
-                                TextBlock t = new TextBlock ();
+                                TextBlock t = new();
                                 if (c.Item2 != null) {
                                     foreach (Symbol s in c.Item2.Symbols) {
                                         t.Inlines.Add (s.Name);
@@ -144,7 +144,7 @@ namespace CPP_EP.Lab {
 
         public void GetSelectSetList (string address, Action<List<SelectSet>> AfterGetSelectSetList) {
             gdb.SendScript ("getselectsetlist " + address, r => {
-                List<SelectSet> selectsetList = new List<SelectSet> ();
+                List<SelectSet> selectsetList = new();
                 string[] ruleStrings = r.Split (new string[] { "~\"|selectsetlist|\"" }, StringSplitOptions.RemoveEmptyEntries);
                 foreach (string s in ruleStrings) {
                     SelectSet set = SelectSet.Gen (s);

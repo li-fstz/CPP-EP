@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.Threading.Tasks;
 
 namespace CPP_EP.Execute {
 
@@ -10,8 +11,8 @@ namespace CPP_EP.Execute {
         public static Action<string> PrintLog { private get; set; }
         public static Action<bool> AfterBuild { private get; set; }
         private bool buildOk = true, update = false;
-        private static readonly Dictionary<string, DateTime> lastTimeHash = new Dictionary<string, DateTime> ();
-        private readonly List<string> objs = new List<string> ();
+        private static readonly Dictionary<string, DateTime> lastTimeHash = new();
+        private readonly List<string> objs = new();
         /*
          * gcc .\src\rule.c -c -I .\inc\ -o build\obj\rule.o
          * gcc .\src\voidtable.c -c -I .\inc\ -o build\obj\voidtable.o
@@ -37,7 +38,7 @@ namespace CPP_EP.Execute {
         }
 
         public GCC Compile (string input, string output) {
-            FileInfo file = new FileInfo ("labs\\" + input);
+            FileInfo file = new("labs\\" + input);
             objs.Add (System.AppDomain.CurrentDomain.BaseDirectory + output);
             if (!lastTimeHash.ContainsKey (input) || DateTime.Compare (lastTimeHash[input], file.LastWriteTime) != 0 || !File.Exists (output)) {
                 ExecuteProcess.StartInfo.Arguments = string.Format ("-g -fexec-charset=GBK -c -I inc {0} -o \"{1}\"", input, System.AppDomain.CurrentDomain.BaseDirectory + output);
@@ -70,6 +71,45 @@ namespace CPP_EP.Execute {
                     PrintLog (s);
                 }
                 buildOk = buildOk && ExecuteProcess.ExitCode == 0;
+            }
+        }
+
+        private async Task<bool> RunAsync () {
+            if (buildOk) {
+                update = true;
+                PrintLog (ExecuteProcess.StartInfo.FileName + " " + ExecuteProcess.StartInfo.Arguments);
+                ExecuteProcess.Start ();
+                string s;
+                while ((s = await ExecuteProcess.StandardOutput.ReadLineAsync ()) != null) {
+                    PrintLog (s);
+                }
+                while ((s = await ExecuteProcess.StandardError.ReadLineAsync ()) != null) {
+                    PrintLog (s);
+                }
+                buildOk = buildOk && ExecuteProcess.ExitCode == 0;
+            }
+            return buildOk;
+        }
+        public async Task<bool> LinkAsync (string output) {
+            if (update || !File.Exists (output)) {
+                ExecuteProcess.StartInfo.Arguments = string.Format ("-g \"{0}\" -o \"{1}\"", string.Join ("\" \"", objs), System.AppDomain.CurrentDomain.BaseDirectory + output);
+                await RunAsync ();
+            }
+            return buildOk;
+        }
+
+        public async Task<bool> CompileAsync (string input, string output) {
+            FileInfo file = new ("labs\\" + input);
+            objs.Add (System.AppDomain.CurrentDomain.BaseDirectory + output);
+            if (!lastTimeHash.ContainsKey (input) || DateTime.Compare (lastTimeHash[input], file.LastWriteTime) != 0 || !File.Exists (output)) {
+                ExecuteProcess.StartInfo.Arguments = string.Format ("-g -fexec-charset=GBK -c -I inc {0} -o \"{1}\"", input, System.AppDomain.CurrentDomain.BaseDirectory + output);
+                bool r = await RunAsync ();
+                if (r) {
+                    lastTimeHash[input] = file.LastWriteTime;
+                }
+                return r;
+            } else {
+                return true;
             }
         }
     }

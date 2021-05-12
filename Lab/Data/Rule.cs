@@ -43,7 +43,7 @@ namespace CPP_EP.Lab.Data {
         }
 
         public static List<Rule> GenRules (string s) {
-            List<Rule> rules = new List<Rule> ();
+            List<Rule> rules = new();
             string[] ruleStrings = s.Split (new string[] { "~\"|rule|\"" }, StringSplitOptions.RemoveEmptyEntries);
             foreach (string ruleString in ruleStrings) {
                 Rule rule = Gen (ruleString);

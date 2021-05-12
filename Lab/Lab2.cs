@@ -12,7 +12,7 @@ using CPP_EP.Lab.Data;
 namespace CPP_EP.Lab {
 
     internal class Lab2: Lab1 {
-        private readonly List<string> _LabFiles = new List<string> () {
+        private readonly List<string> _LabFiles = new() {
             "lab2.c",
             "src\\rule.c",
             "src\\voidtable.c",
@@ -47,12 +47,12 @@ namespace CPP_EP.Lab {
                     UpdateUI (i, tb => {
                         tb.Inlines.Clear ();
                         tb.Inlines.Add (label + ":");
-                        Border desb = new Border () {
+                        Border desb = new() {
                             Background = Brushes.PaleGreen,
                             Child = new TextBlock (new Run ("desSet")),
                             Visibility = Visibility.Collapsed
                         };
-                        Border srcb = new Border () {
+                        Border srcb = new() {
                             Background = Brushes.SandyBrown,
                             Child = new TextBlock (new Run ("srcSet")),
                             Visibility = Visibility.Collapsed
@@ -62,7 +62,7 @@ namespace CPP_EP.Lab {
                         tb.Inlines.Add (srcb);
                         tb.Inlines.Add (new LineBreak ());
                         foreach (Set set in setList) {
-                            TextBlock sb = new TextBlock ();
+                            TextBlock sb = new();
                             sb.Inlines.Add (new Run (type + "( ") { Foreground = Brushes.Gray });
                             sb.Inlines.Add (set.Name);
                             sb.Inlines.Add (new Run (" ) = { ") { Foreground = Brushes.Gray });
@@ -110,7 +110,7 @@ namespace CPP_EP.Lab {
 
         public void GetSetList (string address, Action<List<Set>> AfterGetSetList) {
             gdb.SendScript ("getsetlist " + address, r => {
-                List<Set> setList = new List<Set> ();
+                List<Set> setList = new();
                 string[] ruleStrings = r.Split (new string[] { "~\"|setlist|\"" }, StringSplitOptions.RemoveEmptyEntries);
                 foreach (string s in ruleStrings) {
                     Set set = Set.Gen (s);

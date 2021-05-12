@@ -15,7 +15,7 @@ namespace CPP_EP.Lab.Data {
         public List<string> TableHead;
         public List<Row> TableRows;
 
-        public static readonly Regex AddressToAddress = new Regex (@"(0x[0-9a-f]+)=>(0x[0-9a-f]+)");
+        public static readonly Regex AddressToAddress = new(@"(0x[0-9a-f]+)=>(0x[0-9a-f]+)");
 
         private ParsingTable (string a, string s) : base (a, s) {
         }
@@ -41,7 +41,7 @@ namespace CPP_EP.Lab.Data {
                             }
                         }
                         for (int i = 1; i < structs.Length; i++) {
-                            List<(string, Production)> Productions = new List<(string, Production)> ();
+                            List<(string, Production)> Productions = new();
                             Match m = Text.Match (structs[i]);
                             if (m.Success) {
                                 p.TableRows.Add (new Row () { Rule = Get<Rule> (m.Groups[1].Value), Productions = Productions });

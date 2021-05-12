@@ -11,7 +11,7 @@ using CPP_EP.Lab.Data;
 namespace CPP_EP.Lab {
 
     internal class Lab1: AbstractLab {
-        private readonly List<string> _LabFiles = new List<string> () {
+        private readonly List<string> _LabFiles = new() {
             "lab1.c",
             "src\\rule.c",
             "src\\voidtable.c",
@@ -46,12 +46,12 @@ namespace CPP_EP.Lab {
                     UpdateUI (i, tb => {
                         tb.Inlines.Clear ();
                         tb.Inlines.Add (label + ":");
-                        Border rb = new Border () {
+                        Border rb = new() {
                             Background = Brushes.PaleGreen,
                             Child = new TextBlock (new Run ("rule")),
                             Visibility = Visibility.Collapsed
                         };
-                        Border sb = new Border () {
+                        Border sb = new() {
                             Background = Brushes.SandyBrown,
                             Child = new TextBlock (new Run ("symbol")),
                             Visibility = Visibility.Collapsed
