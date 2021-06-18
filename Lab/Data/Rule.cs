@@ -22,8 +22,8 @@ namespace CPP_EP.Lab.Data {
                 Match m = AddressToSymbolInQuot.Match (ProductionStrings[0]);
                 if (m.Success) {
                     string address = m.Groups[1].Value;
-                    Rule h = Get<Rule> (address);
-                    if (h != null && h.GetHashCode () == s.GetHashCode ()) {
+                    Rule h = Get<Rule> (address, s);
+                    if (h is Rule) {
                         r = h;
                     } else {
                         r = new Rule (address, s) {

@@ -15,8 +15,8 @@ namespace CPP_EP.Lab.Data {
             Match m = AddressToSymbolInQuot.Match (s);
             if (m.Success) {
                 string address = m.Groups[1].Value;
-                Set h = Get<Set> (address);
-                if (h != null && h.GetHashCode () == s.GetHashCode ()) {
+                Set h = Get<Set> (address, s);
+                if (h is Set) {
                     set = h;
                 } else {
                     set = new Set (address, s) {

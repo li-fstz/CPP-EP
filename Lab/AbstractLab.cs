@@ -11,7 +11,7 @@ using CPP_EP.Lab.Data;
 
 namespace CPP_EP.Lab {
 
-    internal abstract class AbstractLab {
+    public abstract class AbstractLab {
         public abstract List<string> LabFiles { get; }
         public abstract int LabNo { get; }
         protected GDB gdb;
@@ -136,7 +136,7 @@ namespace CPP_EP.Lab {
             return gdb;
         }
 
-        public void GetRules (string address, Action<List<Rule>> AfterGetRules) {
+        protected void GetRules (string address, Action<List<Rule>> AfterGetRules) {
             gdb.SendScript ("getrule " + address, r => AfterGetRules (Rule.GenRules (r)));
         }
 

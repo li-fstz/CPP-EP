@@ -19,7 +19,7 @@ namespace CPP_EP.Lab.Data {
 
         protected GDBData (string address, string baseString) {
             Address = address;
-            HashCode = baseString.GetHashCode ();
+            HashCode = baseString.Trim().GetHashCode ();
             MemeryHash[address] = this;
         }
 
@@ -31,9 +31,13 @@ namespace CPP_EP.Lab.Data {
             return obj is GDBData d && d.HashCode == HashCode;
         }
 
-        public static T Get<T> (string address) where T : GDBData {
+        public static T Get<T> (string address, string baseString = null) where T : GDBData {
             if (address is string && MemeryHash.ContainsKey (address)) {
-                return MemeryHash[address] as T;
+                if (baseString is null || MemeryHash[address].HashCode == baseString.Trim().GetHashCode()) {
+                    return MemeryHash[address] as T;
+                } else {
+                    return null;
+                }
             } else {
                 return null;
             }

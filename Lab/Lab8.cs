@@ -28,7 +28,7 @@ namespace CPP_EP.Lab {
         };
         public override List<string> LabFiles => _LabFiles;
         public override int LabNo => 8;
-
+        private Dictionary<int, string> Procedures = new();
         public override void Build () {
             Util.ThreadRun (() => {
                 new GCC ()
@@ -42,7 +42,7 @@ namespace CPP_EP.Lab {
                 .Link ("build\\lab8.exe");
             });
         }
-
+        
         public override void Draw () {
             WatchValues (() => {
                 DrawRules (1, "ruleHead");
@@ -50,7 +50,7 @@ namespace CPP_EP.Lab {
                 //DrawValue (3, "string");
                 //DrawValue (4, "topSymbol", "((struct Symbol *)topSymbol->value)->symbolName");
                 DrawParsingStack (3, "stack");
-            }, "rule", "production", "symbol", "foundProduction", "((struct Symbol *)topSymbol->value)->symbolName", "string");
+            }, "rule", "production", "symbol", "foundProduction", "((struct Symbol *)topSymbol->value)->symbolName", "string", "procedureStr");
         }
 
         public void GetParsingStack (string address, Action<Stack> AfterParsingStack) {
@@ -63,10 +63,17 @@ namespace CPP_EP.Lab {
                     return;
                 }
                 if (DataHash.ContainsKey (label) && stack.Equals (DataHash[label] as List<string>)
-                    && !CheckWatchedValueChange ("DrawParsingStack_", "((struct Symbol *)topSymbol->value)->symbolName", "string")) {
+                    && !CheckWatchedValueChange ("DrawParsingStack_", "((struct Symbol *)topSymbol->value)->symbolName", "string", "procedureStr")) {
                     return;
                 }
                 WatchedValue.TryGetValue ("((struct Symbol *)topSymbol->value)->symbolName", out string topSymbol);
+                WatchedValue.TryGetValue("procedureStr", out string procedureStr);
+                if (procedureStr is string) {
+                    var strings = procedureStr.Split(" ");
+                    if (int.TryParse(strings[0], out int index)) {
+                        Procedures[index] = Util.DecodeGDBsGBK(procedureStr);
+                    }
+                }
                 WatchedValue.TryGetValue ("string", out string str);
                 DataHash[label] = stack;
                 UpdateUI (i, tb => {
@@ -90,6 +97,10 @@ namespace CPP_EP.Lab {
                     for (int i = stack.Symbols.Count - 1; i >= 0; i--) {
                         tb.Inlines.Add (NewBorder (new TextBlock (new Run (stack.Symbols[i])), 1, 0, 1, 1));
                         tb.Inlines.Add (new LineBreak ());
+                    }
+                    foreach (string procedures in Procedures.Values) {
+                        tb.Inlines.Add(procedures);
+                        tb.Inlines.Add(new LineBreak());
                     }
                 });
             });

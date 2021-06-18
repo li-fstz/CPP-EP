@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace CPP_EP.Execute {
 
-    internal class GCC {
+    public class GCC {
         private readonly Process ExecuteProcess;
         public static Action<string> PrintLog { private get; set; }
         public static Action<bool> AfterBuild { private get; set; }
@@ -73,7 +73,7 @@ namespace CPP_EP.Execute {
                 buildOk = buildOk && ExecuteProcess.ExitCode == 0;
             }
         }
-
+        /*
         private async Task<bool> RunAsync () {
             if (buildOk) {
                 update = true;
@@ -112,5 +112,6 @@ namespace CPP_EP.Execute {
                 return true;
             }
         }
+        */
     }
 }

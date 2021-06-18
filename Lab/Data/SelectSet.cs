@@ -17,8 +17,8 @@ namespace CPP_EP.Lab.Data {
             Match m = AddressToAddressToAddress.Match (s);
             if (m.Success) {
                 string address = m.Groups[1].Value;
-                SelectSet h = Get<SelectSet> (address);
-                if (h != null && h.GetHashCode () == s.GetHashCode ()) {
+                SelectSet h = Get<SelectSet> (address, s);
+                if (h is SelectSet) {
                     set = h;
                 } else {
                     set = new SelectSet (address, s) {

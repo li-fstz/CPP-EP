@@ -10,9 +10,10 @@ namespace CPP_EP.Execute {
 
     using CodePosition = Nullable<ValueTuple<string, int>>;
 
-    internal class GDB {
+    public class GDB {
         public static readonly Regex StringValue = new(@"\\""(.+)\\""");
         public static readonly Regex AddressValue = new(@"(0x[0-9a-f]+)");
+        public static readonly Regex NumberValue = new(@"""(\d+)""");
         private Process ExecuteProcess;
         public static Action<string> AfterRun { private get; set; }
         public static Action<string> PrintLog { private get; set; }
@@ -43,7 +44,7 @@ namespace CPP_EP.Execute {
         }
 
         private void ExecuteProcess_OutputDataReceived (object sender, DataReceivedEventArgs e) {
-            //Debug.Write (e.Data);
+            //Debug.WriteLine (e.Data);
             if (!string.IsNullOrEmpty (e.Data)) {
                 if (GDBActions.Count > 0) {
                     string dequereString = null;
@@ -122,13 +123,20 @@ namespace CPP_EP.Execute {
                                     dequeue = true;
                                     if (m.Success) {
                                         dequereString = m.Groups[1].Value;
+                                        GDBResult.Clear();
+                                        break;
+                                    }
+                                    m = AddressValue.Match(GDBResult.ToString());
+                                    if (m.Success) {
+                                        dequereString = m.Groups[1].Value;
+                                        GDBResult.Clear();
+                                        break;
+                                    }
+                                    m = NumberValue.Match(GDBResult.ToString());
+                                    if (m.Success) {
+                                        dequereString = m.Groups[1].Value;
                                     } else {
-                                        m = AddressValue.Match (GDBResult.ToString ());
-                                        if (m.Success) {
-                                            dequereString = m.Groups[1].Value;
-                                        } else {
-                                            dequereString = null;
-                                        }
+                                        dequereString = null;
                                     }
                                     GDBResult.Clear ();
                                     break;
@@ -213,11 +221,11 @@ namespace CPP_EP.Execute {
             Util.ThreadRun (() => Send (string.Format ("clear {0}:{1}", filename, line), ActionType.Send, (r) => { }));
         }
 
-        private void Send (string cmd, ActionType t, Action<string> AfterSend) {
+        private void Send (string cmd, ActionType t, Action<string> AfterRecive) {
             //Debug.WriteLine (cmd);
             PrintLog ("gdb <- " + cmd);
             lock (gdbLock) {
-                GDBActions.Enqueue ((cmd, t, AfterSend));
+                GDBActions.Enqueue ((cmd, t, AfterRecive));
                 ExecuteProcess.StandardInput.WriteLine (cmd);
             }
         }

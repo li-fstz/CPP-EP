@@ -67,9 +67,9 @@
                 FalseValue="Collapsed" />
         </Grid.Resources>
         <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="3*" />
-            <ColumnDefinition Width="3" />
             <ColumnDefinition Width="2*" />
+            <ColumnDefinition Width="3" />
+            <ColumnDefinition Width="1*" />
         </Grid.ColumnDefinitions>
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
@@ -91,35 +91,128 @@
                 FontSize="10pt"
                 Margin="10,10,0,0"
                 PreviewMouseWheel="DataStructureView_PreviewMouseWheel">
-                ruleHead:<LineBreak /><LineBreak />
-                <Border BorderThickness="0" Background="PaleGreen">
-                    <TextBlock>
-                        S ->
-                        <Border BorderThickness="0" VerticalAlignment="Bottom"  Background="Khaki">
-                            <TextBlock VerticalAlignment="Bottom">
-                                1
-                                <Border VerticalAlignment="Bottom" BorderThickness="0" Padding="0" Margin="0" Background="Salmon">
-                                    <TextBlock  VerticalAlignment="Bottom">
-                                        1
-                                    </TextBlock>
-                                </Border>
-                                <Border VerticalAlignment="Bottom" Padding="0" Margin="0" BorderThickness="0">
-                                    <TextBlock>
-                                        1
-                                    </TextBlock>
-                                </Border>
+                ruleHead:<Border Background="PaleGreen"><TextBlock>rule</TextBlock></Border><Border Background="Khaki"><TextBlock>production</TextBlock></Border><Border Background="SandyBrown"><TextBlock>symbol</TextBlock></Border>
+                <LineBreak />
+                <Border Background="PaleGreen">
+                    <TextBlock>E<Run Foreground="Gray" Text=" -> "/><Border Background="Khaki"><TextBlock>
+                                <Border Background="SandyBrown">
+                                    <TextBlock>T</TextBlock>
+                                </Border><TextBlock>E'</TextBlock>
                             </TextBlock>
                         </Border>
                     </TextBlock>
                 </Border>
-                <Border BorderThickness="1,0,1,1" Padding="1,1,1,1" Margin="1,1,1,1" BorderBrush="Black"><TextBlock>123123</TextBlock></Border>
-                voidTable:<LineBreak /><LineBreak />
-                firstSetList:<LineBreak /><LineBreak />
+                <LineBreak/>
+                <TextBlock>E'<Run Foreground="Gray" Text=" -> "/><TextBlock>
+                            <TextBlock>+TE'</TextBlock><Run Foreground="Gray" Text=" | "/><TextBlock>$</TextBlock>
+                    </TextBlock>
+                </TextBlock>
+                <LineBreak/>
+                <TextBlock>T<Run Foreground="Gray" Text=" -> "/><TextBlock>
+                            <TextBlock>FT'</TextBlock>
+                    </TextBlock>
+                </TextBlock>
+                <LineBreak/>
+                <TextBlock>T'<Run Foreground="Gray" Text=" -> "/><TextBlock>
+                            <TextBlock>*FT'</TextBlock><Run Foreground="Gray" Text=" | "/><TextBlock>$</TextBlock>
+                    </TextBlock>
+                </TextBlock>
+                <LineBreak/>
+                <TextBlock>F<Run Foreground="Gray" Text=" -> "/><TextBlock>
+                            <TextBlock>i</TextBlock><Run Foreground="Gray" Text=" | "/><TextBlock>(E)</TextBlock>
+                    </TextBlock>
+                </TextBlock>
+                <LineBreak/>
+                voidTable:<Border Background="PaleGreen"><TextBlock>rule</TextBlock></Border><Border Background="SandyBrown"><TextBlock>symbol</TextBlock></Border><LineBreak />
+                <Border Width="52" BorderThickness="1 1 1 1" BorderBrush="Gray" Background="PaleGreen">
+                    <TextBlock>E</TextBlock></Border><Border Width="52" BorderThickness="0 1 1 1" BorderBrush="Gray">
+                    <TextBlock>E'</TextBlock></Border><Border Width="52" BorderThickness="0 1 1 1" BorderBrush="Gray"  Background="SandyBrown">
+                    <TextBlock>T</TextBlock></Border><Border Width="52" BorderThickness="0 1 1 1" BorderBrush="Gray">
+                    <TextBlock>T'</TextBlock></Border><Border Width="52" BorderThickness="0 1 1 1" BorderBrush="Gray">
+                    <TextBlock>F</TextBlock></Border><LineBreak />
+                <Border Width="52" BorderThickness="1 0 1 1" BorderBrush="Gray" Background="PaleGreen">
+                    <TextBlock>0</TextBlock></Border><Border Width="52" BorderThickness="0 0 1 1" BorderBrush="Gray">
+                    <TextBlock>1'</TextBlock></Border><Border Width="52" BorderThickness="0 0 1 1" BorderBrush="Gray"  Background="SandyBrown">
+                    <TextBlock>0</TextBlock></Border><Border Width="52" BorderThickness="0 0 1 1" BorderBrush="Gray">
+                    <TextBlock>1'</TextBlock></Border><Border Width="52" BorderThickness="0 0 1 1" BorderBrush="Gray">
+                    <TextBlock>0</TextBlock></Border><LineBreak /><LineBreak />
+                
+                firstSetList:<Border Background="PaleGreen"><TextBlock>desSet</TextBlock></Border><Border Background="SandyBrown"><TextBlock>srcSet</TextBlock></Border><LineBreak />
+                <Border Background="PaleGreen"><TextBlock><Run Foreground="Gray" Text="FIRST ( "/>exp<Run Foreground="Gray" Text=" ) = { "/>$<Run Foreground="Gray" Text=" }"/></TextBlock></Border><LineBreak />
+                <Border Background="SandyBrown"><TextBlock><Run Foreground="Gray" Text="FIRST ( "/>addop<Run Foreground="Gray" Text=" ) = { "/><Run Foreground="Gray" Text=" }"/></TextBlock></Border><LineBreak />
+                <Run Foreground="Gray" Text="FIRST ( "/>term<Run Foreground="Gray" Text=" ) = { "/>$<Run Foreground="Gray" Text=" }"/><LineBreak />
+                <Run Foreground="Gray" Text="FIRST ( "/>mulop<Run Foreground="Gray" Text=" ) = { "/><Run Foreground="Gray" Text=" }"/><LineBreak />
+                <Run Foreground="Gray" Text="FIRST ( "/>factor<Run Foreground="Gray" Text=" ) = { "/><Run Foreground="Gray" Text=" }"/><LineBreak /><LineBreak />
+                selectSetList:<Border Background="PaleGreen"><TextBlock>selectSet</TextBlock></Border><LineBreak />
+                <Border Background="PaleGreen"><TextBlock><Run Foreground="Gray" Text="SELECT ( "/>E<Run Foreground="Gray" Text=" -> "/>TE'<Run Foreground="Gray" Text=" ) = { "/>i<Run Foreground="Gray" Text=" , "/>(<Run Foreground="Gray" Text=" }"/></TextBlock></Border><LineBreak />
+                <Run Foreground="Gray" Text="SELECT ( "/>E'<Run Foreground="Gray" Text=" -> "/>+TE'<Run Foreground="Gray" Text=" ) = { "/>+<Run Foreground="Gray" Text=" }"/><LineBreak />
+                <Run Foreground="Gray" Text="SELECT ( "/>E'<Run Foreground="Gray" Text=" -> "/>$<Run Foreground="Gray" Text=" ) = { "/>#<Run Foreground="Gray" Text=" , "/>)<Run Foreground="Gray" Text=" }"/><LineBreak />
+                <Run Foreground="Gray" Text="SELECT ( "/>T<Run Foreground="Gray" Text=" -> "/>FT'<Run Foreground="Gray" Text=" ) = { "/>i<Run Foreground="Gray" Text=" , "/>(<Run Foreground="Gray" Text=" }"/><LineBreak />
+                <Run Foreground="Gray" Text="SELECT ( "/>T'<Run Foreground="Gray" Text=" -> "/>*FT'<Run Foreground="Gray" Text=" ) = { "/>*<Run Foreground="Gray" Text=" }"/><LineBreak />
+                
+                <LineBreak />
+                
+                
+                <!--
                 followSetList:<LineBreak /><LineBreak />
                 selectSetList:<LineBreak /><LineBreak />
-                parsingTable:<LineBreak /><LineBreak />
-                parsingStack:<LineBreak /><LineBreak />
-                <TextBlock>123</TextBlock>
+                parsingTable:<Border Background="PaleGreen"><TextBlock>foundProduction</TextBlock></Border><LineBreak />
+                <Border Width="52" BorderThickness="1 1 1 1" BorderBrush="Gray">
+                    <TextBlock></TextBlock></Border><Border Width="52" BorderThickness="0 1 1 1" BorderBrush="Gray">
+                    <TextBlock>+</TextBlock></Border><Border Width="52" BorderThickness="0 1 1 1" BorderBrush="Gray">
+                    <TextBlock>*</TextBlock></Border><Border Width="52" BorderThickness="0 1 1 1" BorderBrush="Gray">
+                    <TextBlock>i</TextBlock></Border><Border Width="52" BorderThickness="0 1 1 1" BorderBrush="Gray">
+                    <TextBlock>(</TextBlock></Border><Border Width="52" BorderThickness="0 1 1 1" BorderBrush="Gray">
+                    <TextBlock>)</TextBlock></Border><Border Width="52" BorderThickness="0 1 1 1" BorderBrush="Gray">
+                    <TextBlock>#</TextBlock></Border><LineBreak />
+                <Border Width="52" BorderThickness="1 0 1 1" BorderBrush="Gray">
+                    <TextBlock>E</TextBlock></Border><Border Width="52" BorderThickness="0 0 1 1" BorderBrush="Gray">
+                    <TextBlock></TextBlock></Border><Border Width="52" BorderThickness="0 0 1 1" BorderBrush="Gray">
+                    <TextBlock></TextBlock></Border><Border Width="52" BorderThickness="0 0 1 1" BorderBrush="Gray">
+                    <TextBlock>TE'</TextBlock></Border><Border Width="52" BorderThickness="0 0 1 1" BorderBrush="Gray" Background="PaleGreen">
+                    <TextBlock></TextBlock></Border><Border Width="52" BorderThickness="0 0 1 1" BorderBrush="Gray">
+                    <TextBlock></TextBlock></Border><Border Width="52" BorderThickness="0 0 1 1" BorderBrush="Gray">
+                    <TextBlock></TextBlock></Border><LineBreak />
+                <Border Width="52" BorderThickness="1 0 1 1" BorderBrush="Gray">
+                    <TextBlock>E'</TextBlock></Border><Border Width="52" BorderThickness="0 0 1 1" BorderBrush="Gray">
+                    <TextBlock></TextBlock></Border><Border Width="52" BorderThickness="0 0 1 1" BorderBrush="Gray">
+                    <TextBlock></TextBlock></Border><Border Width="52" BorderThickness="0 0 1 1" BorderBrush="Gray">
+                    <TextBlock></TextBlock></Border><Border Width="52" BorderThickness="0 0 1 1" BorderBrush="Gray">
+                    <TextBlock></TextBlock></Border><Border Width="52" BorderThickness="0 0 1 1" BorderBrush="Gray">
+                    <TextBlock></TextBlock></Border><Border Width="52" BorderThickness="0 0 1 1" BorderBrush="Gray">
+                    <TextBlock></TextBlock></Border><LineBreak /><Border Width="52" BorderThickness="1 0 1 1" BorderBrush="Gray">
+                    <TextBlock>T</TextBlock></Border><Border Width="52" BorderThickness="0 0 1 1" BorderBrush="Gray">
+                    <TextBlock></TextBlock></Border><Border Width="52" BorderThickness="0 0 1 1" BorderBrush="Gray">
+                    <TextBlock></TextBlock></Border><Border Width="52" BorderThickness="0 0 1 1" BorderBrush="Gray">
+                    <TextBlock></TextBlock></Border><Border Width="52" BorderThickness="0 0 1 1" BorderBrush="Gray">
+                    <TextBlock></TextBlock></Border><Border Width="52" BorderThickness="0 0 1 1" BorderBrush="Gray">
+                    <TextBlock></TextBlock></Border><Border Width="52" BorderThickness="0 0 1 1" BorderBrush="Gray">
+                    <TextBlock></TextBlock></Border><LineBreak /><Border Width="52" BorderThickness="1 0 1 1" BorderBrush="Gray">
+                    <TextBlock>T'</TextBlock></Border><Border Width="52" BorderThickness="0 0 1 1" BorderBrush="Gray">
+                    <TextBlock></TextBlock></Border><Border Width="52" BorderThickness="0 0 1 1" BorderBrush="Gray">
+                    <TextBlock></TextBlock></Border><Border Width="52" BorderThickness="0 0 1 1" BorderBrush="Gray">
+                    <TextBlock></TextBlock></Border><Border Width="52" BorderThickness="0 0 1 1" BorderBrush="Gray">
+                    <TextBlock></TextBlock></Border><Border Width="52" BorderThickness="0 0 1 1" BorderBrush="Gray">
+                    <TextBlock></TextBlock></Border><Border Width="52" BorderThickness="0 0 1 1" BorderBrush="Gray">
+                    <TextBlock></TextBlock></Border><LineBreak /><Border Width="52" BorderThickness="1 0 1 1" BorderBrush="Gray">
+                    <TextBlock>F</TextBlock></Border><Border Width="52" BorderThickness="0 0 1 1" BorderBrush="Gray">
+                    <TextBlock></TextBlock></Border><Border Width="52" BorderThickness="0 0 1 1" BorderBrush="Gray">
+                    <TextBlock></TextBlock></Border><Border Width="52" BorderThickness="0 0 1 1" BorderBrush="Gray">
+                    <TextBlock></TextBlock></Border><Border Width="52" BorderThickness="0 0 1 1" BorderBrush="Gray">
+                    <TextBlock></TextBlock></Border><Border Width="52" BorderThickness="0 0 1 1" BorderBrush="Gray">
+                    <TextBlock></TextBlock></Border><Border Width="52" BorderThickness="0 0 1 1" BorderBrush="Gray">
+                    <TextBlock></TextBlock></Border><LineBreak /><LineBreak /><LineBreak />
+                -->
+                string: i+i*i#<LineBreak />
+                stack:<Border Background="PaleGreen"><TextBlock>topSymbol</TextBlock></Border><LineBreak />
+                <Border Width="52" BorderThickness="1" BorderBrush="Gray" Background="PaleGreen"><TextBlock>F</TextBlock></Border><LineBreak /><LineBreak />
+                <Border Width="52" BorderThickness="1 0 1 1" BorderBrush="Gray"><TextBlock>T'</TextBlock></Border><LineBreak />
+                <Border Width="52" BorderThickness="1 0 1 1" BorderBrush="Gray"><TextBlock>E'</TextBlock></Border><LineBreak />
+                <Border Width="52" BorderThickness="1 0 1 1" BorderBrush="Gray"><TextBlock>#</TextBlock></Border><LineBreak />
+                <Run Text="1   #         i+i*i#    E->TE'"/><LineBreak />
+                <Run Text="2   #E'       i+i*i#    T->FT'"/><LineBreak />
+                <Run Text="3   #E'T'     i+i*i#    F->i"/><LineBreak />
+                <LineBreak />
             </TextBlock>
         </ScrollViewer>
         <GridSplitter 
@@ -327,6 +420,7 @@
             Grid.Row="2" 
             Grid.Column="0" 
             TabStripPlacement="Top" 
+            Focusable="False"
             Grid.RowSpan="{Binding RowSpan, Mode=OneWay}"
             Grid.ColumnSpan="{Binding ColSpan, Mode=OneWay}">
             <TabControl.Template>
@@ -390,15 +484,20 @@
                 IsSelected="True" 
                 Visibility="{Binding BuildVisible, Mode=OneWay, Converter={StaticResource VisibilityConverter}}">
                 <TextBox 
+                    FontSize="10pt"
+                    FontFamily="Consolas"
                     AcceptsReturn="True" 
                     Name="buildText" 
-                    IsReadOnly="true" 
+                    IsReadOnly="true"
+                    TextWrapping = "Wrap"
                     VerticalScrollBarVisibility="Auto" />
             </TabItem>
             <TabItem 
                 Header="输出" 
                 Visibility="{Binding PrintVisible, Mode=OneWay, Converter={StaticResource VisibilityConverter}}">
                 <TextBox 
+                    FontSize="10pt"
+                    FontFamily="Consolas"
                     AcceptsReturn="True" 
                     Name="outputText" 
                     IsReadOnly="true" 
@@ -411,6 +510,8 @@
                     VerticalScrollBarVisibility="Visible"
                     HorizontalScrollBarVisibility="Auto">
                     <TextBlock 
+                        FontSize="10pt"
+                        FontFamily="Consolas"
                         Name="gdbText" />
                 </ScrollViewer>
             </TabItem>

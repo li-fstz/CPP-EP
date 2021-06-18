@@ -23,8 +23,8 @@ namespace CPP_EP.Lab.Data {
                 MatchCollection ms = Text.Matches (structs[0]);
                 if (ms.Count > 1 && ms.First ().Success) {
                     string address = ms.First ().Groups[1].Value;
-                    VoidTable h = Get<VoidTable> (address);
-                    if (h != null && h.GetHashCode () == s.GetHashCode ()) {
+                    VoidTable h = Get<VoidTable> (address, s);
+                    if (h is VoidTable) {
                         v = h;
                     } else {
                         v = new VoidTable (address, s) {

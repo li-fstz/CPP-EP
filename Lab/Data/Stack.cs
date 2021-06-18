@@ -4,7 +4,7 @@ using System.Text.RegularExpressions;
 
 namespace CPP_EP.Lab.Data {
 
-    internal class Stack: GDBData {
+    public class Stack: GDBData {
         public List<string> Symbols;
 
         private Stack (string a, string s) : base (a, s) {
@@ -15,8 +15,8 @@ namespace CPP_EP.Lab.Data {
             MatchCollection ms = Text.Matches (s);
             if (ms.Count > 0 && ms.First ().Success) {
                 string address = ms.First ().Groups[1].Value;
-                Stack h = Get<Stack> (address);
-                if (h != null && h.GetHashCode () == s.GetHashCode ()) {
+                Stack h = Get<Stack> (address, s);
+                if (h is Stack) {
                     stack = h;
                 } else {
                     stack = new Stack (address, s) {

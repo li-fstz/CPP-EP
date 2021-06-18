@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
@@ -51,7 +52,7 @@ namespace CPP_EP.Lab {
                 DrawSetList (4, "followSetList", "FOLLOW");
                 DrawSelectSetList (5, "selectSetList");
                 DrawParsingTable (6, "parsingTable");
-            }, "rule", "production", "symbol", "srcSet", "selectSet", "foundProduction");
+            }, "rule", "production", "symbol", "srcSet", "selectSet", "foundProduction", "isLL1Rule");
         }
 
         protected void DrawSelectSetList (int i, string label) {
@@ -72,6 +73,7 @@ namespace CPP_EP.Lab {
                             Visibility = Visibility.Collapsed
                         };
                         bool selectv = false;
+                        tb.Inlines.Add(selectb);
                         tb.Inlines.Add (new LineBreak ());
                         foreach (SelectSet set in setList) {
                             TextBlock sb = new();
@@ -97,6 +99,9 @@ namespace CPP_EP.Lab {
                             selectv |= set.Address == selectSet;
                             tb.Inlines.Add (new LineBreak ());
                         }
+                        if (selectv) {
+                            selectb.Visibility = Visibility.Visible;
+                        }
                     });
                 }
             });
@@ -106,10 +111,11 @@ namespace CPP_EP.Lab {
             GetParsingTable (label, parsingTable => {
                 if (parsingTable != null && parsingTable.TableHead.Count > 0) {
                     if (DataHash.ContainsKey (label) && parsingTable.Equals (DataHash[label] as ParsingTable)
-                        && !CheckWatchedValueChange ("DrawParsingTable_", "foundProduction")) {
+                        && !CheckWatchedValueChange ("DrawParsingTable_", "foundProduction", "isLL1Rule")) {
                         return;
                     }
                     WatchedValue.TryGetValue ("foundProduction", out string pAddress);
+                    WatchedValue.TryGetValue("isLL1Rule", out string isLL1Rule);
                     DataHash[label] = parsingTable;
                     UpdateUI (i, tb => {
                         tb.Inlines.Clear ();
@@ -129,7 +135,10 @@ namespace CPP_EP.Lab {
                                         t.Inlines.Add (s.Name);
                                     }
                                 }
-                                tb.Inlines.Add (NewBorder (t, 0, 0, 1, 1, c.Item1 == pAddress ? Brushes.PaleGreen : Brushes.White));
+                                tb.Inlines.Add (NewBorder (t, 0, 0, 1, 1, 
+                                    c.Item1 == pAddress ? 
+                                        ((isLL1Rule is null || "1".Equals(isLL1Rule)) ? Brushes.PaleGreen : Brushes.SandyBrown) : 
+                                        Brushes.White));
                             }
                             tb.Inlines.Add (new LineBreak ());
                         }

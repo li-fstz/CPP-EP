@@ -15,8 +15,8 @@ namespace CPP_EP.Lab.Data {
             MatchCollection ms = Text.Matches (s);
             if (ms.Count > 0 && ms.First ().Success) {
                 string address = ms.First ().Groups[1].Value;
-                Production h = Get<Production> (address);
-                if (h != null && h.GetHashCode () == s.GetHashCode ()) {
+                Production h = Get<Production> (address, s);
+                if (h is Production) {
                     p = h;
                 } else {
                     p = new Production (address, s) {

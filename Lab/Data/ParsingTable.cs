@@ -27,8 +27,8 @@ namespace CPP_EP.Lab.Data {
                 MatchCollection ms = Text.Matches (structs[0]);
                 if (ms.Count > 0 && ms.First ().Success) {
                     string address = ms.First ().Groups[1].Value;
-                    ParsingTable h = Get<ParsingTable> (address);
-                    if (h != null && h.GetHashCode () == s.GetHashCode ()) {
+                    ParsingTable h = Get<ParsingTable> (address, s);
+                    if (h is ParsingTable) {
                         p = h;
                     } else {
                         p = new ParsingTable (address, s) {
